@@ -7,6 +7,7 @@ import { LevelManager, resolveTiledObjectPoint } from '../managers/LevelManager'
 import { SceneManager } from '../phaser/SceneManager';
 import { InputManager } from '../phaser/InputManager';
 import { RuntimeMetrics } from '../diagnostics/RuntimeMetrics';
+import { getLegacyWorldStyle } from '../world/LegacyWorldStyle';
 
 export class WorldScene extends Phaser.Scene {
   private session!: GameSession;
@@ -101,14 +102,49 @@ export class WorldScene extends Phaser.Scene {
   }
 
   private drawLegacyWorld(): void {
-    this.cameras.main.setBackgroundColor(this.level.theme.sky);
+    const style = getLegacyWorldStyle(this.level.id);
+    const worldWidth = this.map.width * this.map.tileWidth;
+    const worldHeight = this.map.height * this.map.tileHeight;
+    this.cameras.main.setBackgroundColor(this.level.theme.sky).setBounds(0, 0, worldWidth, worldHeight).setRoundPixels(true);
     const graphics = this.add.graphics();
-    graphics.fillStyle(Phaser.Display.Color.HexStringToColor(this.level.theme.ground).color, 1);
-    graphics.fillRect(0, 80, this.map.width * this.map.tileWidth, this.map.height * this.map.tileHeight);
-    graphics.lineStyle(4, Phaser.Display.Color.HexStringToColor(this.level.theme.accent).color, 1);
-    graphics.strokeRect(18, 98, 924, 420);
-    for (let x = 30; x < 940; x += 48) for (let y = 110; y < 510; y += 48) if ((x + y) % 96 === 0) { graphics.fillStyle(0xffffff, 0.06); graphics.fillRect(x, y, 12, 12); }
+    graphics.fillStyle(Phaser.Display.Color.HexStringToColor(style.groundDark).color, 1).fillRect(0, 0, worldWidth, worldHeight);
+    graphics.fillStyle(Phaser.Display.Color.HexStringToColor(style.groundLight).color, 1).fillRoundedRect(18, 70, worldWidth - 36, worldHeight - 86, 18);
+    graphics.fillStyle(Phaser.Display.Color.HexStringToColor(style.path).color, 0.9);
+    if (this.level.id === 'level-03' || this.level.id === 'level-06') graphics.fillRoundedRect(72, 245, worldWidth - 144, 62, 18);
+    else graphics.fillRoundedRect(70, 240, 160, worldHeight - 300, 18).fillRoundedRect(worldWidth - 230, 240, 160, worldHeight - 300, 18);
+    graphics.lineStyle(3, Phaser.Display.Color.HexStringToColor(this.level.theme.accent).color, 0.8).strokeRoundedRect(18, 70, worldWidth - 36, worldHeight - 86, 18);
+    this.map.colliders.forEach((rect) => this.drawLegacyObstacle(graphics, rect, style.obstacle));
+    this.addLegacyProps(style.propKeys, worldWidth, worldHeight);
+    this.map.decorations.forEach((definition) => this.addLegacyDecoration(definition.type, definition.x, definition.y));
     this.add.text(28, 26, new I18nManager(this.session.locale).localized(this.level.title), { fontFamily: 'monospace', fontSize: '22px', color: '#fff6df', stroke: '#18233e', strokeThickness: 5 }).setDepth(10);
+  }
+
+  private drawLegacyObstacle(graphics: Phaser.GameObjects.Graphics, rect: { x: number; y: number; width: number; height: number }, kind: ReturnType<typeof getLegacyWorldStyle>['obstacle']): void {
+    const color = Phaser.Display.Color.HexStringToColor(this.level.theme.accent).color;
+    const shadow = Phaser.Display.Color.HexStringToColor('#18233e').color;
+    graphics.fillStyle(shadow, 0.34).fillRoundedRect(rect.x + 5, rect.y + 6, rect.width, rect.height, 6);
+    graphics.fillStyle(color, 0.72);
+    if (kind === 'hedge') graphics.fillRoundedRect(rect.x, rect.y, rect.width, rect.height, 12);
+    else if (kind === 'dock') graphics.fillRect(rect.x, rect.y, rect.width, rect.height).lineStyle(2, shadow, 0.65).strokeRect(rect.x + 6, rect.y + 4, rect.width - 12, Math.max(4, rect.height - 8));
+    else if (kind === 'cliff') graphics.fillRoundedRect(rect.x, rect.y, rect.width, rect.height, 4).lineStyle(3, shadow, 0.55).strokeRoundedRect(rect.x, rect.y, rect.width, rect.height, 4);
+    else if (kind === 'wall') graphics.fillRoundedRect(rect.x, rect.y, rect.width, rect.height, 3).lineStyle(2, shadow, 0.55).strokeRoundedRect(rect.x, rect.y, rect.width, rect.height, 3);
+    else graphics.fillCircle(rect.x + rect.width / 2, rect.y + rect.height / 2, Math.max(10, Math.min(rect.width, rect.height) / 2));
+  }
+
+  private addLegacyProps(propKeys: string[], worldWidth: number, worldHeight: number): void {
+    const positions = [[72, 104], [140, 470], [246, 104], [365, 468], [515, 105], [650, 468], [770, 106], [880, 470], [70, 350], [880, 350]];
+    positions.forEach(([x, y], index) => {
+      const key = propKeys[index % propKeys.length];
+      const sprite = this.add.image(Math.min(worldWidth - 32, x), Math.min(worldHeight - 32, y), key).setDisplaySize(32, 32).setDepth(2).setAlpha(0.9);
+      if (key === 'grass' || key === 'flower' || key === 'palm') this.tweens.add({ targets: sprite, y: sprite.y + 2, duration: 1200 + index * 40, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
+    });
+  }
+
+  private addLegacyDecoration(type: string, x: number, y: number): void {
+    const mapping: Record<string, string> = { 'forest-trees': 'palm', 'cave-stalactites': 'rock', 'harbor-docks': 'ruin', 'mountain-rocks': 'rock', 'castle-banners': 'shrine' };
+    const key = mapping[type];
+    if (!key) return;
+    this.add.image(x, y, key).setOrigin(0, 0).setDisplaySize(64, 64).setDepth(3);
   }
 
   private drawBeachWorld(): void {
@@ -151,9 +187,7 @@ export class WorldScene extends Phaser.Scene {
     }
     const obstacles = this.physics.add.staticGroup();
     this.map.colliders.forEach((rect) => {
-      const block = isBeach
-        ? this.add.zone(rect.x + rect.width / 2, rect.y + rect.height / 2, rect.width, rect.height)
-        : this.add.rectangle(rect.x + rect.width / 2, rect.y + rect.height / 2, rect.width, rect.height, 0x26304f, 1).setStrokeStyle(3, 0x18233e);
+      const block = this.add.zone(rect.x + rect.width / 2, rect.y + rect.height / 2, rect.width, rect.height);
       this.physics.add.existing(block, true);
       obstacles.add(block);
     });

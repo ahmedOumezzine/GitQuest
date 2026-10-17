@@ -13,7 +13,7 @@ Date : 2026-10-17
 
 ## Résultats vérifiables
 
-- `npm test` : **34/34 PASS**.
+- `npm test` : **35/35 PASS**.
 - `npm run typecheck` : **PASS**.
 - `npm run build` : **PASS**.
 - Chrome desktop : menu, paramètres, changement de langue, niveau 1 et absence d’erreur console vérifiés.
@@ -28,6 +28,7 @@ Date : 2026-10-17
 - Les six cartes JSON Tiled ont été vérifiées par test sur les couches `Ground`, `Decorations`, `Collisions`, `Objects`, le spawn, Midou et la porte.
 - Les positions Tiled des six spawns, de Midou et des portes sont maintenant consommées par `WorldScene`, avec repli explicite sur les définitions de niveau ; leur concordance est couverte par un test.
 - Le chargeur refuse une carte Tiled incomplète ou une couche `Ground` incohérente avec une erreur explicite ; ce cas est couvert par test.
+- Les niveaux 2 et 6 ont été vérifiés visuellement après l’ajout de styles legacy distincts ; la console Chrome est restée sans erreur ni avertissement.
 - La surface Phaser expose la direction RTL lorsque l’arabe est sélectionné ; les alignements du HUD suivent déjà cette direction.
 - Vérification Chrome arabe : menu traduit, paramètres centrés, branding du menu masqué derrière le panneau, Retour fonctionnel, console à 0 erreur/0 avertissement.
 - Chargement asynchrone vérifié dans Chrome après découpage Vite : le menu démarre correctement et la console reste sans erreur.
@@ -50,7 +51,7 @@ Date : 2026-10-17
 - Automatisation navigateur de la saisie DOM et de l’historique : non ajoutée au dépôt ; la vérification a été exécutée directement dans Chrome via l’outil d’interface.
 - Appareils tactiles physiques et parcours tactile réel ; les trois viewports exacts du menu/paramètres sont désormais vérifiés.
 - Temps de chargement comparables et validation sur appareils tactiles physiques ; les FPS des six cartes sont désormais mesurés dans l’environnement Chrome courant.
-- Comparaison artistique complète des six régions avec les références.
+- Comparaison artistique complète des six régions avec les références ; les niveaux 2 à 6 disposent d’une passe stylisée mais pas encore d’une finition pixel-art commerciale complète.
 - Audio réel : aucun asset audio n’est présent, donc aucun faux réglage n’a été activé.
 
 ## Fichiers principaux modifiés

@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { RuntimeMetrics } from '../src/diagnostics/RuntimeMetrics';
 import { resolveQaLevelId } from '../src/diagnostics/QaRoute';
+import { getLegacyWorldStyle } from '../src/world/LegacyWorldStyle';
 
 test('RuntimeMetrics produit une mesure FPS après une seconde d’échantillonnage', () => {
   const metrics = new RuntimeMetrics();
@@ -19,4 +20,12 @@ test('la route QA ne sélectionne qu’un niveau présent dans le manifest', () 
   assert.equal(resolveQaLevelId('?qa=benchmark&qaLevel=level-07', levels), undefined);
   assert.equal(resolveQaLevelId('?qaLevel=level-02', levels), undefined);
   assert.equal(resolveQaLevelId('', levels), undefined);
+});
+
+test('les niveaux legacy possèdent des styles visuels distincts et stables', () => {
+  const styles = Array.from({ length: 5 }, (_, index) => getLegacyWorldStyle(`level-0${index + 2}`));
+  assert.equal(new Set(styles.map((style) => style.id)).size, 5);
+  assert.equal(new Set(styles.map((style) => style.obstacle)).size, 5);
+  styles.forEach((style) => assert.ok(style.propKeys.length >= 2));
+  assert.equal(getLegacyWorldStyle('unknown').id, 'fallback');
 });

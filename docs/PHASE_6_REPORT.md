@@ -36,10 +36,11 @@ Le build passe. L’avertissement Vite restant concerne uniquement le chunk vend
 
 Les paragraphes historiques de ce rapport décrivent l’état intermédiaire de la phase. L’état courant est le suivant :
 
-- `npm test` : **34/34 PASS** ;
+- `npm test` : **35/35 PASS** ;
 - `npm run typecheck` : **PASS** ;
 - `npm run build` : **PASS** ;
 - menu, paramètres, confirmation, introduction et HUD niveau 1 vérifiés avec viewport explicite `1280×720`, `844×390` et `390×844` ;
 - benchmark FPS réel obtenu pour le niveau 1 à `1280×720` via `?perf=1` ;
 - benchmark comparable des niveaux 2 à 6, appareil tactile physique et test navigateur automatisé dans le dépôt : **non réalisés**.
 - les ancres `Objects` des six cartes pilotent désormais les positions du joueur, de Midou et des portes ; un test vérifie leur concordance avec les définitions de niveau.
+- les niveaux 2 à 6 utilisent maintenant un style de rendu distinct et data-driven (palette, chemin, obstacles et props) ; les niveaux 2 et 6 ont été observés dans Chrome sans erreur console.
