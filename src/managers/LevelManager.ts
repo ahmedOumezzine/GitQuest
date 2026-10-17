@@ -32,12 +32,14 @@ export class LevelManager {
     const cached = this.maps.get(level.map.path);
     if (cached) return cached;
     const map = await this.fetchJson<TiledMapJson>(level.map.path);
+    this.validateMap(map, level.id);
     const data = TiledMapAdapter.fromJson(map);
     this.maps.set(level.map.path, data);
     return data;
   }
 
   public primeMap(level: LevelDefinition, map: TiledMapJson): void {
+    this.validateMap(map, level.id);
     this.maps.set(level.map.path, TiledMapAdapter.fromJson(map));
   }
 
@@ -58,6 +60,20 @@ export class LevelManager {
   private validateLevel(level: LevelDefinition): void {
     if (!level.id || !level.map?.path || !level.quest?.steps?.length || !level.key?.itemId || !level.exit?.requiredItemId) {
       throw new Error('Schéma de niveau invalide : ' + (level.id || 'inconnu'));
+    }
+  }
+
+  private validateMap(map: TiledMapJson, levelId: string): void {
+    if (!Number.isInteger(map.width) || !Number.isInteger(map.height) || map.width <= 0 || map.height <= 0 || !Number.isInteger(map.tilewidth) || !Number.isInteger(map.tileheight) || map.tilewidth <= 0 || map.tileheight <= 0 || !Array.isArray(map.layers)) {
+      throw new Error('Schéma Tiled invalide pour ' + levelId + '.');
+    }
+    const required = ['ground', 'decorations', 'collisions', 'objects'];
+    const names = new Set(map.layers.map((layer) => layer.name.toLowerCase()));
+    const missing = required.filter((name) => !names.has(name));
+    if (missing.length) throw new Error('Couches Tiled manquantes pour ' + levelId + ' : ' + missing.join(', ') + '.');
+    const ground = map.layers.find((layer) => layer.name.toLowerCase() === 'ground');
+    if (ground?.data?.length && ground.data.length !== map.width * map.height) {
+      throw new Error('Couche Ground Tiled incohérente pour ' + levelId + '.');
     }
   }
 }

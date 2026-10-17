@@ -9,7 +9,7 @@ Ce document décrit l’état courant vérifié dans le dépôt. Les rapports `P
 Commandes exécutées depuis `C:\Users\ahmed\source\repos\GitQuest` :
 
 ```text
-npm test       -> 33/33 PASS
+npm test       -> 34/34 PASS
 npm run typecheck -> PASS
 npm run build  -> PASS
 ```
@@ -37,6 +37,8 @@ Le build conserve un avertissement connu sur le chunk Phaser vendor (`1 208 kB` 
 - tout objet interactif dont le nom et le type correspondent à la définition de niveau.
 
 Une définition de niveau reste le repli explicite si une ancienne carte n’a pas encore l’ancre concernée. Le test `LevelManager.test.ts` vérifie les six cartes et garantit que les coordonnées Tiled correspondent aux coordonnées métier actuelles.
+
+Le même chargeur vérifie désormais les quatre couches obligatoires et la taille de `Ground`. Une carte incomplète est refusée avec une erreur exploitable par l’écran de chargement ; cette régression est couverte par un test dédié.
 
 Cette intégration ne modifie ni les règles Git, ni l’ordre des quêtes, ni les récompenses.
 

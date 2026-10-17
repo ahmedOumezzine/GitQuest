@@ -84,3 +84,13 @@ test('LevelManager conserve le contexte global de fetch', async () => {
   const levels = await manager.loadAll();
   assert.deepEqual(levels, []);
 });
+
+test('LevelManager refuse une carte Tiled incomplète avec une erreur exploitable', async () => {
+  const fetcher: typeof fetch = async () => new Response(JSON.stringify({
+    width: 2, height: 2, tilewidth: 32, tileheight: 32,
+    layers: [{ name: 'Ground', type: 'tilelayer', data: [1, 1, 1, 1] }],
+  }));
+  const manager = new LevelManager('/index.json', fetcher);
+  const level = { id: 'level-07', order: 7, title: { fr: 'Nouveau niveau' }, map: { path: '/map.json' }, theme: { sky: '#000', ground: '#111', accent: '#fff' }, playerSpawn: { x: 1, y: 1 }, mentor: { x: 2, y: 2 }, objects: [], dialogues: [], quest: { id: 'q7', title: { fr: 'Q7' }, steps: [{ id: 'exit', kind: 'open-exit' }] }, gitCommands: [], key: { itemId: 'key', objectId: 'chest' }, exit: { position: { x: 3, y: 3 }, requiredItemId: 'key' } } as never;
+  await assert.rejects(() => manager.loadMap(level), /Couches Tiled manquantes/);
+});
