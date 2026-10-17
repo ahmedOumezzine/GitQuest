@@ -13,7 +13,7 @@ Date : 2026-10-17
 
 ## Résultats vérifiables
 
-- `npm test` : **25/25 PASS**.
+- `npm test` : **26/26 PASS**.
 - `npm run typecheck` : **PASS**.
 - `npm run build` : **PASS**.
 - Chrome desktop : menu, paramètres, changement de langue, niveau 1 et absence d’erreur console vérifiés.
@@ -32,11 +32,13 @@ Date : 2026-10-17
 - Parcours navigateur niveau 2 vérifié : Midou → `git add .` → coffre/clé → XP cumulée `100` → porte → chargement de « Grotte des Souvenirs » (niveau 3), sans erreur console.
 - Parcours navigateur complet vérifié dans Chrome desktop sur `http://172.29.192.1:5174/?qa=level3` : niveaux 3 à 6 enchaînés avec `git commit -m 'archive'`, `git push`, `git pull`, `git branch feature`, `git switch feature` et `git merge main` ; chaque coffre, clé, porte et gain d’XP a été observé jusqu’à l’écran Victoire (`XP totale : 300`).
 - Console Chrome sur ce parcours complet : aucune erreur ni avertissement applicatif ; seuls les messages normaux de connexion Vite et de démarrage Phaser sont présents.
+- Terminal accessible vérifié dans Chrome après la dernière correction : champ HTML exposé comme text field, `git init` saisi avec espace, commande collée, et `ArrowUp` rappelant effectivement la commande précédente ; console sans erreur applicative.
 - Console Chrome sur le parcours isolé : **0 erreur / 0 avertissement**.
 
 ## Non certifié
 
 - Parcours navigateur complet automatisé : non réalisé sous Playwright/WebDriver ; le parcours complet a toutefois été exécuté manuellement par clavier dans Chrome desktop.
+- Automatisation navigateur de la saisie DOM et de l’historique : non ajoutée au dépôt ; la vérification a été exécutée directement dans Chrome via l’outil d’interface.
 - Viewports mobiles exacts et appareils tactiles physiques.
 - FPS et temps de chargement mesurés sur les six niveaux.
 - Comparaison artistique complète des six régions avec les références.
@@ -48,6 +50,8 @@ Date : 2026-10-17
 - `src/scenes/WorldScene.ts`
 - `src/scenes/TitleScene.ts`
 - `src/scenes/UIScene.ts`
+- `src/systems/TerminalInputModel.ts`
+- `src/styles/main.css`
 - `src/phaser/InputManager.ts`
 - `src/managers/LevelManager.ts`
 - `src/managers/SaveManager.ts`

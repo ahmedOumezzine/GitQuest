@@ -5,6 +5,7 @@ import type { LevelDefinition } from '../models/game';
 import { I18nManager } from '../managers/I18nManager';
 import { InputManager } from '../phaser/InputManager';
 import type { GitCommandResult } from '../systems/GitSimulator';
+import { TerminalInputModel } from '../systems/TerminalInputModel';
 import { ResponsiveLayoutManager, type LayoutMetrics } from '../ui/layout/ResponsiveLayoutManager';
 import { UITheme } from '../ui/theme/UITheme';
 
@@ -25,7 +26,7 @@ export class UIScene extends Phaser.Scene {
   private terminal!: Phaser.GameObjects.Container;
   private output!: Phaser.GameObjects.Text;
   private inputField!: Phaser.GameObjects.Text;
-  private inputValue = '';
+  private readonly terminalInputModel = new TerminalInputModel();
   private skipTerminalShortcutKey = false;
   private languageButtons: Phaser.GameObjects.Text[] = [];
   private journalButton!: Phaser.GameObjects.Text;
@@ -38,13 +39,12 @@ export class UIScene extends Phaser.Scene {
   private terminalPrompt!: Phaser.GameObjects.Text;
   private terminalHint!: Phaser.GameObjects.Text;
   private terminalClose!: Phaser.GameObjects.Text;
+  private terminalInput?: HTMLInputElement;
   private dialoguePanel!: Phaser.GameObjects.Container;
   private dialogueBackground!: Phaser.GameObjects.Rectangle;
   private dialogueText!: Phaser.GameObjects.Text;
   private dialogueClose!: Phaser.GameObjects.Text;
   private touchInput?: InputManager;
-  private commandHistory: string[] = [];
-  private historyIndex = -1;
 
   public constructor() { super('UIScene'); }
 
@@ -80,9 +80,10 @@ export class UIScene extends Phaser.Scene {
     EventBus.on('dialogue', ({ text }: { text: string }) => this.showDialogue(text));
     EventBus.on('toast', (text: string) => this.showToast(text));
     EventBus.on('terminal-open', () => {
-      this.terminal.setVisible(true);
-      this.inputValue = '';
+      this.setTerminalVisible(true);
+      this.terminalInputModel.clear();
       this.inputField.setText('');
+      if (this.terminalInput) this.terminalInput.value = '';
       // La touche T qui ouvre le terminal est aussi reçue par le listener
       // générique ci-dessous. Elle ne doit pas devenir le premier caractère.
       this.skipTerminalShortcutKey = true;
@@ -125,12 +126,14 @@ export class UIScene extends Phaser.Scene {
     this.terminal.add(this.terminalHint);
     this.inputField = this.add.text(55, 280, '', { fontFamily: UITheme.fontFamily, fontSize: '17px', color: '#fff6df', backgroundColor: '#18233e', padding: { x: 5, y: 3 } });
     this.terminal.add(this.inputField);
+    this.createTerminalDomInput();
     this.terminalClose = this.add.text(675, 18, '×', { fontFamily: UITheme.fontFamily, fontSize: '22px', color: '#fff6df', padding: { x: 10, y: 10 } }).setOrigin(0.5).setInteractive();
-    this.terminalClose.on('pointerdown', () => { this.terminal.setVisible(false); EventBus.emit('terminal-close'); });
+    this.terminalClose.on('pointerdown', () => this.closeTerminal());
     this.terminal.add(this.terminalClose);
     this.input.keyboard!.on('keydown', (event: KeyboardEvent) => {
       if (!this.terminal.visible) return;
-      if (event.key === 'Escape') { this.terminal.setVisible(false); EventBus.emit('terminal-close'); return; }
+      if (this.terminalInput) return;
+      if (event.key === 'Escape') { this.closeTerminal(); return; }
       if (this.skipTerminalShortcutKey && event.key.toLowerCase() === 't') {
         this.skipTerminalShortcutKey = false;
         return;
@@ -138,10 +141,73 @@ export class UIScene extends Phaser.Scene {
       if (event.key === 'Enter') this.runCommand();
       else if (event.key === 'ArrowUp') this.selectHistory(-1);
       else if (event.key === 'ArrowDown') this.selectHistory(1);
-      else if (event.key === 'Backspace') this.inputValue = this.inputValue.slice(0, -1);
-      else if (event.key.length === 1) this.inputValue += event.key;
-      this.inputField.setText(this.inputValue);
+      else if (event.key === 'Backspace') this.terminalInputModel.setValue(this.terminalInputModel.value.slice(0, -1));
+      else if (event.key.length === 1) this.terminalInputModel.setValue(this.terminalInputModel.value + event.key);
+      this.inputField.setText(this.terminalInputModel.value);
     });
+  }
+
+  private createTerminalDomInput(): void {
+    if (typeof document === 'undefined') return;
+    const root = document.querySelector<HTMLElement>('#game-root');
+    if (!root) return;
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'gitquest-terminal-input';
+    input.autocomplete = 'off';
+    input.spellcheck = false;
+    input.setAttribute('aria-label', this.i18n.text('terminalHelp'));
+    input.style.display = 'none';
+    input.addEventListener('input', () => {
+      this.terminalInputModel.setValue(input.value);
+      this.inputField.setText(this.terminalInputModel.value);
+    });
+    input.addEventListener('keydown', (event) => {
+      if (!this.terminal.visible) return;
+      event.stopPropagation();
+      if (event.key === 'Escape') { event.preventDefault(); this.closeTerminal(); return; }
+      if (event.key === 'Enter') { event.preventDefault(); this.runCommand(); return; }
+      if (event.key === 'ArrowUp') { event.preventDefault(); this.selectHistory(-1); return; }
+      if (event.key === 'ArrowDown') { event.preventDefault(); this.selectHistory(1); }
+    });
+    root.appendChild(input);
+    this.terminalInput = input;
+    this.inputField.setVisible(false);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => input.remove());
+  }
+
+  private setTerminalVisible(visible: boolean): void {
+    this.terminal.setVisible(visible);
+    if (!this.terminalInput) return;
+    this.terminalInput.style.display = visible ? 'block' : 'none';
+    if (visible) {
+      this.syncTerminalDomInput();
+      this.time.delayedCall(0, () => this.terminalInput?.focus());
+    } else {
+      this.terminalInput.blur();
+    }
+  }
+
+  private closeTerminal(): void {
+    this.setTerminalVisible(false);
+    EventBus.emit('terminal-close');
+  }
+
+  private syncTerminalDomInput(): void {
+    const input = this.terminalInput;
+    const canvas = this.game.canvas;
+    const root = document.querySelector<HTMLElement>('#game-root');
+    if (!input || !canvas || !root || !this.terminal.visible) return;
+    const canvasRect = canvas.getBoundingClientRect();
+    const rootRect = root.getBoundingClientRect();
+    const scaleX = canvasRect.width / Math.max(1, this.layout.current.width);
+    const scaleY = canvasRect.height / Math.max(1, this.layout.current.height);
+    const terminalWidth = this.terminalBackground.width;
+    const terminalHeight = this.terminalBackground.height;
+    input.style.left = `${canvasRect.left - rootRect.left + (this.terminal.x + 55) * scaleX}px`;
+    input.style.top = `${canvasRect.top - rootRect.top + (this.terminal.y + terminalHeight - 50) * scaleY}px`;
+    input.style.width = `${Math.max(100, (terminalWidth - 90) * scaleX)}px`;
+    input.style.height = `${Math.max(28, 30 * scaleY)}px`;
   }
 
   private createDialoguePanel(): void {
@@ -156,17 +222,16 @@ export class UIScene extends Phaser.Scene {
   }
 
   private runCommand(): void {
-    const entered = this.inputValue.trim();
+    const entered = this.terminalInputModel.value.trim();
     if (!entered) return;
     if (entered === 'git help' || entered === 'help') {
       this.output.setText((this.output.text + '\n$ ' + entered + '\n' + this.i18n.text('terminalHelp')).slice(-1700));
-      this.inputValue = '';
-      this.historyIndex = -1;
+      this.terminalInputModel.clear();
       this.inputField.setText('');
+      if (this.terminalInput) this.terminalInput.value = '';
       return;
     }
-    this.commandHistory = [...this.commandHistory.filter((item) => item !== entered), entered].slice(-20);
-    this.historyIndex = -1;
+    this.terminalInputModel.remember(entered);
     const result: GitCommandResult = this.session.git.execute(entered);
     const quest = this.world?.activeQuest;
     if (quest && result.operation) {
@@ -175,19 +240,24 @@ export class UIScene extends Phaser.Scene {
       this.refresh();
     }
     this.output.setText((this.output.text + '\n' + (result.ok ? '$ ' : '! ') + entered + '\n' + this.i18n.gitMessage(result.message)).slice(-1700));
-    this.inputValue = '';
+    this.terminalInputModel.clear();
     this.inputField.setText('');
+    if (this.terminalInput) this.terminalInput.value = '';
     this.session.save();
   }
 
   private selectHistory(direction: -1 | 1): void {
-    if (!this.commandHistory.length) {
+    const previous = this.terminalInputModel.value;
+    const next = this.terminalInputModel.moveHistory(direction);
+    if (next === previous && !next) {
       this.showToast(this.i18n.text('terminalHistoryEmpty'));
       return;
     }
-    this.historyIndex = Math.max(-1, Math.min(this.commandHistory.length - 1, this.historyIndex + direction));
-    this.inputValue = this.historyIndex < 0 ? '' : this.commandHistory[this.commandHistory.length - 1 - this.historyIndex];
-    this.inputField.setText(this.inputValue);
+    this.inputField.setText(next);
+    if (this.terminalInput) {
+      this.terminalInput.value = next;
+      this.terminalInput.setSelectionRange(this.terminalInput.value.length, this.terminalInput.value.length);
+    }
   }
 
   private showDialogue(text: string): void {
@@ -218,6 +288,7 @@ export class UIScene extends Phaser.Scene {
     const terminalTitle = this.terminal?.getByName('terminal-title') as Phaser.GameObjects.Text | undefined;
     terminalTitle?.setText(this.i18n.text('terminalTitle'));
     this.terminalHint?.setText(this.i18n.text('terminalHelp'));
+    if (this.terminalInput) this.terminalInput.setAttribute('aria-label', this.i18n.text('terminalHelp'));
     if (this.output && !this.output.text.includes('\n$ ') && !this.output.text.includes('\n! ')) this.output.setText(this.i18n.text('terminalWelcome') + '\n');
     // Phaser conserve ses coordonnées de scène, mais la surface doit exposer
     // la direction active aux lecteurs et aux outils d’intégration.
@@ -271,6 +342,7 @@ export class UIScene extends Phaser.Scene {
     this.terminalPrompt?.setPosition(30, terminalHeight - 50);
     this.inputField?.setPosition(55, terminalHeight - 50);
     this.terminalHint?.setPosition(30, terminalHeight - 22).setWordWrapWidth(Math.max(150, terminalWidth - 60));
+    this.syncTerminalDomInput();
     this.touchInput?.layoutTouch(metrics);
     const dialogueWidth = Math.min(760, metrics.width - margin * 2);
     const dialogueHeight = metrics.compact ? 122 : 140;

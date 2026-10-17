@@ -2,5 +2,18 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; min-height: 100%; background: #10172b; overflow: hidden; }
 body { display: grid; place-items: center; }
-#game-root { width: 100vw; height: 100vh; display: grid; place-items: center; }
+#game-root { width: 100vw; height: 100vh; display: grid; place-items: center; position: relative; }
 canvas { image-rendering: pixelated; max-width: 100%; max-height: 100%; }
+.gitquest-terminal-input {
+  position: absolute;
+  z-index: 100;
+  border: 2px solid #f7d56a;
+  border-radius: 0;
+  outline: none;
+  background: #18233e;
+  color: #fff6df;
+  padding: 4px 6px;
+  font: 17px monospace;
+  box-shadow: 0 0 0 1px #10172b;
+}
+.gitquest-terminal-input::selection { background: #f7d56a; color: #18233e; }

@@ -19,16 +19,17 @@ La Phase 4 est partiellement implémentée sans modification des règles de `Git
 - La direction `dir` de la surface Phaser suit désormais la locale active, en complément des alignements RTL du HUD.
 - `SaveManager` tolère les erreurs de lecture, d’écriture, de suppression et les JSON corrompus sans supprimer la donnée brute.
 - Compatibilité de migration existante conservée.
+- Le terminal utilise désormais un champ HTML réel, positionné au-dessus de la surface Phaser, avec libellé accessible, collage, sélection native et saisie IME ; le rendu Phaser reste un fallback hors navigateur.
+- L’historique du terminal est isolé dans `TerminalInputModel`, limité à vingt commandes et corrigé pour que la première navigation avec `ArrowUp` rappelle bien la dernière commande.
 
 ## Tests
 
-- 25 tests unitaires passent, dont un parcours data-driven des six niveaux et un test de localisation du terminal.
+- 26 tests unitaires passent, dont un parcours data-driven des six niveaux, un test de localisation du terminal et un test de l’historique avec espaces.
 - TypeScript passe.
 - Build Vite passe.
 
 ## Reste à faire
 
 - Les messages internes de `GitSimulator` restent canoniquement en français ; seule leur présentation est localisée par `I18nManager`, afin de préserver la logique métier.
-- Ajouter un vrai champ de saisie DOM accessible pour IME, sélection et collage.
 - Le test navigateur manuel du terminal et de `git init` est passé ; automatiser ce parcours reste à faire.
 - Ajouter des fixtures de sauvegardes historiques antérieures à la version 1.
