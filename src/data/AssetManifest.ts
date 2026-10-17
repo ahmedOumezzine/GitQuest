@@ -19,6 +19,8 @@ export const imageAssets: AssetEntry[] = [
     ['level-06-castle', 'level-06-castle.png'],
   ].map(([key, file]) => ({ key, path: `/assets/backgrounds/${file}` })),
   { key: 'island-tileset', path: '/assets/tilesets/island-tileset.svg' },
+  { key: 'player-menu-v2', path: '/assets/sprites/player-menu-v2.png' },
+  { key: 'midou-menu-v2', path: '/assets/sprites/midou-menu-v2.png' },
   ...['player', 'midou', 'chest', 'crystal', 'scroll', 'gate', 'key', 'palm', 'rock', 'grass', 'ruin', 'shrine', 'shrine-glow', 'lighthouse', 'wave', 'flower', 'shell', 'player-scarf', 'midou-staff'].map((key) => ({ key, path: `/assets/sprites/${key}.svg` })),
 ];
 

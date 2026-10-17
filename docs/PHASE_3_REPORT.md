@@ -315,7 +315,7 @@ La capture Chrome disponible pour cette session était en environnement desktop.
 
 La distance visuelle principale est réduite : le menu possède désormais des nuages volumétriques, un coucher de soleil nuancé, un océan texturé avec reflets et écume, une plage détaillée, des reliefs, une végétation abondante et une profondeur lumineuse. Le logo, la hiérarchie des boutons et le panneau Paramètres restent séparés du décor et interactifs.
 
-Il subsiste une différence avec la référence : le joueur et Midou utilisent encore les sprites locaux 32×32 agrandis, et non deux illustrations de menu spécialement dessinées avec des poses et expressions équivalentes à la référence. Une passe artistique dédiée aux personnages serait nécessaire pour une correspondance encore plus proche.
+Il subsiste une différence avec la référence : les spritesheets 32×32 du monde restent volontairement simples ; les illustrations raster détaillées sont réservées aux écrans de présentation et ne remplacent pas les animations de gameplay.
 
 ### Étapes C et D réalisées partiellement
 
@@ -335,3 +335,9 @@ Cette phrase correspondait à l’état de l’étape B.2 au moment de sa rédac
 ### Mise à jour — fonds raster des niveaux 2 à 6
 
 Une passe artistique supplémentaire a ajouté un fond raster local dédié à chaque région legacy (`public/assets/backgrounds/level-02-forest.png` à `level-06-castle.png`). `WorldScene` les rend sous les éléments de navigation existants ; les collisions, objets, quêtes et cartes JSON restent inchangés. Ces fonds améliorent nettement la profondeur visuelle, mais ne constituent pas encore un pack complet de tilesets 32×32 ni une certification de licence commerciale.
+
+### Mise à jour — personnages de présentation raster
+
+Une passe supplémentaire a ajouté `public/assets/sprites/player-menu-v2.png` et `public/assets/sprites/midou-menu-v2.png`. Ces illustrations transparentes, détaillées et localement générées sont utilisées par le menu, l’écran de chargement, l’introduction, les dialogues et la victoire. Les spritesheets `player-4dir`, `midou-4dir`, `player-sheet` et `midou-sheet` du monde n’ont pas été remplacées : les collisions, les dimensions de gameplay et les animations restent inchangées.
+
+La validation Chrome du parcours complet a réussi après cette intégration. La provenance est documentée dans `public/assets/ASSETS.md`; comme pour les fonds raster, la licence de distribution finale des images générées reste à confirmer avant publication commerciale.

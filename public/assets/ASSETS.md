@@ -26,6 +26,12 @@ La scène Phaser conserve des couches séparées au-dessus de ce fond : vagues a
 
 Provenance : génération originale pour GitQuest, 17 octobre 2026. Aucun asset tiers, URL externe ou image de référence copiée n’a été intégré. La licence de distribution finale des images générées doit être confirmée selon la politique de distribution du projet avant publication commerciale.
 
+## Personnages de présentation — passe raster
+
+`sprites/player-menu-v2.png` et `sprites/midou-menu-v2.png` sont deux illustrations raster transparentes générées localement le 17 octobre 2026 avec l’outil de génération d’images intégré à l’environnement Codex. Elles sont utilisées uniquement pour le menu, le chargement, l’introduction, les dialogues et la victoire ; les spritesheets 32×32 du monde restent inchangées afin de préserver les collisions et les animations de gameplay.
+
+Provenance : génération originale pour GitQuest, sans URL externe, asset tiers ou image de référence copiée. La licence de distribution finale des images générées doit être confirmée avant publication commerciale.
+
 ## Fonds de régions legacy — Phase 3 D / passe artistique
 
 Les fonds raster suivants ont été générés localement pour remplacer les grandes surfaces géométriques des niveaux 2 à 6 :

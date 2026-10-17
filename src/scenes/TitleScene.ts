@@ -68,8 +68,8 @@ export class TitleScene extends Phaser.Scene {
     this.backdrop.add(this.add.image(width / 2, height / 2, 'menu-background-v2').setScale(backgroundScale).setDepth(0));
     const propScale = compact ? 0.82 : 1;
     [0.16, 0.34, 0.56, 0.78].forEach((x, index) => this.addAmbientWave(width * x, height * (0.70 + (index % 2) * 0.045)));
-    this.addMenuCharacter('player', width * 0.25, height * 0.82, 132 * propScale);
-    this.addMenuCharacter('midou', width * 0.36, height * 0.82, 132 * propScale);
+    this.addMenuCharacter('player-menu-v2', width * 0.25, height * 0.82, 132 * propScale);
+    this.addMenuCharacter('midou-menu-v2', width * 0.36, height * 0.82, 132 * propScale);
     const logoWidth = Math.min(760, width - margin * 2);
     const logoHeight = logoWidth * 150 / 760;
     this.menuBranding.add(this.add.image(width / 2, Math.max(margin + logoHeight / 2, height * 0.18), 'menu-logo').setDisplaySize(logoWidth, logoHeight).setDepth(4));

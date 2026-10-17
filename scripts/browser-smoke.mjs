@@ -17,11 +17,11 @@ const appUrl = requestedLevel
   : `http://127.0.0.1:${appPort}/?qa=browser`;
 
 const legacyLevels = [
-  { id: 'level-02', next: 'level-03', minimumXp: 120, toMentor: [{ key: 'ArrowRight', ms: 250 }, { key: 'ArrowUp', ms: 620 }], toCrystal: [{ key: 'ArrowDown', ms: 1600 }], commands: [{ operation: 'add', text: 'git add .' }], toChest: [{ key: 'ArrowUp', ms: 750 }, { key: 'ArrowRight', ms: 4500 }, { key: 'ArrowUp', ms: 350 }], toGate: [{ key: 'ArrowDown', ms: 220 }, { key: 'ArrowRight', ms: 1000 }] },
-  { id: 'level-03', next: 'level-04', minimumXp: 180, toMentor: [{ key: 'ArrowRight', ms: 300 }, { key: 'ArrowUp', ms: 620 }], toCrystal: [{ key: 'ArrowDown', ms: 1400 }], commands: [{ operation: 'commit', text: 'git commit -m "archive"' }], toChest: [{ key: 'ArrowDown', ms: 600 }, { key: 'ArrowRight', ms: 4000 }, { key: 'ArrowUp', ms: 2100 }, { key: 'ArrowRight', ms: 450 }], toGate: [{ key: 'ArrowDown', ms: 700 }, { key: 'ArrowRight', ms: 1000 }] },
-  { id: 'level-04', next: 'level-05', minimumXp: 240, toMentor: [{ key: 'ArrowRight', ms: 275 }, { key: 'ArrowUp', ms: 550 }], toCrystal: [{ key: 'ArrowDown', ms: 1400 }], commands: [{ operation: 'push', text: 'git push' }, { operation: 'pull', text: 'git pull' }], toChest: [{ key: 'ArrowUp', ms: 450 }, { key: 'ArrowRight', ms: 4200 }], toGate: [{ key: 'ArrowUp', ms: 450 }, { key: 'ArrowRight', ms: 1100 }] },
-  { id: 'level-05', next: 'level-06', minimumXp: 300, toMentor: [{ key: 'ArrowRight', ms: 275 }, { key: 'ArrowUp', ms: 620 }], toCrystal: [{ key: 'ArrowDown', ms: 1550 }], commands: [{ operation: 'branch', text: 'git branch feature' }, { operation: 'switch', text: 'git switch feature' }], toChest: [{ key: 'ArrowUp', ms: 650 }, { key: 'ArrowRight', ms: 4100 }, { key: 'ArrowUp', ms: 830 }], toGate: [{ key: 'ArrowDown', ms: 420 }, { key: 'ArrowRight', ms: 1250 }, { key: 'ArrowDown', ms: 140 }] },
-  { id: 'level-06', minimumXp: 360, toMentor: [{ key: 'ArrowRight', ms: 275 }, { key: 'ArrowUp', ms: 620 }], toCrystal: [{ key: 'ArrowDown', ms: 1450 }], commands: [{ operation: 'merge', text: 'git merge main' }], toChest: [{ key: 'ArrowUp', ms: 2150 }, { key: 'ArrowRight', ms: 5550 }, { key: 'ArrowDown', ms: 1220 }, { key: 'ArrowLeft', ms: 900 }], toGate: [{ key: 'ArrowRight', ms: 760 }, { key: 'ArrowDown', ms: 100 }] },
+  { id: 'level-02', next: 'level-03', minimumXp: 120, chest: { x: 760, y: 240 }, gate: { x: 900, y: 270 }, toMentor: [{ key: 'ArrowRight', ms: 250 }, { key: 'ArrowUp', ms: 620 }], toCrystal: [{ key: 'ArrowDown', ms: 1600 }], commands: [{ operation: 'add', text: 'git add .' }], toChest: [{ key: 'ArrowUp', ms: 750 }, { key: 'ArrowRight', ms: 4500 }, { key: 'ArrowUp', ms: 350 }], toGate: [{ key: 'ArrowDown', ms: 220 }, { key: 'ArrowRight', ms: 1000 }] },
+  { id: 'level-03', next: 'level-04', minimumXp: 180, chest: { x: 760, y: 170 }, gate: { x: 900, y: 270 }, toMentor: [{ key: 'ArrowRight', ms: 300 }, { key: 'ArrowUp', ms: 620 }], toCrystal: [{ key: 'ArrowDown', ms: 1400 }], commands: [{ operation: 'commit', text: 'git commit -m "archive"' }], toChest: [{ key: 'ArrowDown', ms: 600 }, { key: 'ArrowRight', ms: 4000 }, { key: 'ArrowUp', ms: 2100 }, { key: 'ArrowRight', ms: 450 }], toGate: [{ key: 'ArrowDown', ms: 700 }, { key: 'ArrowRight', ms: 1000 }] },
+  { id: 'level-04', next: 'level-05', minimumXp: 240, chest: { x: 740, y: 330 }, gate: { x: 900, y: 270 }, toMentor: [{ key: 'ArrowRight', ms: 275 }, { key: 'ArrowUp', ms: 550 }], toCrystal: [{ key: 'ArrowDown', ms: 1400 }], commands: [{ operation: 'push', text: 'git push' }, { operation: 'pull', text: 'git pull' }], toChest: [{ key: 'ArrowUp', ms: 340 }, { key: 'ArrowRight', ms: 850 }, { key: 'ArrowUp', ms: 100 }, { key: 'ArrowRight', ms: 3550 }], toGate: [{ key: 'ArrowUp', ms: 450 }, { key: 'ArrowRight', ms: 1100 }] },
+  { id: 'level-05', next: 'level-06', minimumXp: 300, chest: { x: 720, y: 190 }, gate: { x: 900, y: 270 }, toMentor: [{ key: 'ArrowRight', ms: 275 }, { key: 'ArrowUp', ms: 620 }], toCrystal: [{ key: 'ArrowDown', ms: 1550 }], commands: [{ operation: 'branch', text: 'git branch feature' }, { operation: 'switch', text: 'git switch feature' }], toChest: [{ key: 'ArrowUp', ms: 650 }, { key: 'ArrowRight', ms: 4100 }, { key: 'ArrowUp', ms: 830 }], toGate: [{ key: 'ArrowDown', ms: 420 }, { key: 'ArrowRight', ms: 1250 }, { key: 'ArrowDown', ms: 140 }] },
+  { id: 'level-06', minimumXp: 360, chest: { x: 790, y: 255 }, gate: { x: 900, y: 270 }, toMentor: [{ key: 'ArrowRight', ms: 275 }, { key: 'ArrowUp', ms: 620 }], toCrystal: [{ key: 'ArrowDown', ms: 1450 }], commands: [{ operation: 'merge', text: 'git merge main' }], toChest: [{ key: 'ArrowUp', ms: 2150 }, { key: 'ArrowRight', ms: 5550 }, { key: 'ArrowDown', ms: 1220 }, { key: 'ArrowLeft', ms: 900 }], toGate: [{ key: 'ArrowRight', ms: 760 }, { key: 'ArrowDown', ms: 100 }] },
 ];
 
 function findChrome() {
@@ -155,6 +155,30 @@ async function moveAlong(cdp, segments) {
   for (const segment of segments) await holdKey(cdp, segment.key, segment.ms);
 }
 
+async function moveToward(cdp, target, tolerance = 48) {
+  for (let attempt = 0; attempt < 12; attempt += 1) {
+    const position = await cdp.evaluate('({ x: Number(document.documentElement.dataset.gitquestPlayerX ?? 0), y: Number(document.documentElement.dataset.gitquestPlayerY ?? 0) })');
+    const dx = target.x - position.x;
+    const dy = target.y - position.y;
+    if (Math.hypot(dx, dy) <= tolerance) return true;
+    const direction = Math.abs(dx) >= Math.abs(dy)
+      ? (dx > 0 ? 'ArrowRight' : 'ArrowLeft')
+      : (dy > 0 ? 'ArrowDown' : 'ArrowUp');
+    await holdKey(cdp, direction, 140);
+  }
+  return false;
+}
+
+async function interactUntilQuestStep(cdp, expected, target) {
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    if (await cdp.evaluate(`document.documentElement.dataset.gitquestQuestStep === ${JSON.stringify(expected)}`)) return;
+    await moveToward(cdp, target);
+    await key(cdp, 'e');
+    await new Promise((resolve) => setTimeout(resolve, 120));
+  }
+  await waitForQuestStep(cdp, expected, 1200);
+}
+
 async function runTerminalCommands(cdp, commands) {
   await key(cdp, 't');
   await waitForState(cdp, 'terminal');
@@ -184,11 +208,11 @@ async function runLegacyLevel(cdp, config) {
   await runTerminalCommands(cdp, config.commands);
   await moveAlong(cdp, config.toChest);
   if (process.env.GITQUEST_QA_DEBUG === '1') console.log(`${config.id} before chest: ${await cdp.evaluate('document.documentElement.dataset.gitquestPlayerX + "," + document.documentElement.dataset.gitquestPlayerY')}`);
-  await key(cdp, 'e');
-  await waitForQuestStep(cdp, 'open-exit');
+  await interactUntilQuestStep(cdp, 'open-exit', config.chest);
   const save = await cdp.evaluate('JSON.parse(localStorage.getItem("gitquest-save") ?? "null")');
   if (!save?.inventory?.items?.includes('pass-key') || save.xp?.total < config.minimumXp) throw new Error(`Récompense absente pour ${config.id}.`);
   await moveAlong(cdp, config.toGate);
+  await moveToward(cdp, config.gate);
   await key(cdp, 'e');
   if (config.next) await waitForLevel(cdp, config.next);
   else await waitForState(cdp, 'victory');

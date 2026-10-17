@@ -23,7 +23,7 @@ Le build conserve un avertissement connu sur le chunk Phaser vendor (`1 208 kB` 
 
 | Phase | État | Preuve actuelle | Limite restante |
 |---|---|---|---|
-| 3 B.2 — menu artistique | Implémentée, vérifiée visuellement | Fond raster local, logo, boutons, paramètres, FR/EN/AR ; viewports `1280×720`, `844×390`, `390×844` observés dans Chrome | Les personnages et certains assets restent moins détaillés que la référence ; licence de distribution finale à confirmer |
+| 3 B.2 — menu artistique | Implémentée, vérifiée visuellement | Fond raster local, sprites de présentation détaillés, logo, boutons, paramètres, FR/EN/AR ; viewports `1280×720`, `844×390`, `390×844` observés dans Chrome | Les assets générés restent soumis à une confirmation de licence de distribution finale |
 | 3 C — chargement/introduction | Implémentée | Progression réelle du loader, introduction localisée, Passer, transition vers niveau 1, aucune validation de quête pendant l’introduction ; smoke test Chrome versionné | Parcours tactile physique non couvert |
 | 3 D — niveau 1/HUD | Fonctionnelle | TiledLayer, collisions eau, spawns sûrs, HUD, Midou, terminal, coffre, clé, porte et sauvegarde vérifiés ; fonds raster dédiés ajoutés aux niveaux 2–6 | Les cartes 2–6 n’ont pas encore des tilesets 32×32 et une finition d’objets aussi complète que le niveau 1 |
 | 4 — interaction/i18n/sauvegarde | Partiellement certifiée | Terminal DOM avec espaces/historique, messages localisés, RTL, sauvegarde versionnée et migration testées ; saisie `git init` exercée par smoke test Chrome | Audio absent |
@@ -56,7 +56,7 @@ Cette intégration ne modifie ni les règles Git, ni l’ordre des quêtes, ni l
 - RTL arabe : `html[lang]=ar`, `html[dir]=rtl`, canvas et champ terminal synchronisés.
 - Parcours manuel complet des six niveaux : commandes Git, coffres, clés, portes, XP et victoire.
 - Benchmark QA des six niveaux à `1280×720` : environ `137,99` à `144,02 FPS`, sans erreur ni avertissement applicatif.
-- Vérification visuelle ciblée des niveaux 2 et 6 après la passe legacy : palettes, chemins, obstacles décorés, props et titres distincts ; console Chrome à 0 erreur / 0 avertissement.
+- Vérification visuelle ciblée du menu avec les nouveaux sprites de présentation et des niveaux 2 et 6 après la passe legacy : palettes, chemins, obstacles décorés, props et titres distincts ; console Chrome à 0 erreur / 0 avertissement.
 - Le protocole reproductible est consigné dans `docs/CHROME_QA_RUNBOOK.md`.
 - Le contrat de touches du monde couvre `E` et `Entrée` pour interagir, ainsi que `T` pour le terminal ; il est testé dans `tests/InputBindings.test.ts`.
 - `tests/Extensibility.test.ts` charge un niveau 7 et une carte Tiled synthétiques uniquement par données, puis valide sa quête sans modifier les scènes Phaser.

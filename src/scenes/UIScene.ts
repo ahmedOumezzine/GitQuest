@@ -222,7 +222,7 @@ export class UIScene extends Phaser.Scene {
     this.dialogueBackground = this.add.rectangle(0, 0, 720, 140, UITheme.colors.panel, 0.98).setOrigin(0).setStrokeStyle(3, UITheme.colors.borderAccent);
     this.dialogueText = this.add.text(120, 24, '', { fontFamily: UITheme.fontFamily, fontSize: '15px', color: UITheme.colors.text, wordWrap: { width: 545 }, lineSpacing: 7 });
     this.dialogueClose = this.add.text(680, 102, 'E / Enter', { fontFamily: UITheme.fontFamily, fontSize: '11px', color: UITheme.colors.accent }).setOrigin(1, 0);
-    this.dialoguePanel.add([this.dialogueBackground, this.add.image(62, 70, 'midou').setDisplaySize(78, 78), this.dialogueText, this.dialogueClose]);
+    this.dialoguePanel.add([this.dialogueBackground, this.add.image(62, 70, 'midou-menu-v2').setDisplaySize(78, 78), this.dialogueText, this.dialogueClose]);
     this.input.keyboard!.on('keydown-ENTER', () => { if (this.dialoguePanel.visible) this.hideDialogue(); });
     this.input.keyboard!.on('keydown-E', () => { if (this.dialoguePanel.visible) this.hideDialogue(); });
     this.dialoguePanel.setInteractive(new Phaser.Geom.Rectangle(0, 0, 720, 140), Phaser.Geom.Rectangle.Contains).on('pointerdown', () => this.hideDialogue());

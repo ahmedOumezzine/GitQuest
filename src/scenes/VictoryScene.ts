@@ -20,7 +20,7 @@ export class VictoryScene extends Phaser.Scene {
     i18n.applyDirection(this.game.canvas);
     this.cameras.main.setBackgroundColor('#241b3d');
     this.title = this.add.text(0, 0, i18n.text('victoryTitle'), { fontFamily: 'monospace', fontSize: '48px', color: '#f7d56a', stroke: '#10172b', strokeThickness: 7, align: 'center' }).setOrigin(0.5);
-    this.player = this.add.image(0, 0, 'player');
+    this.player = this.add.image(0, 0, 'player-menu-v2');
     this.message = this.add.text(0, 0, i18n.text('victoryMessage'), { fontFamily: 'monospace', fontSize: '20px', color: '#fff6df', align: 'center' }).setOrigin(0.5);
     this.totalXp = this.add.text(0, 0, i18n.text('totalXp') + ' : ' + session.xp.value, { fontFamily: 'monospace', fontSize: '16px', color: '#9ef0c1', align: 'center' }).setOrigin(0.5);
     this.replay = this.add.text(0, 0, i18n.text('replay'), { fontFamily: 'monospace', fontSize: '20px', color: '#18233e', backgroundColor: '#f7d56a', padding: { x: 24, y: 10 }, align: 'center' }).setOrigin(0.5).setInteractive({ useHandCursor: true });

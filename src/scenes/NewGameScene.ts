@@ -68,7 +68,7 @@ export class NewGameScene extends Phaser.Scene {
     const scale = Math.max(width / 1672, height / 941);
     this.add.image(width / 2, height / 2, 'menu-background-v2').setScale(scale).setAlpha(0.62);
     this.add.rectangle(width / 2, height / 2, width, height, 0x10172b, 0.46);
-    this.add.image(width / 2, height * 0.55, 'midou').setDisplaySize(compact ? 92 : 128, compact ? 92 : 128).setAlpha(0.95);
+    this.add.image(width / 2, height * 0.55, 'midou-menu-v2').setDisplaySize(compact ? 92 : 128, compact ? 92 : 128).setAlpha(0.95);
     this.add.image(width / 2, height * 0.32, 'menu-panel').setDisplaySize(Math.min(640, width - margin * 2), compact ? 190 : 230);
     this.add.text(width / 2, height * 0.16, 'GITQUEST', { fontFamily: UITheme.fontFamily, fontSize: compact ? '32px' : '48px', color: '#f7d56a', stroke: '#10172b', strokeThickness: compact ? 5 : 7 }).setOrigin(0.5);
     this.add.text(width / 2, height * 0.31, this.i18n.text('loadingTitle'), { fontFamily: UITheme.fontFamily, fontSize: compact ? '15px' : '20px', color: '#fff6df', align: 'center', wordWrap: { width: width - margin * 2 } }).setOrigin(0.5);
@@ -102,7 +102,7 @@ export class NewGameScene extends Phaser.Scene {
     const panelHeight = Math.min(430, height - margin * 2);
     const panelY = height / 2 + (compact ? 8 : 16);
     this.add.image(width / 2, panelY, 'menu-panel').setDisplaySize(panelWidth, panelHeight).setAlpha(0.98);
-    if (!portrait) this.add.image(width * 0.3, panelY + 60, 'midou').setDisplaySize(100, 100).setDepth(2);
+    if (!portrait) this.add.image(width * 0.3, panelY + 60, 'midou-menu-v2').setDisplaySize(100, 100).setDepth(2);
     this.add.text(width / 2, Math.max(margin + 18, panelY - panelHeight / 2 + 38), this.i18n.text('introTitle'), { fontFamily: UITheme.fontFamily, fontSize: compact ? '19px' : '26px', color: '#f7d56a', stroke: '#10172b', strokeThickness: 5, align: 'center', wordWrap: { width: panelWidth - 36 } }).setOrigin(0.5).setDepth(2);
     const narrative = [this.i18n.text('introLine1'), this.i18n.text('introLine2'), this.i18n.text('introLine3')].join('\n\n');
     const textWidth = portrait ? panelWidth - 36 : Math.min(400, panelWidth - 230);

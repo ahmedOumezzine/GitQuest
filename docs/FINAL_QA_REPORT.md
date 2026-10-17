@@ -30,6 +30,7 @@ Date : 2026-10-17
 - Correctif appliqué dans `WorldScene.interact()` : la cible interactive est recalculée au moment de l’action pour éviter une interaction de porte dépendante d’un tick précédent.
 - Messages du terminal localisés pour les sorties Git courantes en FR, EN et AR, sans modifier `GitSimulator`.
 - Les six cartes JSON Tiled ont été vérifiées par test sur les couches `Ground`, `Decorations`, `Collisions`, `Objects`, le spawn, Midou et la porte.
+- Les sprites de présentation raster du joueur et de Midou ont été intégrés au menu, au chargement, à l’introduction, aux dialogues et à la victoire ; les spritesheets de gameplay restent inchangées.
 - Les positions Tiled des six spawns, de Midou et des portes sont maintenant consommées par `WorldScene`, avec repli explicite sur les définitions de niveau ; leur concordance est couverte par un test.
 - Le chargeur refuse une carte Tiled incomplète ou une couche `Ground` incohérente avec une erreur explicite ; ce cas est couvert par test.
 - Le chargeur vérifie également le type attendu de chaque couche Tiled ; le cas incompatible est couvert par test.
@@ -88,6 +89,9 @@ Date : 2026-10-17
 - `src/scenes/VictoryScene.ts`
 - `src/diagnostics/QaMarker.ts`
 - `scripts/browser-smoke.mjs`
+- `src/data/AssetManifest.ts`
+- `public/assets/sprites/player-menu-v2.png`
+- `public/assets/sprites/midou-menu-v2.png`
 - `package.json` (`qa:browser`)
 - `src/models/game.ts`
 - tests de sauvegarde, Tiled et régression
