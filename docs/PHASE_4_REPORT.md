@@ -15,18 +15,19 @@ La Phase 4 est partiellement implémentée sans modification des règles de `Git
 - Aide locale via `git help` ou `help`, sans modifier l’état Git.
 - Saisie des espaces et caractères spéciaux conservée.
 - Textes d’aide et erreurs ajoutés en FR, EN et AR.
+- Messages visibles produits par le simulateur Git courant localisés à l’affichage en FR, EN et AR.
 - `SaveManager` tolère les erreurs de lecture, d’écriture, de suppression et les JSON corrompus sans supprimer la donnée brute.
 - Compatibilité de migration existante conservée.
 
 ## Tests
 
-- 23 tests unitaires passent, dont un parcours data-driven des six niveaux.
+- 24 tests unitaires passent, dont un parcours data-driven des six niveaux et un test de localisation du terminal.
 - TypeScript passe.
 - Build Vite passe.
 
 ## Reste à faire
 
-- Localiser les messages internes produits directement par `GitSimulator`.
+- Les messages internes de `GitSimulator` restent canoniquement en français ; seule leur présentation est localisée par `I18nManager`, afin de préserver la logique métier.
 - Ajouter un vrai champ de saisie DOM accessible pour IME, sélection et collage.
 - Le test navigateur manuel du terminal et de `git init` est passé ; automatiser ce parcours reste à faire.
 - Ajouter des fixtures de sauvegardes historiques antérieures à la version 1.

@@ -174,7 +174,7 @@ export class UIScene extends Phaser.Scene {
       if (accepted) this.session.save();
       this.refresh();
     }
-    this.output.setText((this.output.text + '\n' + (result.ok ? '$ ' : '! ') + entered + '\n' + result.message).slice(-1700));
+    this.output.setText((this.output.text + '\n' + (result.ok ? '$ ' : '! ') + entered + '\n' + this.i18n.gitMessage(result.message)).slice(-1700));
     this.inputValue = '';
     this.inputField.setText('');
     this.session.save();

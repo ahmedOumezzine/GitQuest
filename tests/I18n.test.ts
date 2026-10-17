@@ -26,3 +26,9 @@ test('le parcours Nouvelle partie est traduit dans les trois langues', () => {
   }
   assert.equal(new I18nManager('ar').direction, 'rtl');
 });
+
+test('les messages visibles du terminal suivent la langue active', () => {
+  assert.equal(new I18nManager('en').gitMessage('Dépôt Git initialisé.'), 'Git repository initialized.');
+  assert.equal(new I18nManager('ar').gitMessage('Dépôt Git initialisé.'), 'تم تهيئة مستودع Git.');
+  assert.equal(new I18nManager('en').gitMessage('Branche feature créée.'), 'Branch feature created.');
+});

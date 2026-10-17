@@ -12,4 +12,49 @@ export class I18nManager {
   public localized(value: LocalizedText): string { return value[this.locale] ?? value.fr; }
   public get direction(): 'ltr' | 'rtl' { return this.locale === 'ar' ? 'rtl' : 'ltr'; }
   public stepLabel(id: string): string { return this.text({ 'talk-midou': 'stepTalk', 'run-init': 'stepInit', 'collect-key': 'stepKey', 'open-exit': 'stepExit' }[id] ?? id); }
+
+  public gitMessage(message: string): string {
+    const exact: Record<Locale, Record<string, string>> = {
+      fr: {},
+      en: {
+        'Dépôt Git initialisé.': 'Git repository initialized.',
+        'Le terminal attend une commande git.': 'The terminal expects a git command.',
+        'fatal: pas un dépôt Git (utilise git init).': 'fatal: not a Git repository (use git init).',
+        'Utilise git commit -m "ton message".': 'Use git commit -m "your message".',
+        'Rien à valider : index vide.': 'Nothing to commit: staging area is empty.',
+        'Aucun fichier correspondant.': 'No matching files.',
+        'Impossible de fusionner une branche avec elle-même.': 'Cannot merge a branch into itself.',
+      },
+      ar: {
+        'Dépôt Git initialisé.': 'تم تهيئة مستودع Git.',
+        'Le terminal attend une commande git.': 'الطرفية تنتظر أمر Git.',
+        'fatal: pas un dépôt Git (utilise git init).': 'خطأ: ليس مستودع Git (استخدم git init).',
+        'Utilise git commit -m "ton message".': 'استخدم git commit -m "رسالتك".',
+        'Rien à valider : index vide.': 'لا شيء لتثبيته: منطقة التجهيز فارغة.',
+        'Aucun fichier correspondant.': 'لا توجد ملفات مطابقة.',
+        'Impossible de fusionner une branche avec elle-même.': 'لا يمكن دمج الفرع مع نفسه.',
+      },
+    };
+    const translated = exact[this.locale][message];
+    if (translated) return translated;
+    if (this.locale === 'fr') return message;
+    const staged = message.match(/^Fichiers indexés : (.+)\.$/);
+    if (staged) return this.locale === 'en' ? 'Staged files: ' + staged[1] + '.' : 'الملفات المجهزة: ' + staged[1] + '.';
+    const branchCreated = message.match(/^Branche (.+) créée\.$/);
+    if (branchCreated) return this.locale === 'en' ? 'Branch ' + branchCreated[1] + ' created.' : 'تم إنشاء الفرع ' + branchCreated[1] + '.';
+    const switched = message.match(/^Bascule sur la branche « (.+) »\.$/);
+    if (switched) return this.locale === 'en' ? 'Switched to branch "' + switched[1] + '".' : 'تم الانتقال إلى الفرع « ' + switched[1] + ' ».';
+    const pushed = message.match(/^Branche (.+) envoyée vers origin\.$/);
+    if (pushed) return this.locale === 'en' ? 'Branch ' + pushed[1] + ' pushed to origin.' : 'تم دفع الفرع ' + pushed[1] + ' إلى origin.';
+    if (message === 'Déjà à jour avec origin.') return this.locale === 'en' ? 'Already up to date with origin.' : 'المستودع محدث بالفعل مع origin.';
+    const status = message.match(/^Sur la branche (.+)\.$/);
+    if (status) return this.locale === 'en' ? 'On branch ' + status[1] + '.' : 'أنت على الفرع ' + status[1] + '.';
+    const unknownBranch = message.match(/^fatal: la branche (.+) existe déjà\.$/);
+    if (unknownBranch) return this.locale === 'en' ? 'fatal: branch ' + unknownBranch[1] + ' already exists.' : 'خطأ: الفرع ' + unknownBranch[1] + ' موجود بالفعل.';
+    const missingBranch = message.match(/^fatal: branche à fusionner inconnue\.$/);
+    if (missingBranch) return this.locale === 'en' ? 'fatal: unknown branch to merge.' : 'خطأ: فرع الدمج غير معروف.';
+    const merge = message.match(/^Fusion de (.+) dans (.+) terminée\.$/);
+    if (merge) return this.locale === 'en' ? 'Merged ' + merge[1] + ' into ' + merge[2] + '.' : 'تم دمج ' + merge[1] + ' في ' + merge[2] + '.';
+    return message;
+  }
 }
