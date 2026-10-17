@@ -16,7 +16,7 @@ L’analogie C# est volontaire :
 
 1. BootScene crée LevelManager, charge le manifest JSON et les six niveaux.
 2. GameSession recharge la sauvegarde versionnée.
-3. PreloadScene charge les sprites locaux.
+3. PreloadScene charge le manifeste d’assets locaux partagé par le runtime et les tests.
 4. WorldScene prend le levelId de la session, charge la carte Tiled associée et installe les entités.
 5. UIScene observe EventBus pour afficher la quête, les dialogues, le terminal, l’XP et l’inventaire.
 
@@ -30,7 +30,9 @@ LevelManager valide et met en cache ces définitions. WorldScene ne connaît auc
 
 ## Cartes Tiled
 
-TiledMapAdapter lit les fichiers JSON exportés depuis Tiled et convertit la couche d’objets nommée colliders en rectangles Phaser. Une prochaine itération pourra brancher directement les tilesets et calques visuels Tiled ; le contrat de chargement est déjà isolé de la scène.
+`TiledMapAdapter` lit les fichiers JSON exportés depuis Tiled et expose `Ground`, `Decorations`, `Collisions` et `Objects`. `LevelManager` vérifie les quatre couches, leurs types et la taille de `Ground` avant de mettre la carte en cache. `WorldScene` consomme les ancres `player-spawn`, `midou` et `exit-gate`, ainsi que les objets interactifs nommés lorsqu’ils sont présents ; les anciennes cartes conservent un repli sur les définitions de niveau.
+
+Le niveau 1 utilise le `TilemapLayer` Phaser à partir de `Ground`. Les niveaux 2 à 6 utilisent leurs données Tiled pour les collisions, ancres et décorations, avec une passe de rendu legacy data-driven par région. Le contrat reste compatible avec l’ajout d’un niveau 7 utilisant les mêmes types.
 
 ## Quêtes configurables
 
@@ -57,4 +59,4 @@ SceneManager encapsule les transitions entre cartes. InputManager unifie clavier
 
 ## Tests et qualité
 
-Les tests TypeScript couvrent le simulateur Git, l’ordre des quêtes, la sauvegarde versionnée, le chargement des niveaux et l’adaptation Tiled. Le typecheck est exécuté avant le build dans npm run build.
+Les tests TypeScript couvrent le simulateur Git, l’ordre des quêtes, la sauvegarde versionnée, le chargement des niveaux, le manifeste d’assets, la validation des cartes et l’adaptation Tiled. `npm run qa:local` exécute les tests, le typecheck puis le build ; le typecheck est également exécuté avant le build dans `npm run build`.

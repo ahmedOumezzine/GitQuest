@@ -38,8 +38,9 @@ Les scènes Phaser n’ont pas besoin d’être modifiées si le niveau réutili
 ## Tests
 
     npm test
+    npm run qa:local
 
-Les tests couvrent GitSimulator, QuestManager, SaveManager, LevelManager et TiledMapAdapter.
+Les tests couvrent GitSimulator, QuestManager, SaveManager, LevelManager, le manifeste d’assets et TiledMapAdapter. Le protocole Chrome est décrit dans `docs/CHROME_QA_RUNBOOK.md` et les limites restantes dans `docs/CURRENT_CERTIFICATION.md`.
 
 ## Licence
 
