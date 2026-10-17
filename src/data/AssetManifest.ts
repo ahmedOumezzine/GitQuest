@@ -150,6 +150,7 @@ const menuAssetKeys = new Set([
   'menu-chest-v3',
   'menu-duo-v3',
   'midou-menu-v2',
+  'midou-portrait-v3',
   'wave',
 ]);
 

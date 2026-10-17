@@ -21,6 +21,7 @@ test('les spritesheets utilisent une grille déclarée et cohérente', () => {
 test('le menu ne charge pas les assets régionaux avant une partie', () => {
   assert.ok(menuImageAssets.some((asset) => asset.key === 'menu-background-v2'));
   assert.ok(menuImageAssets.some((asset) => asset.key === 'menu-logo'));
+  assert.ok(menuImageAssets.some((asset) => asset.key === 'midou-portrait-v3'));
   assert.equal(menuImageAssets.some((asset) => asset.key === 'level-02-forest'), false);
   assert.equal(menuImageAssets.some((asset) => asset.key === 'forest-ancient-tree'), false);
 });
