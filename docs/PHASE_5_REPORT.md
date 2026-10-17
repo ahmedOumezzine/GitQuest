@@ -14,7 +14,7 @@ Date : 2026-10-17
 
 ## Validation réelle
 
-Le code et le typecheck sont validés. Une vérification Chrome desktop du niveau 1 ne montre aucune erreur console. Le menu et les paramètres ont désormais été capturés avec un contrôle explicite du viewport aux dimensions `1280×720`, `844×390` et `390×844`. La règle de placement du menu paysage compact et le calcul des zones sûres des contrôles tactiles sont couverts par des tests unitaires ; la suite compte désormais 41 tests.
+Le code et le typecheck sont validés. Une vérification Chrome desktop du niveau 1 ne montre aucune erreur console. Le menu et les paramètres ont désormais été capturés avec un contrôle explicite du viewport aux dimensions `1280×720`, `844×390` et `390×844`. La règle de placement du menu paysage compact et le calcul des zones sûres des contrôles tactiles sont couverts par des tests unitaires ; la suite compte désormais 42 tests.
 
 Le parcours tactile réel et l’affichage des contrôles sur appareils physiques restent à vérifier. Le runner Chrome versionné a depuis exécuté le parcours complet menu → nouvelle partie → introduction → niveau 1 → terminal → sauvegarde → reprise sur les sept viewports demandés :
 

@@ -291,7 +291,7 @@ export class UIScene extends Phaser.Scene {
     journalTitle?.setText(this.i18n.text('journal'));
     const terminalTitle = this.terminal?.getByName('terminal-title') as Phaser.GameObjects.Text | undefined;
     terminalTitle?.setText(this.i18n.text('terminalTitle'));
-    this.terminalHint?.setText(this.i18n.text('terminalHelp'));
+    this.terminalHint?.setText(this.i18n.commandHint(step?.kind === 'git-command' ? step.operation : undefined));
     if (this.terminalInput) {
       this.terminalInput.setAttribute('aria-label', this.i18n.text('terminalHelp'));
       this.terminalInput.setAttribute('dir', this.i18n.direction);

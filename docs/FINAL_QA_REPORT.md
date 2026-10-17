@@ -13,7 +13,7 @@ Date : 2026-10-17
 
 ## Résultats vérifiables
 
-- `npm test` : **41/41 PASS**.
+- `npm test` : **42/42 PASS**.
 - `npm run typecheck` : **PASS**.
 - `npm run build` : **PASS**.
 - `npm run qa:browser` : **PASS** sur le parcours menu → niveau 1, avec actualisation et reprise via Continuer.

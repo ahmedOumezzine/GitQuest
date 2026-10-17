@@ -1,4 +1,4 @@
-import type { Locale, LocalizedText } from '../models/game';
+import type { GitOperation, Locale, LocalizedText } from '../models/game';
 
 export const TRANSLATIONS: Record<Locale, Record<string, string>> = {
   fr: { interact: 'Interagir', objective: 'Objectif', inventory: 'Inventaire', xp: 'XP', key: 'Clé', controls: 'ZQSD / flèches · E : interagir · T : terminal', missionDone: 'Mission validée', locked: 'La porte est verrouillée.', title: 'L’île des commits', newGame: 'Nouvelle partie', continueGame: 'Continuer', settings: 'Paramètres', settingsTitle: 'PARAMÈTRES', language: 'Langue', touchControls: 'Commandes tactiles', touchAuto: 'Automatique', touchAlways: 'Toujours afficher', audio: 'Audio', audioUnavailable: 'Musique : emplacement prévu, assets audio non fournis.', back: 'Retour', musicUnavailable: 'Musique : emplacement prévu, assets audio non fournis.', journal: 'JOURNAL DE MISSION', terminalTitle: 'GITQUEST TERMINAL', terminalWelcome: 'Terminal GitQuest', terminalHelp: 'Aide : git init · git add . · git commit -m "message" · git status', terminalHistoryEmpty: 'Aucun historique de commande.', saveError: 'La sauvegarde n’a pas pu être lue ; une nouvelle partie reste possible.', mapLoadError: 'Impossible de charger cette carte.', shrine: 'Sanctuaire Git', gateOpened: '✦ Porte ouverte', keyReward: 'Tu obtiens une clé de passage !', crystalReward: 'Cristal de mémoire', xpReward: 'XP', stepTalk: 'Parler à Midou', stepInit: 'Exécuter git init', stepKey: 'Trouver la clé', stepExit: 'Ouvrir la porte', newGameConfirmTitle: 'Nouvelle partie', newGameConfirmMessage: 'La sauvegarde actuelle sera réinitialisée. Continuer ?', confirm: 'Confirmer', cancel: 'Annuler', loadingTitle: 'Préparation de l’expédition', loadingMap: 'Chargement des archives de la plage…', introTitle: 'Le secret des archives', introLine1: 'Midou : Cette île conserve la mémoire de chaque aventure.', introLine2: 'Les archives Git ont été dispersées dans ses six régions.', introLine3: 'Retrouve-les, apprends les commandes et rallume les portes.', startAdventure: 'Commencer l’aventure', skip: 'Passer', retry: 'Réessayer', bootLoading: 'Chargement de l’île…', bootLoadError: 'Impossible de charger l’île', assetMissing: 'Asset manquant', victoryTitle: 'VICTOIRE !', victoryMessage: 'L’île des commits est restaurée.', totalXp: 'XP totale', replay: 'Rejouer' },
@@ -19,6 +19,24 @@ export class I18nManager {
     surface?.setAttribute('dir', this.direction);
   }
   public stepLabel(id: string): string { return this.text({ 'talk-midou': 'stepTalk', 'run-init': 'stepInit', 'collect-key': 'stepKey', 'open-exit': 'stepExit' }[id] ?? id); }
+
+  public commandHint(operation?: GitOperation): string {
+    if (!operation) return this.text('terminalHelp');
+    const command: Record<GitOperation, string> = {
+      init: 'git init',
+      add: 'git add .',
+      commit: 'git commit -m "message"',
+      push: 'git push',
+      pull: 'git pull',
+      branch: 'git branch feature',
+      switch: 'git switch feature',
+      merge: 'git merge main',
+    };
+    const next = command[operation];
+    if (this.locale === 'en') return 'Next step: run ' + next + '.';
+    if (this.locale === 'ar') return 'الخطوة التالية: نفّذ ' + next + '.';
+    return 'Étape suivante : exécute ' + next + '.';
+  }
 
   public gitMessage(message: string): string {
     const exact: Record<Locale, Record<string, string>> = {

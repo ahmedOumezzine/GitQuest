@@ -41,3 +41,10 @@ test('les messages visibles du terminal suivent la langue active', () => {
   assert.equal(new I18nManager('ar').gitMessage('Dépôt Git initialisé.'), 'تم تهيئة مستودع Git.');
   assert.equal(new I18nManager('en').gitMessage('Branche feature créée.'), 'Branch feature created.');
 });
+
+test('l’aide du terminal indique la prochaine commande dans chaque langue', () => {
+  assert.equal(new I18nManager('fr').commandHint('init'), 'Étape suivante : exécute git init.');
+  assert.equal(new I18nManager('en').commandHint('commit'), 'Next step: run git commit -m "message".');
+  assert.equal(new I18nManager('ar').commandHint('merge'), 'الخطوة التالية: نفّذ git merge main.');
+  assert.match(new I18nManager('fr').commandHint(), /git init/);
+});

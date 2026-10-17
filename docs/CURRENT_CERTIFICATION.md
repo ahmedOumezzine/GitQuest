@@ -9,7 +9,7 @@ Ce document décrit l’état courant vérifié dans le dépôt. Les rapports `P
 Commandes exécutées depuis `C:\Users\ahmed\source\repos\GitQuest` :
 
 ```text
-npm test       -> 41/41 PASS
+npm test       -> 42/42 PASS
 npm run typecheck -> PASS
 npm run build  -> PASS
 npm run qa:browser -> PASS (Chrome headless local)
