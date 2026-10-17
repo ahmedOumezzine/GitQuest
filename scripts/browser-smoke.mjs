@@ -17,11 +17,11 @@ const appUrl = requestedLevel
   : `http://127.0.0.1:${appPort}/?qa=browser`;
 
 const legacyLevels = [
-  { id: 'level-02', next: 'level-03', minimumXp: 120, chest: { x: 760, y: 240 }, gate: { x: 900, y: 270 }, toMentor: [{ key: 'ArrowRight', ms: 250 }, { key: 'ArrowUp', ms: 620 }], toCrystal: [{ key: 'ArrowDown', ms: 1600 }], commands: [{ operation: 'add', text: 'git add .' }], toChest: [{ key: 'ArrowUp', ms: 750 }, { key: 'ArrowRight', ms: 4500 }, { key: 'ArrowUp', ms: 350 }], toGate: [{ key: 'ArrowDown', ms: 220 }, { key: 'ArrowRight', ms: 1000 }] },
-  { id: 'level-03', next: 'level-04', minimumXp: 180, chest: { x: 760, y: 170 }, gate: { x: 900, y: 270 }, toMentor: [{ key: 'ArrowRight', ms: 300 }, { key: 'ArrowUp', ms: 620 }], toCrystal: [{ key: 'ArrowDown', ms: 1400 }], commands: [{ operation: 'commit', text: 'git commit -m "archive"' }], toChest: [{ key: 'ArrowDown', ms: 600 }, { key: 'ArrowRight', ms: 4000 }, { key: 'ArrowUp', ms: 2100 }, { key: 'ArrowRight', ms: 450 }], toGate: [{ key: 'ArrowDown', ms: 700 }, { key: 'ArrowRight', ms: 1000 }] },
-  { id: 'level-04', next: 'level-05', minimumXp: 240, chest: { x: 740, y: 330 }, gate: { x: 900, y: 270 }, toMentor: [{ key: 'ArrowRight', ms: 275 }, { key: 'ArrowUp', ms: 550 }], toCrystal: [{ key: 'ArrowDown', ms: 1400 }], commands: [{ operation: 'push', text: 'git push' }, { operation: 'pull', text: 'git pull' }], toChest: [{ key: 'ArrowUp', ms: 340 }, { key: 'ArrowRight', ms: 850 }, { key: 'ArrowUp', ms: 100 }, { key: 'ArrowRight', ms: 3550 }], toGate: [{ key: 'ArrowUp', ms: 450 }, { key: 'ArrowRight', ms: 1100 }] },
-  { id: 'level-05', next: 'level-06', minimumXp: 300, chest: { x: 720, y: 190 }, gate: { x: 900, y: 270 }, toMentor: [{ key: 'ArrowRight', ms: 275 }, { key: 'ArrowUp', ms: 620 }], toCrystal: [{ key: 'ArrowDown', ms: 1550 }], commands: [{ operation: 'branch', text: 'git branch feature' }, { operation: 'switch', text: 'git switch feature' }], toChest: [{ key: 'ArrowUp', ms: 650 }, { key: 'ArrowRight', ms: 4100 }, { key: 'ArrowUp', ms: 830 }], toGate: [{ key: 'ArrowDown', ms: 420 }, { key: 'ArrowRight', ms: 1250 }, { key: 'ArrowDown', ms: 140 }] },
-  { id: 'level-06', minimumXp: 360, chest: { x: 790, y: 255 }, gate: { x: 900, y: 270 }, toMentor: [{ key: 'ArrowRight', ms: 275 }, { key: 'ArrowUp', ms: 620 }], toCrystal: [{ key: 'ArrowDown', ms: 1450 }], commands: [{ operation: 'merge', text: 'git merge main' }], toChest: [{ key: 'ArrowUp', ms: 2150 }, { key: 'ArrowRight', ms: 5550 }, { key: 'ArrowDown', ms: 1220 }, { key: 'ArrowLeft', ms: 900 }], toGate: [{ key: 'ArrowRight', ms: 760 }, { key: 'ArrowDown', ms: 100 }] },
+  { id: 'level-02', next: 'level-03', minimumXp: 120, mentor: { x: 105, y: 180 }, crystal: { x: 125, y: 410 }, chest: { x: 760, y: 240 }, gate: { x: 900, y: 270 }, commands: [{ operation: 'add', text: 'git add .' }], chestWaypoints: [{ x: 125, y: 430 }, { x: 700, y: 430 }, { x: 700, y: 240 }, { x: 760, y: 240 }], toGate: [{ key: 'ArrowDown', ms: 220 }, { key: 'ArrowRight', ms: 1000 }] },
+  { id: 'level-03', next: 'level-04', minimumXp: 180, mentor: { x: 115, y: 180 }, crystal: { x: 130, y: 380 }, chest: { x: 760, y: 170 }, gate: { x: 900, y: 270 }, commands: [{ operation: 'commit', text: 'git commit -m "archive"' }], chestWaypoints: [{ x: 500, y: 380 }, { x: 500, y: 350 }, { x: 680, y: 350 }, { x: 680, y: 170 }, { x: 760, y: 170 }], toGate: [{ key: 'ArrowDown', ms: 700 }, { key: 'ArrowRight', ms: 1000 }] },
+  { id: 'level-04', next: 'level-05', minimumXp: 240, mentor: { x: 110, y: 190 }, crystal: { x: 130, y: 390 }, chest: { x: 740, y: 330 }, gate: { x: 900, y: 270 }, commands: [{ operation: 'push', text: 'git push' }, { operation: 'pull', text: 'git pull' }], chestWaypoints: [{ x: 350, y: 390 }, { x: 350, y: 310 }, { x: 740, y: 310 }, { x: 740, y: 330 }], toGate: [{ key: 'ArrowUp', ms: 450 }, { key: 'ArrowRight', ms: 1100 }] },
+  { id: 'level-05', next: 'level-06', minimumXp: 300, mentor: { x: 110, y: 180 }, crystal: { x: 130, y: 405 }, chest: { x: 720, y: 190 }, gate: { x: 900, y: 270 }, commands: [{ operation: 'branch', text: 'git branch feature' }, { operation: 'switch', text: 'git switch feature' }], chestWaypoints: [{ x: 130, y: 430 }, { x: 580, y: 430 }, { x: 580, y: 190 }, { x: 720, y: 190 }], toGate: [{ key: 'ArrowDown', ms: 420 }, { key: 'ArrowRight', ms: 1250 }, { key: 'ArrowDown', ms: 140 }] },
+  { id: 'level-06', minimumXp: 360, mentor: { x: 110, y: 180 }, crystal: { x: 115, y: 390 }, chest: { x: 790, y: 255 }, gate: { x: 900, y: 270 }, commands: [{ operation: 'merge', text: 'git merge main' }], chestWaypoints: [{ x: 115, y: 450 }, { x: 430, y: 450 }, { x: 650, y: 450 }, { x: 650, y: 255 }, { x: 790, y: 255 }], toGate: [{ key: 'ArrowRight', ms: 760 }, { key: 'ArrowDown', ms: 100 }] },
 ];
 
 function findChrome() {
@@ -106,11 +106,11 @@ async function connectCdp() {
 async function waitForState(cdp, expected, timeoutMs = 12000) {
   const started = Date.now();
   while (Date.now() - started < timeoutMs) {
-    const state = await cdp.evaluate('document.documentElement.dataset.gitquestQa ?? ""');
+    const state = await cdp.evaluate('document.documentElement?.dataset.gitquestQa ?? ""');
     if (state === expected) return;
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
-  const state = await cdp.evaluate('document.documentElement.dataset.gitquestQa ?? ""');
+  const state = await cdp.evaluate('document.documentElement?.dataset.gitquestQa ?? ""');
   throw new Error(`État QA attendu « ${expected} », obtenu « ${state} »`);
 }
 
@@ -156,7 +156,7 @@ async function moveAlong(cdp, segments) {
 }
 
 async function moveToward(cdp, target, tolerance = 48) {
-  for (let attempt = 0; attempt < 12; attempt += 1) {
+  for (let attempt = 0; attempt < 40; attempt += 1) {
     const position = await cdp.evaluate('({ x: Number(document.documentElement.dataset.gitquestPlayerX ?? 0), y: Number(document.documentElement.dataset.gitquestPlayerY ?? 0) })');
     const dx = target.x - position.x;
     const dy = target.y - position.y;
@@ -167,6 +167,13 @@ async function moveToward(cdp, target, tolerance = 48) {
     await holdKey(cdp, direction, 140);
   }
   return false;
+}
+
+async function moveToPoints(cdp, points) {
+  for (const point of points) {
+    const reached = await moveToward(cdp, point, 12);
+    if (process.env.GITQUEST_QA_DEBUG === '1') console.log(`QA waypoint ${point.x},${point.y} reached=${reached} at ${await cdp.evaluate('document.documentElement.dataset.gitquestPlayerX + "," + document.documentElement.dataset.gitquestPlayerY')}`);
+  }
 }
 
 async function interactUntilQuestStep(cdp, expected, target) {
@@ -196,17 +203,20 @@ async function runTerminalCommands(cdp, commands) {
 async function runLegacyLevel(cdp, config) {
   await waitForLevel(cdp, config.id);
   await waitForQuestStep(cdp, 'talk-midou');
-  await moveAlong(cdp, config.toMentor);
+  if (process.env.GITQUEST_QA_DEBUG === '1') console.log(`${config.id} start: ${await cdp.evaluate('document.documentElement.dataset.gitquestPlayerX + "," + document.documentElement.dataset.gitquestPlayerY')}`);
+  await moveToward(cdp, config.mentor, 30);
+  if (process.env.GITQUEST_QA_DEBUG === '1') console.log(`${config.id} mentor: ${await cdp.evaluate('document.documentElement.dataset.gitquestPlayerX + "," + document.documentElement.dataset.gitquestPlayerY')}`);
   await key(cdp, 'e');
   await waitForQuestStep(cdp, 'run-' + config.commands[0].operation);
   for (let attempt = 0; attempt < 3 && await cdp.evaluate('document.documentElement.dataset.gitquestDialogue === "visible"'); attempt += 1) {
     await key(cdp, 'e');
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
-  await moveAlong(cdp, config.toCrystal);
+  await moveToward(cdp, config.crystal, 42);
+  if (process.env.GITQUEST_QA_DEBUG === '1') console.log(`${config.id} crystal: ${await cdp.evaluate('document.documentElement.dataset.gitquestPlayerX + "," + document.documentElement.dataset.gitquestPlayerY')}`);
   await key(cdp, 'e');
   await runTerminalCommands(cdp, config.commands);
-  await moveAlong(cdp, config.toChest);
+  await moveToPoints(cdp, config.chestWaypoints);
   if (process.env.GITQUEST_QA_DEBUG === '1') console.log(`${config.id} before chest: ${await cdp.evaluate('document.documentElement.dataset.gitquestPlayerX + "," + document.documentElement.dataset.gitquestPlayerY')}`);
   await interactUntilQuestStep(cdp, 'open-exit', config.chest);
   const save = await cdp.evaluate('JSON.parse(localStorage.getItem("gitquest-save") ?? "null")');

@@ -186,10 +186,15 @@ export class WorldScene extends Phaser.Scene {
     const mentorSpawn = this.resolveSafeSpawn(resolveTiledObjectPoint(this.map.objects, 'npc', 'midou', this.level.mentor));
     this.player = this.physics.add.sprite(playerSpawn.x, playerSpawn.y, playerTexture, 0).setDisplaySize(playerSize, playerSize).setDepth(5);
     this.player.setCollideWorldBounds(true);
-    if (isBeach) {
-      this.physics.world.setBounds(0, 0, this.map.width * this.map.tileWidth, this.map.height * this.map.tileHeight);
-      this.cameras.main.startFollow(this.player, true, 0.08, 0.08);
-    }
+    const worldWidth = this.map.width * this.map.tileWidth;
+    const worldHeight = this.map.height * this.map.tileHeight;
+    // The physics world must follow the Tiled map, not the responsive canvas.
+    // Without this, compact viewports clipped legacy maps at y=390 and made
+    // lower crystals/chests unreachable on mobile.
+    this.physics.world.setBounds(0, 0, worldWidth, worldHeight);
+    this.cameras.main.setBounds(0, 0, worldWidth, worldHeight);
+    this.cameras.main.startFollow(this.player, true, 0.08, 0.08);
+    if (isBeach) this.cameras.main.setZoom(1.15);
     const obstacles = this.physics.add.staticGroup();
     this.map.colliders.forEach((rect) => {
       const block = this.add.zone(rect.x + rect.width / 2, rect.y + rect.height / 2, rect.width, rect.height);

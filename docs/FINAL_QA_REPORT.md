@@ -20,6 +20,7 @@ Date : 2026-10-17
 - Le même parcours a réussi sur `1920×1080`, `1366×768`, `1280×720`, `844×390`, `390×844`, `768×1024` et `1024×768` ; une variante `390×844` avec émulation tactile Chrome a également réussi.
 - L’écran Victoire a été vérifié isolément à `1280×720` et `390×844` via `?qa=victory`, avec capture visuelle et console sans erreur.
 - Les routes directes des six niveaux à `1280×720` ont rendu sans erreur console après culling Tiled ; FPS observés : niveau 1 `57,00`, niveau 2 `57,05`, niveau 3 `56,07`, niveaux 4 à 6 `57,05` dans Chrome headless GPU désactivé.
+- Le parcours métier complet des six niveaux a été rejoué sans diagnostic aux viewports `1280×720`, `844×390` et `390×844`, avec caméra suivie, collisions, commandes Git, récompenses, portes et Victoire validées.
 - Chrome desktop : menu, paramètres, changement de langue, niveau 1 et absence d’erreur console vérifiés.
 - Niveau 1 : carte Tiled, objectif initial, collisions et rendu TilemapLayer observés.
 - Parcours frais dans Chrome sur `http://192.168.115.51:5174/?qa=fresh` : Nouvelle partie → écran de chargement à 100 % → introduction → Passer → niveau 1 vérifié.

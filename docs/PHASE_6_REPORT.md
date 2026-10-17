@@ -14,6 +14,8 @@ Date : 2026-10-17
 - Le parcours navigateur réel a été prolongé jusqu’à l’écran Victoire : les six niveaux ont été parcourus dans Chrome desktop avec les commandes propres à chaque mission, les coffres, les clés, les portes et l’XP observés.
 - Le smoke test Chrome versionné automatise maintenant le parcours métier du niveau 1 : Midou, cristal, XP, terminal `git init`, coffre, clé, porte, chargement du niveau 2, actualisation et reprise sauvegardée.
 - Le même smoke test automatise désormais les six missions jusqu’à Victoire : `git init`, `git add .`, `git commit -m "archive"`, `git push`, `git pull`, `git branch feature`, `git switch feature` et `git merge main`, avec validation des coffres, clés, portes, XP et sauvegarde finale.
+- Le runner utilise désormais les coordonnées des objets Tiled et des waypoints de contournement ; il reste stable lorsque la caméra et les limites physiques changent avec le viewport.
+- Les cartes legacy appliquent leurs dimensions Tiled au monde physique et à la caméra, ce qui rend les cristaux et coffres situés sous la fenêtre initiale accessibles en paysage compact et en portrait.
 - Un compteur optionnel `?perf=1` publie une mesure DOM lisible sans modifier le gameplay. Sur le niveau 1 à `1280×720`, Chrome a mesuré `143,99 FPS`, `6,95 ms/frame`, soit `144 frames` sur `1000 ms`.
 - Les tests `RuntimeMetrics.test.ts` vérifient le calcul déterministe du FPS et la résolution sûre de la route QA ; la suite globale compte 42 tests.
 - La route QA `?qa=benchmark&qaLevel=level-XX&perf=1` permet de mesurer chaque carte sans modifier la sauvegarde ni sa progression :

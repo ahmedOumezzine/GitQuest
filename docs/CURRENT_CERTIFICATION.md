@@ -27,7 +27,7 @@ Le build conserve un avertissement connu sur le chunk Phaser vendor (`1 208 kB` 
 | 3 C — chargement/introduction | Implémentée | Progression réelle du loader, introduction localisée, Passer, transition vers niveau 1, aucune validation de quête pendant l’introduction ; smoke test Chrome versionné | Parcours tactile physique non couvert |
 | 3 D — niveau 1/HUD | Fonctionnelle | TiledLayer, collisions eau, spawns sûrs, HUD, Midou, terminal, coffre, clé, porte et sauvegarde vérifiés ; fonds raster dédiés ajoutés aux niveaux 2–6 | Les cartes 2–6 n’ont pas encore des tilesets 32×32 et une finition d’objets aussi complète que le niveau 1 |
 | 4 — interaction/i18n/sauvegarde | Partiellement certifiée | Terminal DOM avec espaces/historique, messages localisés, RTL, sauvegarde versionnée et migration testées ; saisie `git init` exercée par smoke test Chrome | Audio absent |
-| 5 — tactile/responsive | Partiellement certifiée | Joystick, actions tactiles, nettoyage des gestes, zones sûres et viewports UI vérifiés | Aucun appareil tactile physique testé |
+| 5 — tactile/responsive | Partiellement certifiée | Joystick, actions tactiles, nettoyage des gestes, caméra/limites physiques des cartes et parcours complet vérifiés à `1280×720`, `844×390` et `390×844` ; visibilité tactile confirmée en émulation | Aucun appareil tactile physique testé |
 | 6 — performance/stabilisation | Partiellement certifiée | Mesure FPS des six niveaux via route QA dédiée, smoke test Chrome des six missions jusqu’à Victoire, découpage applicatif, erreurs de chargement contrôlées | Bundle Phaser au-dessus du seuil, matrice release complète non exécutée |
 
 ## Intégration Tiled ajoutée dans la dernière passe
@@ -52,6 +52,7 @@ Cette intégration ne modifie ni les règles Git, ni l’ordre des quêtes, ni l
 ## Vérifications Chrome disponibles
 
 - Menu, paramètres, confirmation, introduction, HUD niveau 1 et reprise après actualisation : `1920×1080`, `1366×768`, `1280×720`, `844×390`, `390×844`, `768×1024`, `1024×768` via le runner Chrome versionné.
+- Parcours complet des six niveaux et Victoire rejoué sans diagnostic à `1280×720`, `844×390` et `390×844` après correction des limites physiques et du suivi caméra.
 - Écran Victoire : `1280×720` et `390×844` via `?qa=victory`, capture visuelle et bouton Rejouer lisible.
 - RTL arabe : `html[lang]=ar`, `html[dir]=rtl`, canvas et champ terminal synchronisés.
 - Parcours manuel complet des six niveaux : commandes Git, coffres, clés, portes, XP et victoire.
