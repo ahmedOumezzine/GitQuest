@@ -14,7 +14,7 @@ Date : 2026-10-17
 
 ## Validation réelle
 
-Le code et le typecheck sont validés. Une vérification Chrome desktop du niveau 1 ne montre aucune erreur console. Le menu et les paramètres ont désormais été capturés avec un contrôle explicite du viewport aux dimensions `1280×720`, `844×390` et `390×844`. La règle de placement du menu paysage compact et le calcul des zones sûres des contrôles tactiles sont couverts par des tests unitaires ; la suite compte désormais 39 tests.
+Le code et le typecheck sont validés. Une vérification Chrome desktop du niveau 1 ne montre aucune erreur console. Le menu et les paramètres ont désormais été capturés avec un contrôle explicite du viewport aux dimensions `1280×720`, `844×390` et `390×844`. La règle de placement du menu paysage compact et le calcul des zones sûres des contrôles tactiles sont couverts par des tests unitaires ; la suite compte désormais 40 tests.
 
 Le parcours tactile réel et l’affichage des contrôles sur appareils physiques restent à vérifier. Les viewports exacts suivants n’ont pas encore été exécutés pour le niveau en jeu avec un navigateur automatisé :
 
