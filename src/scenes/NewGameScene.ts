@@ -9,6 +9,8 @@ import { ResponsiveLayoutManager } from '../ui/layout/ResponsiveLayoutManager';
 import { UITheme } from '../ui/theme/UITheme';
 import { markQaState } from '../diagnostics/QaMarker';
 import { publicUrl } from '../core/publicUrl';
+import { assetsForLevel } from '../data/AssetManifest';
+import { enqueueAssets } from '../phaser/AssetLoader';
 
 export class NewGameScene extends Phaser.Scene {
   private session!: GameSession;
@@ -45,6 +47,8 @@ export class NewGameScene extends Phaser.Scene {
     });
     this.load.json('new-game-level-map', publicUrl(this.level.map.path));
     this.load.json('new-game-level-definition', publicUrl('/data/levels/level-01.json'));
+    const assets = assetsForLevel(this.level.id);
+    enqueueAssets(this, assets.images, assets.spriteSheets);
   }
 
   public create(): void {

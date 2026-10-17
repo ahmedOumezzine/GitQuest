@@ -2,9 +2,9 @@ import Phaser from 'phaser';
 import { I18nManager } from '../managers/I18nManager';
 import type { LevelDefinition } from '../models/game';
 import { resolveQaLevelId, resolveQaScene } from '../diagnostics/QaRoute';
-import { imageAssets, spriteSheetAssets } from '../data/AssetManifest';
+import { menuImageAssets } from '../data/AssetManifest';
 import { markQaState } from '../diagnostics/QaMarker';
-import { publicUrl } from '../core/publicUrl';
+import { enqueueAssets } from '../phaser/AssetLoader';
 
 type SessionLike = { locale?: import('../models/game').Locale };
 
@@ -19,22 +19,12 @@ export class PreloadScene extends Phaser.Scene {
     this.i18n = new I18nManager(session?.locale ?? 'fr');
     this.i18n.applyDirection(this.game.canvas);
     this.load.on('loaderror', (file: Phaser.Loader.File) => { this.loadError = this.i18n.text('assetMissing') + ' : ' + file.key + ' (' + file.url + ')'; });
-    imageAssets.forEach((asset) => this.load.image(asset.key, publicUrl(asset.path)));
-    spriteSheetAssets.forEach((asset) => this.load.spritesheet(asset.key, publicUrl(asset.path), { frameWidth: asset.frameWidth, frameHeight: asset.frameHeight }));
+    enqueueAssets(this, menuImageAssets);
     this.add.text(this.scale.width / 2, this.scale.height / 2, 'GITQUEST', { fontFamily: 'monospace', fontSize: '32px', color: '#f7d56a' }).setOrigin(0.5);
   }
 
   public create(): void {
     if (this.loadError) { this.showLoadError(this.loadError); return; }
-    this.anims.create({ key: 'player-walk', frames: this.anims.generateFrameNumbers('player-sheet', { start: 0, end: 2 }), frameRate: 7, repeat: -1 });
-    this.anims.create({ key: 'midou-idle', frames: this.anims.generateFrameNumbers('midou-sheet', { start: 0, end: 2 }), frameRate: 3, repeat: -1 });
-    const directions = { down: 0, left: 3, up: 6, right: 9 };
-    Object.entries(directions).forEach(([direction, start]) => {
-      this.anims.create({ key: 'player-walk-' + direction, frames: this.anims.generateFrameNumbers('player-4dir', { start, end: start + 2 }), frameRate: 8, repeat: -1 });
-      this.anims.create({ key: 'midou-idle-' + direction, frames: this.anims.generateFrameNumbers('midou-4dir', { start, end: start + 2 }), frameRate: 3, repeat: -1 });
-      this.anims.create({ key: 'level-01-player-walk-' + direction, frames: this.anims.generateFrameNumbers('level-01-player-sheet-v1', { start, end: start + 2 }), frameRate: 8, repeat: -1 });
-      this.anims.create({ key: 'level-01-midou-idle-' + direction, frames: this.anims.generateFrameNumbers('level-01-midou-sheet-v1', { start, end: start + 2 }), frameRate: 3, repeat: -1 });
-    });
     const levels = this.registry.get('levels') as LevelDefinition[];
     const qaSearch = typeof window !== 'undefined' ? window.location.search : '';
     if (resolveQaScene(qaSearch) === 'victory') {

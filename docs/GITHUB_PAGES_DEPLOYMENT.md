@@ -12,7 +12,8 @@
 - `.github/workflows/deploy.yml` : workflow Vite avec Node.js 22, `npm ci`, tests, typecheck, build, artifact Pages et déploiement.
 - `vite.config.ts` : base `/` en développement local et `/GitQuest/` dans GitHub Actions.
 - `src/core/publicUrl.ts` : résolution centralisée via `import.meta.env.BASE_URL`.
-- `PreloadScene`, `NewGameScene` et `LevelManager` utilisent cette résolution pour les assets, les définitions et les cartes.
+- `PreloadScene` ne charge que les assets du menu ; `NewGameScene` et `WorldScene` chargent les assets régionaux à la demande par niveau.
+- `AssetLoader` évite les doublons dans les caches Phaser et `LevelManager` utilise cette résolution pour les définitions et les cartes.
 - `.gitignore` : exclusions des dépendances, build, variables d’environnement, caches et rapports temporaires.
 - `README.md` : procédure et URL de publication.
 
@@ -21,11 +22,13 @@ Les chemins relatifs des tilesets Tiled restent compatibles avec les cartes JSON
 ## Vérifications locales
 
 - `npm ci` : **PASS** après résolution d’un verrou Windows sur les binaires natifs `esbuild`/`rollup`.
-- `npm test` : **49/49 PASS**.
+- `npm test` : **51/51 PASS**.
 - `npm run typecheck` : **PASS**.
 - `npm run build` avec `GITQUEST_PAGES=true` : **PASS**.
 - `dist/index.html` référence bien `/GitQuest/assets/...` et `/GitQuest/favicon.svg`.
-- `npm run qa` : **PASS** — menu, paramètres, RTL, six niveaux, commandes Git, sauvegarde et reprise.
+- `npm run qa:browser` ciblé niveau 1 : **PASS** — niveau rendu et FPS mesuré.
+- `npm run qa:browser` ciblé niveau 3 : **PASS** — assets régionaux chargés à la demande.
+- Le parcours QA complet est actuellement instable sur certaines transitions automatisées de niveaux legacy ; ce point doit être rejoué manuellement avant de le qualifier PASS global.
 
 ## Dépôt et publication
 
@@ -35,6 +38,7 @@ Les chemins relatifs des tilesets Tiled restent compatibles avec les cartes JSON
 - Push `main` : **PASS**, sans force push.
 - Workflow GitHub Actions : **PASS**, run `39074311070`, conclusion `success`.
 - Site public : **accessible**, titre `GitQuest — L'île des commits` affiché sur l’URL Pages.
+- Correctif de démarrage : le menu est maintenant découplé du chargement des assets lourds des niveaux 2 à 6, afin d’éviter un écran `GITQUEST` prolongé sur Pages.
 
 ## Limites honnêtes
 

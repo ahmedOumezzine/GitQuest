@@ -9,6 +9,8 @@ import { InputManager } from '../phaser/InputManager';
 import { RuntimeMetrics } from '../diagnostics/RuntimeMetrics';
 import { getLegacyWorldStyle } from '../world/LegacyWorldStyle';
 import { markQaLevel, markQaPlayerPosition, markQaState } from '../diagnostics/QaMarker';
+import { assetsForLevel } from '../data/AssetManifest';
+import { enqueueAssets } from '../phaser/AssetLoader';
 
 export class WorldScene extends Phaser.Scene {
   private session!: GameSession;
@@ -38,6 +40,7 @@ export class WorldScene extends Phaser.Scene {
   private worldTitle?: Phaser.GameObjects.Text;
   private runtimeMetrics?: RuntimeMetrics;
   private publishedRuntimeSample = 0;
+  private loadError: string | null = null;
 
   public constructor() { super('WorldScene'); }
 
@@ -47,7 +50,21 @@ export class WorldScene extends Phaser.Scene {
     this.level = (this.registry.get('levels') as LevelDefinition[]).find((item) => item.id === (data.levelId ?? session.levelId))!;
   }
 
+  public preload(): void {
+    this.loadError = null;
+    const assets = assetsForLevel(this.level.id);
+    this.load.on('loaderror', (file: Phaser.Loader.File) => {
+      this.loadError = new I18nManager(this.session.locale).text('assetMissing') + ' : ' + file.key + ' (' + file.url + ')';
+    });
+    enqueueAssets(this, assets.images, assets.spriteSheets);
+  }
+
   public create(): void {
+    if (this.loadError) {
+      this.showLoadError(new Error(this.loadError));
+      return;
+    }
+    this.createWorldAnimations();
     if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('perf')) {
       this.runtimeMetrics = new RuntimeMetrics();
       window.__gitquestRuntimeMetrics = this.runtimeMetrics;
@@ -60,6 +77,19 @@ export class WorldScene extends Phaser.Scene {
       });
     }
     void this.buildWorld().catch((error: unknown) => this.showLoadError(error));
+  }
+
+  private createWorldAnimations(): void {
+    const create = (key: string, texture: string, start: number, end: number, frameRate: number, repeat: number): void => {
+      if (!this.anims.exists(key)) this.anims.create({ key, frames: this.anims.generateFrameNumbers(texture, { start, end }), frameRate, repeat });
+    };
+    create('player-walk', 'player-sheet', 0, 2, 7, -1);
+    create('midou-idle', 'midou-sheet', 0, 2, 3, -1);
+    const directions = { down: 0, left: 3, up: 6, right: 9 };
+    Object.entries(directions).forEach(([direction, start]) => {
+      create('level-01-player-walk-' + direction, 'level-01-player-sheet-v1', start, start + 2, 8, -1);
+      create('level-01-midou-idle-' + direction, 'level-01-midou-sheet-v1', start, start + 2, 3, -1);
+    });
   }
 
   private async buildWorld(): Promise<void> {

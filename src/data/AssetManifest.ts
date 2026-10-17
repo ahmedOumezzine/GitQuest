@@ -137,5 +137,69 @@ export const spriteSheetAssets: SpriteSheetAssetEntry[] = [
   { key: 'level-01-player-sheet-v1', path: '/assets/sprites/level-01-player-sheet-v1.png', frameWidth: 96, frameHeight: 96 },
   { key: 'level-01-midou-sheet-v1', path: '/assets/sprites/level-01-midou-sheet-v1.png', frameWidth: 96, frameHeight: 96 },
 ];
+
+const menuAssetKeys = new Set([
+  'menu-background',
+  'menu-logo',
+  'menu-subtitle',
+  'menu-button-gold',
+  'menu-button-navy',
+  'menu-panel',
+  'menu-background-v2',
+  'menu-foreground-v3',
+  'menu-chest-v3',
+  'menu-duo-v3',
+  'midou-menu-v2',
+  'wave',
+]);
+
+const level01AssetKeys = new Set([
+  'beach-tileset',
+  'level-01-palm-v1',
+  'level-01-rock-garden-v1',
+  'level-01-ruin-garden-v1',
+  'level-01-shrine-v1',
+  'level-01-gate-v1',
+  'grass',
+  'flower',
+  'shell',
+  'shrine-glow',
+  'chest',
+  'crystal',
+  'scroll',
+]);
+
+const levelAssetPrefixes: Record<string, string> = {
+  'level-02': 'forest-',
+  'level-03': 'cave-',
+  'level-04': 'harbor-',
+  'level-05': 'mountain-',
+  'level-06': 'castle-',
+};
+
+const levelBackgroundKeys: Record<string, string> = {
+  'level-02': 'level-02-forest',
+  'level-03': 'level-03-cave',
+  'level-04': 'level-04-harbor',
+  'level-05': 'level-05-mountain',
+  'level-06': 'level-06-castle',
+};
+
+/** Assets needed to render the title screen. Heavy regional assets are lazy-loaded. */
+export const menuImageAssets = imageAssets.filter((asset) => menuAssetKeys.has(asset.key));
+
+/** Assets needed for the 96px player and Midou used by all enhanced regions. */
+export const enhancedCharacterSpriteSheets = spriteSheetAssets.filter((asset) => asset.key.startsWith('level-01-'));
+const genericCharacterSpriteSheets = spriteSheetAssets.filter((asset) => asset.key === 'player-sheet' || asset.key === 'midou-sheet');
+
+/** Return only the raster assets required by one playable level. */
+export function assetsForLevel(levelId: string): { images: AssetEntry[]; spriteSheets: SpriteSheetAssetEntry[] } {
+  const prefix = levelAssetPrefixes[levelId];
+  const images = imageAssets.filter((asset) => {
+    if (levelId === 'level-01') return level01AssetKeys.has(asset.key);
+    return asset.key === levelBackgroundKeys[levelId] || Boolean(prefix && asset.key.startsWith(prefix));
+  });
+  return { images, spriteSheets: [...genericCharacterSpriteSheets, ...enhancedCharacterSpriteSheets] };
+}
 // Asset paths stay readable and testable as public-root paths; PreloadScene
 // resolves them through Vite's BASE_URL before handing them to Phaser.

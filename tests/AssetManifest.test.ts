@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { access } from 'node:fs/promises';
-import { imageAssets, spriteSheetAssets } from '../src/data/AssetManifest';
+import { assetsForLevel, imageAssets, menuImageAssets, spriteSheetAssets } from '../src/data/AssetManifest';
 
 test('tous les assets demandés par PreloadScene existent localement', async () => {
   for (const asset of [...imageAssets, ...spriteSheetAssets]) {
@@ -16,4 +16,22 @@ test('les spritesheets utilisent une grille déclarée et cohérente', () => {
     assert.equal(asset.frameWidth, expected, asset.key);
     assert.equal(asset.frameHeight, expected, asset.key);
   });
+});
+
+test('le menu ne charge pas les assets régionaux avant une partie', () => {
+  assert.ok(menuImageAssets.some((asset) => asset.key === 'menu-background-v2'));
+  assert.ok(menuImageAssets.some((asset) => asset.key === 'menu-logo'));
+  assert.equal(menuImageAssets.some((asset) => asset.key === 'level-02-forest'), false);
+  assert.equal(menuImageAssets.some((asset) => asset.key === 'forest-ancient-tree'), false);
+});
+
+test('les assets régionaux sont chargés à la demande par niveau', () => {
+  const forest = assetsForLevel('level-02');
+  const beach = assetsForLevel('level-01');
+  assert.ok(forest.images.some((asset) => asset.key === 'level-02-forest'));
+  assert.ok(forest.images.some((asset) => asset.key === 'forest-gate-closed'));
+  assert.equal(forest.images.some((asset) => asset.key === 'level-03-cave'), false);
+  assert.ok(beach.images.some((asset) => asset.key === 'beach-tileset'));
+  assert.ok(beach.spriteSheets.some((asset) => asset.key === 'level-01-player-sheet-v1'));
+  assert.ok(beach.spriteSheets.some((asset) => asset.key === 'player-sheet'));
 });
