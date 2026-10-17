@@ -20,7 +20,7 @@ export class PreloadScene extends Phaser.Scene {
     this.load.on('loaderror', (file: Phaser.Loader.File) => { this.loadError = this.i18n.text('assetMissing') + ' : ' + file.key + ' (' + file.url + ')'; });
     imageAssets.forEach((asset) => this.load.image(asset.key, asset.path));
     spriteSheetAssets.forEach((asset) => this.load.spritesheet(asset.key, asset.path, { frameWidth: asset.frameWidth, frameHeight: asset.frameHeight }));
-    this.add.text(480, 270, 'GITQUEST', { fontFamily: 'monospace', fontSize: '32px', color: '#f7d56a' }).setOrigin(0.5);
+    this.add.text(this.scale.width / 2, this.scale.height / 2, 'GITQUEST', { fontFamily: 'monospace', fontSize: '32px', color: '#f7d56a' }).setOrigin(0.5);
   }
 
   public create(): void {
@@ -44,10 +44,16 @@ export class PreloadScene extends Phaser.Scene {
 
   private showLoadError(message: string): void {
     this.children.removeAll(true);
-    this.add.rectangle(480, 270, 720, 250, 0x10172b, 0.98).setStrokeStyle(3, 0xd96565);
-    this.add.text(480, 200, this.i18n.text('assetMissing'), { fontFamily: 'monospace', fontSize: '26px', color: '#ff9b9b' }).setOrigin(0.5);
-    this.add.text(480, 270, message, { fontFamily: 'monospace', fontSize: '15px', color: '#fff6df', align: 'center', wordWrap: { width: 620 } }).setOrigin(0.5);
-    const retry = this.add.text(480, 340, this.i18n.text('retry'), { fontFamily: 'monospace', fontSize: '20px', color: '#18233e', backgroundColor: '#f7d56a', padding: { x: 20, y: 8 } }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+    const width = this.scale.width;
+    const height = this.scale.height;
+    const panelWidth = Math.min(720, Math.max(260, width - 32));
+    const panelHeight = Math.min(250, Math.max(210, height - 32));
+    const centerX = width / 2;
+    const centerY = height / 2;
+    this.add.rectangle(centerX, centerY, panelWidth, panelHeight, 0x10172b, 0.98).setStrokeStyle(3, 0xd96565);
+    this.add.text(centerX, centerY - panelHeight / 2 + 42, this.i18n.text('assetMissing'), { fontFamily: 'monospace', fontSize: width < 500 ? '20px' : '26px', color: '#ff9b9b' }).setOrigin(0.5);
+    this.add.text(centerX, centerY, message, { fontFamily: 'monospace', fontSize: '15px', color: '#fff6df', align: 'center', wordWrap: { width: panelWidth - 44 } }).setOrigin(0.5);
+    const retry = this.add.text(centerX, centerY + panelHeight / 2 - 38, this.i18n.text('retry'), { fontFamily: 'monospace', fontSize: '20px', color: '#18233e', backgroundColor: '#f7d56a', padding: { x: 20, y: 8 } }).setOrigin(0.5).setInteractive({ useHandCursor: true });
     retry.on('pointerdown', () => this.scene.restart());
   }
 }

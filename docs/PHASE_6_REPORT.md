@@ -6,6 +6,7 @@ Date : 2026-10-17
 
 - Le sol du niveau 1 passe d’un GameObject image par tuile à un `TilemapLayer` Phaser.
 - Les erreurs de chargement de carte sont affichées dans une surface responsive et localisée.
+- Les écrans Boot, Preload et Victoire n’utilisent plus de coordonnées fixes 960×540 : leurs panneaux, textes et actions se recentrent selon le viewport.
 - Les événements tactiles sont nettoyés lors de l’arrêt des scènes.
 - Un test de progression générique couvre les six définitions de niveau, leurs commandes Git, la clé et l’ouverture de porte au niveau logique.
 - Le point d’entrée charge désormais le runtime Phaser de façon asynchrone ; le chunk initial passe à environ 2,2 kB, avec un chunk applicatif de 73 kB et Phaser isolé dans un chunk vendor d’environ 1,21 MB.
