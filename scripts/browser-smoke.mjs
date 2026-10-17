@@ -5,7 +5,10 @@ import { join } from 'node:path';
 
 const appPort = Number(process.env.GITQUEST_QA_PORT ?? 5181);
 const cdpPort = Number(process.env.GITQUEST_CDP_PORT ?? 9223);
-const appUrl = `http://127.0.0.1:${appPort}/?qa=browser`;
+const requestedLevel = process.env.GITQUEST_QA_LEVEL;
+const appUrl = requestedLevel
+  ? `http://127.0.0.1:${appPort}/?qa=benchmark&qaLevel=${encodeURIComponent(requestedLevel)}&perf=1`
+  : `http://127.0.0.1:${appPort}/?qa=browser`;
 
 function findChrome() {
   const candidates = [
@@ -173,12 +176,25 @@ try {
   await cdp.send('Page.enable');
   await cdp.send('Storage.clearDataForOrigin', { origin: `http://127.0.0.1:${appPort}`, storageTypes: 'all' });
   await cdp.send('Page.reload', { ignoreCache: true });
-  await waitForState(cdp, 'title');
+  await waitForState(cdp, requestedLevel ? 'world' : 'title');
   await assertBrowserBasics(cdp);
   if (process.env.GITQUEST_QA_SCREENSHOT) {
     const screenshot = await cdp.send('Page.captureScreenshot', { format: 'png' });
     await writeFile(process.env.GITQUEST_QA_SCREENSHOT, Buffer.from(screenshot.data, 'base64'));
   }
+
+  if (requestedLevel) {
+    const started = Date.now();
+    let runtime = await cdp.evaluate('({ level: document.documentElement.dataset.gitquestLevel ?? "", fps: document.documentElement.dataset.gitquestFps ?? "" })');
+    while (!runtime.fps && Date.now() - started < 4000) {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      runtime = await cdp.evaluate('({ level: document.documentElement.dataset.gitquestLevel ?? "", fps: document.documentElement.dataset.gitquestFps ?? "" })');
+    }
+    if (runtime.level !== requestedLevel) throw new Error(`Niveau QA attendu « ${requestedLevel} », obtenu « ${runtime.level} »`);
+    if (!runtime.fps) throw new Error(`Aucune mesure FPS pour ${requestedLevel}.`);
+    if (consoleErrors.length) throw new Error(`Erreurs navigateur : ${consoleErrors.join(' | ')}`);
+    console.log(`QA navigateur PASS: ${requestedLevel}, niveau rendu et FPS ${runtime.fps}.`);
+  } else {
 
   await click(cdp, 480, 353);
   await waitForState(cdp, 'settings');
@@ -208,6 +224,7 @@ try {
   await waitForState(cdp, 'world');
   if (consoleErrors.length) throw new Error(`Erreurs navigateur : ${consoleErrors.join(' | ')}`);
   console.log('QA navigateur PASS: menu, paramètres, RTL, nouvelle partie, chargement, introduction, niveau 1, terminal et sauvegarde.');
+  }
 } finally {
   cdp?.socket.close();
   await stopProcess(chrome);

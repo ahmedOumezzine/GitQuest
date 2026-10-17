@@ -331,3 +331,7 @@ Ces améliorations ne constituent pas encore une certification graphique complè
 ### Rectification documentaire — validations ultérieures
 
 Cette phrase correspondait à l’état de l’étape B.2 au moment de sa rédaction. Les validations ultérieures ont depuis couvert les viewports exacts `1280×720`, `844×390` et `390×844` pour le menu, les paramètres, la confirmation et l’introduction. La validation d’appareil tactile physique et la certification artistique complète des niveaux 2 à 6 restent ouvertes.
+
+### Mise à jour — fonds raster des niveaux 2 à 6
+
+Une passe artistique supplémentaire a ajouté un fond raster local dédié à chaque région legacy (`public/assets/backgrounds/level-02-forest.png` à `level-06-castle.png`). `WorldScene` les rend sous les éléments de navigation existants ; les collisions, objets, quêtes et cartes JSON restent inchangés. Ces fonds améliorent nettement la profondeur visuelle, mais ne constituent pas encore un pack complet de tilesets 32×32 ni une certification de licence commerciale.

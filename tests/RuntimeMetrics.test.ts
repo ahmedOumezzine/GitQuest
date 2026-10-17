@@ -25,6 +25,7 @@ test('la route QA ne sélectionne qu’un niveau présent dans le manifest', () 
 test('les niveaux legacy possèdent des styles visuels distincts et stables', () => {
   const styles = Array.from({ length: 5 }, (_, index) => getLegacyWorldStyle(`level-0${index + 2}`));
   assert.equal(new Set(styles.map((style) => style.id)).size, 5);
+  assert.equal(new Set(styles.map((style) => style.backgroundKey)).size, 5);
   assert.equal(new Set(styles.map((style) => style.obstacle)).size, 5);
   styles.forEach((style) => assert.ok(style.propKeys.length >= 2));
   assert.equal(getLegacyWorldStyle('unknown').id, 'fallback');

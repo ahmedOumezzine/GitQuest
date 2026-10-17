@@ -25,7 +25,7 @@ Le build conserve un avertissement connu sur le chunk Phaser vendor (`1 208 kB` 
 |---|---|---|---|
 | 3 B.2 — menu artistique | Implémentée, vérifiée visuellement | Fond raster local, logo, boutons, paramètres, FR/EN/AR ; viewports `1280×720`, `844×390`, `390×844` observés dans Chrome | Les personnages et certains assets restent moins détaillés que la référence ; licence de distribution finale à confirmer |
 | 3 C — chargement/introduction | Implémentée | Progression réelle du loader, introduction localisée, Passer, transition vers niveau 1, aucune validation de quête pendant l’introduction ; smoke test Chrome versionné | Parcours tactile physique non couvert |
-| 3 D — niveau 1/HUD | Fonctionnelle | TiledLayer, collisions eau, spawns sûrs, HUD, Midou, terminal, coffre, clé, porte et sauvegarde vérifiés | Les niveaux 2–6 ont maintenant une passe de style distincte, mais pas encore une finition artistique équivalente au niveau 1 |
+| 3 D — niveau 1/HUD | Fonctionnelle | TiledLayer, collisions eau, spawns sûrs, HUD, Midou, terminal, coffre, clé, porte et sauvegarde vérifiés ; fonds raster dédiés ajoutés aux niveaux 2–6 | Les cartes 2–6 n’ont pas encore des tilesets 32×32 et une finition d’objets aussi complète que le niveau 1 |
 | 4 — interaction/i18n/sauvegarde | Partiellement certifiée | Terminal DOM avec espaces/historique, messages localisés, RTL, sauvegarde versionnée et migration testées ; saisie `git init` exercée par smoke test Chrome | Audio absent |
 | 5 — tactile/responsive | Partiellement certifiée | Joystick, actions tactiles, nettoyage des gestes, zones sûres et viewports UI vérifiés | Aucun appareil tactile physique testé |
 | 6 — performance/stabilisation | Partiellement certifiée | Mesure FPS des six niveaux via route QA dédiée, découpage applicatif, erreur de chargement contrôlée | Bundle Phaser au-dessus du seuil, matrice release complète non exécutée |
@@ -61,6 +61,18 @@ Cette intégration ne modifie ni les règles Git, ni l’ordre des quêtes, ni l
 - `tests/Extensibility.test.ts` charge un niveau 7 et une carte Tiled synthétiques uniquement par données, puis valide sa quête sans modifier les scènes Phaser.
 - `tests/ManifestConsistency.test.ts` vérifie que les six définitions actuelles sont exactement celles du manifest et que chaque carte référencée existe.
 - `npm run qa:browser` exécute un smoke test Chrome/Edge headless versionné via `scripts/browser-smoke.mjs` ; il couvre le menu, les paramètres, le RTL, Nouvelle partie, l’introduction, le niveau 1, le terminal et la sauvegarde.
+
+Recheck headless direct des cartes legacy le 17 octobre 2026, avec `npm run qa:browser` et `GITQUEST_QA_LEVEL=level-XX` :
+
+| Niveau | FPS | Erreurs console | Capture |
+|---|---:|---:|---|
+| 2 | 57,05 | 0 | `level-02-after.png` |
+| 3 | 58,00 | 0 | non conservée |
+| 4 | 55,00 | 0 | non conservée |
+| 5 | 57,05 | 0 | non conservée |
+| 6 | 58,03 | 0 | non conservée |
+
+Cette série vérifie le rendu de chaque région après l’ajout des fonds raster locaux et le remplacement des anciens obstacles graphiques par des textures Phaser répétées. Elle ne certifie pas encore une finition complète en tilesets 32×32 ni un appareil tactile physique.
 
 Recheck Chrome du 17 octobre 2026 via `?qa=benchmark&qaLevel=level-XX&perf=1` à `1280×720` :
 

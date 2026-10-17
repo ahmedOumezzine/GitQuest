@@ -11,6 +11,13 @@ export interface SpriteSheetAssetEntry extends AssetEntry {
 export const imageAssets: AssetEntry[] = [
   ...['menu-background', 'menu-logo', 'menu-subtitle', 'menu-button-gold', 'menu-button-navy', 'menu-panel'].map((key) => ({ key, path: `/assets/ui/${key}.svg` })),
   { key: 'menu-background-v2', path: '/assets/ui/menu-background-v2.png' },
+  ...[
+    ['level-02-forest', 'level-02-forest.png'],
+    ['level-03-cave', 'level-03-cave.png'],
+    ['level-04-harbor', 'level-04-harbor.png'],
+    ['level-05-mountain', 'level-05-mountain.png'],
+    ['level-06-castle', 'level-06-castle.png'],
+  ].map(([key, file]) => ({ key, path: `/assets/backgrounds/${file}` })),
   { key: 'island-tileset', path: '/assets/tilesets/island-tileset.svg' },
   ...['player', 'midou', 'chest', 'crystal', 'scroll', 'gate', 'key', 'palm', 'rock', 'grass', 'ruin', 'shrine', 'shrine-glow', 'lighthouse', 'wave', 'flower', 'shell', 'player-scarf', 'midou-staff'].map((key) => ({ key, path: `/assets/sprites/${key}.svg` })),
 ];

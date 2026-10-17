@@ -25,3 +25,17 @@ Ces assets sont uniquement utilisés comme décor et contrôles visuels du menu/
 La scène Phaser conserve des couches séparées au-dessus de ce fond : vagues animées, ombres et sprites du joueur/Midou. Le fond est donc remplaçable sans modifier les contrôles ni la navigation.
 
 Provenance : génération originale pour GitQuest, 17 octobre 2026. Aucun asset tiers, URL externe ou image de référence copiée n’a été intégré. La licence de distribution finale des images générées doit être confirmée selon la politique de distribution du projet avant publication commerciale.
+
+## Fonds de régions legacy — Phase 3 D / passe artistique
+
+Les fonds raster suivants ont été générés localement pour remplacer les grandes surfaces géométriques des niveaux 2 à 6 :
+
+| Fichier | Région | Rôle | Provenance/licence |
+|---|---|---|---|
+| `backgrounds/level-02-forest.png` | Forêt des Fichiers | couche décorative non interactive | génération originale Codex, 17 octobre 2026 ; licence de distribution finale à confirmer |
+| `backgrounds/level-03-cave.png` | Grotte des Souvenirs | couche décorative non interactive | génération originale Codex, 17 octobre 2026 ; licence de distribution finale à confirmer |
+| `backgrounds/level-04-harbor.png` | Port des Connexions | couche décorative non interactive | génération originale Codex, 17 octobre 2026 ; licence de distribution finale à confirmer |
+| `backgrounds/level-05-mountain.png` | Montagne des Branches | couche décorative non interactive | génération originale Codex, 17 octobre 2026 ; licence de distribution finale à confirmer |
+| `backgrounds/level-06-castle.png` | Château des Conflits | couche décorative non interactive | génération originale Codex, 17 octobre 2026 ; licence de distribution finale à confirmer |
+
+Ces images ne portent ni texte, ni bouton, ni collision, ni objet de quête. `WorldScene` les rend sous les chemins, obstacles et sprites existants ; elles ne remplacent pas les cartes JSON Tiled. Leur licence doit être validée avant une distribution commerciale.

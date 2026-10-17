@@ -46,3 +46,17 @@ Les paragraphes historiques de ce rapport décrivent l’état intermédiaire de
 - les niveaux 2 à 6 utilisent maintenant un style de rendu distinct et data-driven (palette, chemin, obstacles et props) ; les niveaux 2 et 6 ont été observés dans Chrome sans erreur console.
 
 Recheck Chrome du 17 octobre 2026 à `1280×720` via la route QA : niveaux 1 à 6 mesurés entre `133,97` et `142,99 FPS`, avec `0` erreur et `0` avertissement console pour chaque route. Les écarts avec la série précédente sont liés à la session et à l’environnement de rendu.
+
+### Recheck headless ciblé des niveaux 2 à 6
+
+Le smoke test versionné a ensuite été exécuté en mode direct, sans progression ni modification des données métier :
+
+| Niveau | FPS | Erreurs console | Résultat |
+|---|---:|---:|---|
+| 2 | 57,05 | 0 | PASS, capture conservée |
+| 3 | 58,00 | 0 | PASS |
+| 4 | 55,00 | 0 | PASS |
+| 5 | 57,05 | 0 | PASS |
+| 6 | 58,03 | 0 | PASS |
+
+La capture du niveau 2 confirme visuellement le fond forestier raster et l’absence des anciens rectangles translucides d’obstacles. Les cinq fonds sont des assets locaux générés le 17 octobre 2026 ; leur licence de distribution finale reste à confirmer avant publication commerciale.

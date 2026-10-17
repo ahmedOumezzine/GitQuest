@@ -8,7 +8,7 @@ import { SceneManager } from '../phaser/SceneManager';
 import { InputManager } from '../phaser/InputManager';
 import { RuntimeMetrics } from '../diagnostics/RuntimeMetrics';
 import { getLegacyWorldStyle } from '../world/LegacyWorldStyle';
-import { markQaState } from '../diagnostics/QaMarker';
+import { markQaLevel, markQaState } from '../diagnostics/QaMarker';
 
 export class WorldScene extends Phaser.Scene {
   private session!: GameSession;
@@ -65,6 +65,7 @@ export class WorldScene extends Phaser.Scene {
     this.cameras.main.fadeIn(350, 0, 0, 0);
     this.sceneManager = new SceneManager(this);
     markQaState('world');
+    markQaLevel(this.level.id);
     this.inputManager = new InputManager(this, () => { if (!this.terminalOpen) this.interact(); }, () => { if (!this.terminalOpen) EventBus.emit('terminal-open'); });
     this.input.on('pointerdown', () => undefined);
     this.events.on('touch-move', (vector: Point) => { this.touchVector = vector; });
@@ -108,29 +109,30 @@ export class WorldScene extends Phaser.Scene {
     const worldWidth = this.map.width * this.map.tileWidth;
     const worldHeight = this.map.height * this.map.tileHeight;
     this.cameras.main.setBackgroundColor(this.level.theme.sky).setBounds(0, 0, worldWidth, worldHeight).setRoundPixels(true);
+    this.add.image(worldWidth / 2, worldHeight / 2, style.backgroundKey)
+      .setDisplaySize(worldWidth, worldHeight)
+      .setDepth(-2);
     const graphics = this.add.graphics();
-    graphics.fillStyle(Phaser.Display.Color.HexStringToColor(style.groundDark).color, 1).fillRect(0, 0, worldWidth, worldHeight);
-    graphics.fillStyle(Phaser.Display.Color.HexStringToColor(style.groundLight).color, 1).fillRoundedRect(18, 70, worldWidth - 36, worldHeight - 86, 18);
-    graphics.fillStyle(Phaser.Display.Color.HexStringToColor(style.path).color, 0.9);
+    // The raster layer supplies the detailed environment. These low-opacity
+    // navigation bands keep the data-driven play route readable without
+    // painting over the art or changing the collision model.
+    graphics.fillStyle(Phaser.Display.Color.HexStringToColor(style.groundDark).color, 0.04).fillRect(0, 0, worldWidth, worldHeight);
+    graphics.fillStyle(Phaser.Display.Color.HexStringToColor(style.path).color, 0.24);
     if (this.level.id === 'level-03' || this.level.id === 'level-06') graphics.fillRoundedRect(72, 245, worldWidth - 144, 62, 18);
     else graphics.fillRoundedRect(70, 240, 160, worldHeight - 300, 18).fillRoundedRect(worldWidth - 230, 240, 160, worldHeight - 300, 18);
-    graphics.lineStyle(3, Phaser.Display.Color.HexStringToColor(this.level.theme.accent).color, 0.8).strokeRoundedRect(18, 70, worldWidth - 36, worldHeight - 86, 18);
-    this.map.colliders.forEach((rect) => this.drawLegacyObstacle(graphics, rect, style.obstacle));
+    this.map.colliders.forEach((rect) => this.drawLegacyObstacle(rect, style.obstacle));
     this.addLegacyProps(style.propKeys, worldWidth, worldHeight);
     this.map.decorations.forEach((definition) => this.addLegacyDecoration(definition.type, definition.x, definition.y));
     this.add.text(28, 26, new I18nManager(this.session.locale).localized(this.level.title), { fontFamily: 'monospace', fontSize: '22px', color: '#fff6df', stroke: '#18233e', strokeThickness: 5 }).setDepth(10);
   }
 
-  private drawLegacyObstacle(graphics: Phaser.GameObjects.Graphics, rect: { x: number; y: number; width: number; height: number }, kind: ReturnType<typeof getLegacyWorldStyle>['obstacle']): void {
-    const color = Phaser.Display.Color.HexStringToColor(this.level.theme.accent).color;
-    const shadow = Phaser.Display.Color.HexStringToColor('#18233e').color;
-    graphics.fillStyle(shadow, 0.34).fillRoundedRect(rect.x + 5, rect.y + 6, rect.width, rect.height, 6);
-    graphics.fillStyle(color, 0.72);
-    if (kind === 'hedge') graphics.fillRoundedRect(rect.x, rect.y, rect.width, rect.height, 12);
-    else if (kind === 'dock') graphics.fillRect(rect.x, rect.y, rect.width, rect.height).lineStyle(2, shadow, 0.65).strokeRect(rect.x + 6, rect.y + 4, rect.width - 12, Math.max(4, rect.height - 8));
-    else if (kind === 'cliff') graphics.fillRoundedRect(rect.x, rect.y, rect.width, rect.height, 4).lineStyle(3, shadow, 0.55).strokeRoundedRect(rect.x, rect.y, rect.width, rect.height, 4);
-    else if (kind === 'wall') graphics.fillRoundedRect(rect.x, rect.y, rect.width, rect.height, 3).lineStyle(2, shadow, 0.55).strokeRoundedRect(rect.x, rect.y, rect.width, rect.height, 3);
-    else graphics.fillCircle(rect.x + rect.width / 2, rect.y + rect.height / 2, Math.max(10, Math.min(rect.width, rect.height) / 2));
+  private drawLegacyObstacle(rect: { x: number; y: number; width: number; height: number }, kind: ReturnType<typeof getLegacyWorldStyle>['obstacle']): void {
+    const texture: Record<ReturnType<typeof getLegacyWorldStyle>['obstacle'], string> = {
+      hedge: 'grass', stone: 'rock', dock: 'ruin', cliff: 'rock', wall: 'ruin',
+    };
+    this.add.tileSprite(rect.x + rect.width / 2, rect.y + rect.height / 2, rect.width, rect.height, texture[kind])
+      .setDepth(2)
+      .setAlpha(0.95);
   }
 
   private addLegacyProps(propKeys: string[], worldWidth: number, worldHeight: number): void {
