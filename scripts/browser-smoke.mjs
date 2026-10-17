@@ -140,6 +140,17 @@ async function waitForQuestStep(cdp, expected, timeoutMs = 5000) {
   throw new Error(`Étape de quête attendue « ${expected} », obtenue « ${step} »`);
 }
 
+async function waitForIntroPage(cdp, expected, timeoutMs = 3000) {
+  const started = Date.now();
+  while (Date.now() - started < timeoutMs) {
+    const page = await cdp.evaluate('document.documentElement.dataset.gitquestIntroPage ?? ""');
+    if (page === String(expected)) return;
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  const page = await cdp.evaluate('document.documentElement.dataset.gitquestIntroPage ?? ""');
+  throw new Error(`Page d’introduction attendue « ${expected} », obtenue « ${page} »`);
+}
+
 async function waitForLevel(cdp, expected, timeoutMs = 6000) {
   const started = Date.now();
   while (Date.now() - started < timeoutMs) {
@@ -167,6 +178,39 @@ async function moveToward(cdp, target, tolerance = 48) {
     await holdKey(cdp, direction, 140);
   }
   return false;
+}
+
+async function debugPlayer(cdp, label) {
+  if (process.env.GITQUEST_QA_DEBUG !== '1') return;
+  const state = await cdp.evaluate('({ x: Number(document.documentElement.dataset.gitquestPlayerX ?? 0), y: Number(document.documentElement.dataset.gitquestPlayerY ?? 0), quest: document.documentElement.dataset.gitquestQuestStep ?? "" })');
+  console.log(`QA debug ${label}: x=${state.x.toFixed(1)} y=${state.y.toFixed(1)} quest=${state.quest}`);
+}
+
+async function assertLevel1Animations(cdp) {
+  if (process.env.GITQUEST_QA_ANIMATION !== '1') return;
+  for (const [direction, key] of [['ArrowRight', 'right'], ['ArrowDown', 'down'], ['ArrowLeft', 'left'], ['ArrowUp', 'up']]) {
+    await holdKey(cdp, direction, 220);
+    const animation = await cdp.evaluate('document.documentElement.dataset.gitquestPlayerAnimation ?? ""');
+    if (animation !== `level-01-player-walk-${key}`) throw new Error(`Animation niveau 1 attendue ${key}, obtenue ${animation || 'aucune'}`);
+  }
+  console.log('QA animation PASS: joueur niveau 1, quatre directions.');
+}
+
+async function waitForGateState(cdp, expected, timeoutMs = 3000) {
+  const started = Date.now();
+  while (Date.now() - started < timeoutMs) {
+    const state = await cdp.evaluate('document.documentElement.dataset.gitquestGateState ?? ""');
+    if (state === expected) return;
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  const state = await cdp.evaluate('document.documentElement.dataset.gitquestGateState ?? ""');
+  throw new Error(`État de porte attendu « ${expected} », obtenu « ${state} »`);
+}
+
+async function captureScreenshot(cdp, path) {
+  if (!path) return;
+  const screenshot = await cdp.send('Page.captureScreenshot', { format: 'png' });
+  await writeFile(path, Buffer.from(screenshot.data, 'base64'));
 }
 
 async function moveToPoints(cdp, points) {
@@ -229,9 +273,34 @@ async function runLegacyLevel(cdp, config) {
   if (config.gateWaypoints) await moveToPoints(cdp, config.gateWaypoints);
   else await moveAlong(cdp, config.toGate);
   await moveToward(cdp, config.gate);
+  if (config.id === 'level-02') await captureScreenshot(cdp, process.env.GITQUEST_QA_LEVEL2_GATE_OPEN_SCREENSHOT);
   await key(cdp, 'e');
   if (config.next) await waitForLevel(cdp, config.next);
   else await waitForState(cdp, 'victory');
+}
+
+async function runLevel2PolishCaptures(cdp) {
+  const capture = async (name) => captureScreenshot(cdp, process.env[`GITQUEST_QA_${name}_SCREENSHOT`]);
+  // First capture the locked route before any quest step is accepted.
+  await moveToPoints(cdp, [{ x: 130, y: 310 }, { x: 700, y: 310 }, { x: 900, y: 310 }, { x: 900, y: 270 }]);
+  await capture('GATE_LOCKED');
+
+  // Reload to restore the untouched level-2 start, then document the
+  // authored route through Midou and the Git shrine.
+  await cdp.send('Page.reload', { ignoreCache: true });
+  await waitForState(cdp, 'world');
+  await waitForQuestStep(cdp, 'talk-midou');
+  await new Promise((resolve) => setTimeout(resolve, 650));
+  await moveToward(cdp, { x: 105, y: 180 }, 30);
+  await capture('MIDOU');
+  await key(cdp, 'e');
+  await waitForQuestStep(cdp, 'run-add');
+  for (let attempt = 0; attempt < 3 && await cdp.evaluate('document.documentElement.dataset.gitquestDialogue === "visible"'); attempt += 1) {
+    await key(cdp, 'e');
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  await moveToPoints(cdp, [{ x: 220, y: 310 }, { x: 430, y: 310 }, { x: 430, y: 150 }]);
+  await capture('SHRINE');
 }
 
 async function click(cdp, x, y) {
@@ -282,12 +351,33 @@ async function clickLanguage(cdp, index) {
 async function clickIntroductionSkip(cdp) {
   const { width, height } = await getGameSize(cdp);
   const metrics = layoutFor(width, height);
-  const panelWidth = Math.min(670, width - metrics.margin * 2);
-  const panelHeight = Math.min(430, height - metrics.margin * 2);
-  const panelY = height / 2 + (metrics.compact ? 8 : 16);
+  const panelWidth = Math.min(metrics.portrait ? 560 : 960, width - metrics.margin * 2);
+  const panelHeight = metrics.portrait ? Math.min(400, height * 0.48) : metrics.compact ? Math.min(220, height - metrics.margin * 2) : 252;
+  const panelTop = height - metrics.margin - panelHeight;
   const stacked = metrics.portrait || panelWidth < 500;
-  const buttonsY = panelY + panelHeight / 2 - (stacked ? 64 : (metrics.compact ? 42 : 36));
-  await click(cdp, stacked ? width / 2 : width / 2 + 130, stacked ? buttonsY + 27 : buttonsY);
+  const buttonY = panelTop + panelHeight - (stacked ? 66 : 32);
+  const nextWidth = stacked ? panelWidth - 34 : 230;
+  const skipWidth = stacked ? panelWidth - 34 : 132;
+  const groupGap = 12;
+  const groupLeft = width / 2 - (nextWidth + groupGap + skipWidth) / 2;
+  const skipX = stacked ? width / 2 : groupLeft + nextWidth + groupGap + skipWidth / 2;
+  await click(cdp, skipX, stacked ? buttonY + 25 : buttonY);
+}
+
+async function clickIntroductionNext(cdp) {
+  const { width, height } = await getGameSize(cdp);
+  const metrics = layoutFor(width, height);
+  const panelWidth = Math.min(metrics.portrait ? 560 : 960, width - metrics.margin * 2);
+  const panelHeight = metrics.portrait ? Math.min(400, height * 0.48) : metrics.compact ? Math.min(220, height - metrics.margin * 2) : 252;
+  const panelTop = height - metrics.margin - panelHeight;
+  const stacked = metrics.portrait || panelWidth < 500;
+  const buttonY = panelTop + panelHeight - (stacked ? 66 : 32);
+  const nextWidth = stacked ? panelWidth - 34 : 230;
+  const skipWidth = stacked ? panelWidth - 34 : 132;
+  const groupGap = 12;
+  const groupLeft = width / 2 - (nextWidth + groupGap + skipWidth) / 2;
+  const nextX = stacked ? width / 2 : groupLeft + nextWidth / 2;
+  await click(cdp, nextX, stacked ? buttonY - 25 : buttonY);
 }
 
 async function assertBrowserBasics(cdp) {
@@ -357,8 +447,15 @@ try {
   await waitForState(cdp, requestedLevel ? 'world' : requestedScene === 'victory' ? 'victory' : 'title');
   await assertBrowserBasics(cdp);
   if (process.env.GITQUEST_QA_SCREENSHOT) {
+    // WorldScene fades in after the QA marker is published. Wait for the
+    // actual rendered scene so level captures are not taken through black.
+    if (requestedLevel) await new Promise((resolve) => setTimeout(resolve, 650));
     const screenshot = await cdp.send('Page.captureScreenshot', { format: 'png' });
     await writeFile(process.env.GITQUEST_QA_SCREENSHOT, Buffer.from(screenshot.data, 'base64'));
+  }
+
+  if (requestedLevel === 'level-02' && process.env.GITQUEST_QA_POLISH_SCREENSHOTS === '1') {
+    await runLevel2PolishCaptures(cdp);
   }
 
   if (requestedLevel) {
@@ -379,6 +476,7 @@ try {
       }
       if (touchControls !== 'visible') throw new Error('Les contrôles tactiles ne sont pas visibles en émulation tactile.');
     }
+    await assertLevel1Animations(cdp);
     if (consoleErrors.length) throw new Error(`Erreurs navigateur : ${consoleErrors.join(' | ')}`);
     console.log(`QA navigateur PASS: ${requestedLevel}, niveau rendu et FPS ${runtime.fps}.`);
   } else if (requestedScene === 'victory') {
@@ -400,17 +498,44 @@ try {
   await clickMenuButton(cdp, 0, 2);
   await waitForState(cdp, 'loading');
   await waitForState(cdp, 'introduction');
+  await waitForIntroPage(cdp, 1);
+  if (process.env.GITQUEST_QA_INTRO_SCREENSHOT) {
+    const screenshot = await cdp.send('Page.captureScreenshot', { format: 'png' });
+    await writeFile(process.env.GITQUEST_QA_INTRO_SCREENSHOT, Buffer.from(screenshot.data, 'base64'));
+  }
+  await clickIntroductionNext(cdp);
+  await waitForIntroPage(cdp, 2);
+  await key(cdp, 'ArrowRight');
+  await waitForIntroPage(cdp, 3);
+  await key(cdp, 'Enter');
+  await waitForIntroPage(cdp, 4);
   await clickIntroductionSkip(cdp);
   await waitForState(cdp, 'world');
 
   await waitForQuestStep(cdp, 'talk-midou');
-  await holdKey(cdp, 'ArrowRight', 460);
-  await holdKey(cdp, 'ArrowUp', 430);
+  if (process.env.GITQUEST_QA_GATE_LOCKED_SCREENSHOT) {
+    await moveToPoints(cdp, [{ x: 300, y: 210 }, { x: 700, y: 210 }, { x: 900, y: 270 }]);
+    await waitForGateState(cdp, 'locked');
+    await key(cdp, 'e');
+    await captureScreenshot(cdp, process.env.GITQUEST_QA_GATE_LOCKED_SCREENSHOT);
+    await moveToPoints(cdp, [{ x: 700, y: 210 }, { x: 300, y: 210 }, { x: 240, y: 210 }]);
+    await holdKey(cdp, 'ArrowRight', 350);
+    await captureScreenshot(cdp, process.env.GITQUEST_QA_MIDOU_SCREENSHOT);
+    await holdKey(cdp, 'ArrowLeft', 350);
+  } else {
+    await holdKey(cdp, 'ArrowRight', 460);
+    await holdKey(cdp, 'ArrowUp', 430);
+  }
+  await debugPlayer(cdp, 'after-midou-route');
   await key(cdp, 'e');
   await waitForQuestStep(cdp, 'run-init');
 
-  await holdKey(cdp, 'ArrowLeft', 620);
-  await holdKey(cdp, 'ArrowDown', 1350);
+  if (process.env.GITQUEST_QA_GATE_LOCKED_SCREENSHOT) await moveToPoints(cdp, [{ x: 155, y: 405 }]);
+  else {
+    await holdKey(cdp, 'ArrowLeft', 620);
+    await holdKey(cdp, 'ArrowDown', 1350);
+  }
+  await debugPlayer(cdp, 'before-crystal');
   await key(cdp, 'e');
   const crystalSave = await cdp.evaluate('JSON.parse(localStorage.getItem("gitquest-save") ?? "null")');
   if (!crystalSave?.collectedObjects?.['level-01']?.includes('memory-crystal') || crystalSave.xp?.total < 10) throw new Error('Le cristal ou son XP n’est pas persisté après une interaction réelle.');
@@ -434,6 +559,8 @@ try {
   if (!keySave?.inventory?.items?.includes('pass-key') || keySave.xp?.total < 60) throw new Error('Le coffre, la clé ou l’XP du niveau 1 n’est pas confirmé.');
   await holdKey(cdp, 'ArrowUp', 850);
   await holdKey(cdp, 'ArrowRight', 850);
+  await waitForGateState(cdp, 'open');
+  await captureScreenshot(cdp, process.env.GITQUEST_QA_GATE_OPEN_SCREENSHOT);
   await key(cdp, 'e');
   const levelStarted = Date.now();
   let nextLevel = await cdp.evaluate('document.documentElement.dataset.gitquestLevel ?? ""');

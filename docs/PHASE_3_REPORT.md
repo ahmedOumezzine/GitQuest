@@ -341,3 +341,91 @@ Une passe artistique supplémentaire a ajouté un fond raster local dédié à c
 Une passe supplémentaire a ajouté `public/assets/sprites/player-menu-v2.png` et `public/assets/sprites/midou-menu-v2.png`. Ces illustrations transparentes, détaillées et localement générées sont utilisées par le menu, l’écran de chargement, l’introduction, les dialogues et la victoire. Les spritesheets `player-4dir`, `midou-4dir`, `player-sheet` et `midou-sheet` du monde n’ont pas été remplacées : les collisions, les dimensions de gameplay et les animations restent inchangées.
 
 La validation Chrome du parcours complet a réussi après cette intégration. La provenance est documentée dans `public/assets/ASSETS.md`; comme pour les fonds raster, la licence de distribution finale des images générées reste à confirmer avant publication commerciale.
+
+## Mise à jour — correction artistique finale du menu principal
+
+### Diagnostic comparatif
+
+La capture de l’étape B.2 montrait encore principalement l’océan : le fond raster de qualité était agrandi avec une base 960×540 alors que son format réel est 1672×941. Ce recadrage masquait une partie du palmier gauche, de la plage et du phare. Les personnages étaient en outre superposés à la ligne d’eau, ce qui donnait l’impression qu’ils flottaient.
+
+### Fichiers modifiés
+
+- `src/scenes/TitleScene.ts` : échelle native 1672×941, couches de profondeur séparées, plage de premier plan, coffre et duo sur une ligne de sol commune.
+- `src/data/AssetManifest.ts` : déclaration des trois nouveaux assets raster locaux.
+- `src/ui/MainMenu.ts` : boutons plus larges et plus lisibles, sans changer leur comportement.
+- `src/ui/theme/UITheme.ts` : dimensions dédiées au menu, séparées des boutons compacts des autres écrans.
+- `public/assets/ui/menu-foreground-v3.png` : couche plage/végétation/coquillages.
+- `public/assets/ui/menu-chest-v3.png` : coffre et végétation de premier plan.
+- `public/assets/sprites/menu-duo-v3.png` : joueur et Midou cohérents dans une même illustration de présentation.
+- `public/assets/ASSETS.md` : provenance et statut de licence des nouveaux fichiers.
+
+### Comparaison avec la référence
+
+La composition desktop reprend désormais les relations visuelles demandées : grand palmier à gauche, plage sableuse au premier plan, coffre, personnages sur le sable, eau turquoise et reflets au centre, îlot rocheux et phare à droite, logo et actions au centre. Les boutons sont plus proches de la proportion de la référence et restent de vrais `PixelButton` interactifs. Le fond, la plage, le coffre, les personnages, les vagues et l’interface restent des couches distinctes.
+
+Sur mobile, le décor est recadré pour préserver le logo, les langues et les actions ; il est impossible d’afficher simultanément le palmier gauche et le phare droit dans 390 px sans réduire fortement la lisibilité. La capture portrait privilégie donc le coucher de soleil, l’océan, la plage, le coffre et le duo. Cette différence de cadrage est volontaire et documentée, pas présentée comme une reproduction pixel-perfect de la référence.
+
+### Captures Chrome réellement produites
+
+- [Menu 1280×720](C:\Users\ahmed\.codex\visualizations\2026\10\17\01a14819-106c-7ea1-b7f5-67a70c0d1e2b\menu-v3-1280x720.png)
+- [Menu 844×390](C:\Users\ahmed\.codex\visualizations\2026\10\17\01a14819-106c-7ea1-b7f5-67a70c0d1e2b\menu-v3-844x390.png)
+- [Menu 390×844](C:\Users\ahmed\.codex\visualizations\2026\10\17\01a14819-106c-7ea1-b7f5-67a70c0d1e2b\menu-v3-390x844.png)
+
+Le scénario Chrome complet a été exécuté à ces trois résolutions. Il couvre le menu, Paramètres, FR/EN/AR et RTL, Nouvelle partie, les six niveaux, les commandes Git, les récompenses, les portes, la victoire, la sauvegarde et la reprise.
+
+### Limites restantes
+
+- Le fond principal est une illustration raster complète et non une carte Tiled interactive ; les éléments du menu ne sont pas censés être jouables.
+- Les personnages détaillés de `menu-duo-v3.png` sont une illustration de présentation ; les sprites animés 32×32 du monde ne sont pas remplacés.
+- La licence de distribution finale des images générées doit encore être validée avant publication commerciale.
+- La comparaison est proche sur la composition et l’ambiance, mais ne prétend pas reproduire exactement les pixels de la référence fournie.
+
+### Vérification finale
+
+- `npm test` : **42/42 PASS**.
+- `npm run typecheck` : **PASS**.
+- `npm run build` : **PASS**.
+- Chrome QA : **PASS** aux trois viewports demandés ; aucune erreur console bloquante observée.
+
+Le périmètre reste limité au menu principal, au thème du menu et aux assets associés. Les niveaux, quêtes, sauvegardes, simulateur Git, écran de chargement, introduction et HUD n’ont pas été modifiés.
+
+## Mise à jour — correction graphique de Nouvelle partie / Introduction
+
+### Fichiers modifiés
+
+- `src/scenes/NewGameScene.ts` : conservation du chargement réel et remplacement de l’ancien panneau central par la nouvelle cinématique de dialogue.
+- `src/ui/IntroDialogue.ts` : nouveau composant réutilisable pour les pages narratives, portrait, cartouche de nom, indicateur, boutons et navigation clavier/tactile.
+- `src/data/AssetManifest.ts` : chargement du portrait local de Midou.
+- `src/managers/I18nManager.ts` : ajout des textes de la quatrième page, de Suivant et de l’indicateur de page en FR/EN/AR.
+- `scripts/browser-smoke.mjs` : capture de l’introduction et vérification des pages Suivant, clavier et Passer.
+- `tests/I18n.test.ts` : couverture des nouvelles chaînes de l’introduction.
+- `public/assets/sprites/midou-portrait-v3.png` : portrait raster transparent local de Midou.
+- `public/assets/ASSETS.md` : provenance et statut de licence du portrait.
+
+### Résultat visuel
+
+L’écran conserve le fond tropical raster du menu, mais supprime les faux éléments décoratifs flottants. La narration se présente maintenant dans une boîte basse bleu nuit et or, avec :
+
+- portrait expressif de Midou à gauche en LTR et à droite en RTL ;
+- cartouche nominatif « Midou » ;
+- texte court et contrasté ;
+- quatre pages narratives indépendantes ;
+- indicateur `Page n / 4` et progression visuelle ;
+- bouton Suivant doré et bouton Passer bleu nuit ;
+- transition fade vers la Plage des Origines.
+
+Le clic sur Passer ou la fin de la dernière page ne valide aucune quête. La première étape reste `talk-midou` et ne change qu’après l’interaction réelle avec Midou dans `WorldScene`.
+
+### Captures Chrome réellement produites
+
+- [Introduction 1280×720](C:\Users\ahmed\.codex\visualizations\2026\10\17\01a14819-106c-7ea1-b7f5-67a70c0d1e2b\intro-v1-1280x720.png)
+- [Introduction 844×390](C:\Users\ahmed\.codex\visualizations\2026\10\17\01a14819-106c-7ea1-b7f5-67a70c0d1e2b\intro-v1-844x390.png)
+- [Introduction 390×844](C:\Users\ahmed\.codex\visualizations\2026\10\17\01a14819-106c-7ea1-b7f5-67a70c0d1e2b\intro-v1-390x844.png)
+
+Les trois parcours Chrome ont vérifié le chargement, les pages Suivant au clic et au clavier, Passer, la transition vers le monde, l’objectif initial non validé automatiquement, puis la progression complète existante jusqu’au niveau 6.
+
+### Limites restantes
+
+- Le portrait est un asset de présentation et ne remplace pas le sprite animé 32×32 de Midou utilisé dans le monde.
+- La validation visuelle arabe est couverte par la logique i18n/RTL et les tests de langue du projet ; une capture arabe dédiée n’a pas été conservée dans cette passe.
+- La licence commerciale finale des images raster générées doit toujours être confirmée avant distribution.

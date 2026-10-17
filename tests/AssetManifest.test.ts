@@ -10,9 +10,10 @@ test('tous les assets demandés par PreloadScene existent localement', async () 
   }
 });
 
-test('les spritesheets conservent la grille pixel de 32 pixels', () => {
+test('les spritesheets utilisent une grille déclarée et cohérente', () => {
   spriteSheetAssets.forEach((asset) => {
-    assert.equal(asset.frameWidth, 32, asset.key);
-    assert.equal(asset.frameHeight, 32, asset.key);
+    const expected = asset.key.startsWith('level-01-') ? 96 : 32;
+    assert.equal(asset.frameWidth, expected, asset.key);
+    assert.equal(asset.frameHeight, expected, asset.key);
   });
 });

@@ -4,9 +4,11 @@ import type { GameSession } from '../core/GameSession';
 import { I18nManager } from '../managers/I18nManager';
 import { LevelManager } from '../managers/LevelManager';
 import { PixelButton } from '../ui/PixelButton';
+import { IntroDialogue } from '../ui/IntroDialogue';
 import { ResponsiveLayoutManager } from '../ui/layout/ResponsiveLayoutManager';
 import { UITheme } from '../ui/theme/UITheme';
 import { markQaState } from '../diagnostics/QaMarker';
+import { publicUrl } from '../core/publicUrl';
 
 export class NewGameScene extends Phaser.Scene {
   private session!: GameSession;
@@ -20,6 +22,7 @@ export class NewGameScene extends Phaser.Scene {
   private loadingStartedAt = 0;
   private layout!: ResponsiveLayoutManager;
   private introVisible = false;
+  private introDialogue?: IntroDialogue;
 
   public constructor() { super('NewGameScene'); }
 
@@ -40,8 +43,8 @@ export class NewGameScene extends Phaser.Scene {
     this.load.on('loaderror', (file: Phaser.Loader.File) => {
       this.loadError = this.i18n.text('assetMissing') + ' : ' + file.key + ' (' + file.url + ')';
     });
-    this.load.json('new-game-level-map', this.level.map.path);
-    this.load.json('new-game-level-definition', '/data/levels/level-01.json');
+    this.load.json('new-game-level-map', publicUrl(this.level.map.path));
+    this.load.json('new-game-level-definition', publicUrl('/data/levels/level-01.json'));
   }
 
   public create(): void {
@@ -89,34 +92,19 @@ export class NewGameScene extends Phaser.Scene {
     markQaState('introduction');
     this.introVisible = true;
     this.children.removeAll(true);
+    this.introDialogue = undefined;
     const { width, height, margin, compact, portrait } = this.layout.current;
     this.cameras.main.setBackgroundColor('#142944');
     const scale = Math.max(width / 1672, height / 941);
-    this.add.image(width / 2, height / 2, 'menu-background-v2').setScale(scale).setAlpha(0.84);
-    this.add.rectangle(width / 2, height / 2, width, height, 0x10172b, 0.35);
-    if (!portrait) {
-      this.add.image(width * 0.13, height * 0.65, 'palm').setDisplaySize(110, 165).setFlipX(true).setAlpha(0.9);
-      this.add.image(width * 0.86, height * 0.65, 'lighthouse').setDisplaySize(50, 88).setAlpha(0.9);
-    }
-    const panelWidth = Math.min(670, width - margin * 2);
-    const panelHeight = Math.min(430, height - margin * 2);
-    const panelY = height / 2 + (compact ? 8 : 16);
-    this.add.image(width / 2, panelY, 'menu-panel').setDisplaySize(panelWidth, panelHeight).setAlpha(0.98);
-    if (!portrait) this.add.image(width * 0.3, panelY + 60, 'midou-menu-v2').setDisplaySize(100, 100).setDepth(2);
-    this.add.text(width / 2, Math.max(margin + 18, panelY - panelHeight / 2 + 38), this.i18n.text('introTitle'), { fontFamily: UITheme.fontFamily, fontSize: compact ? '19px' : '26px', color: '#f7d56a', stroke: '#10172b', strokeThickness: 5, align: 'center', wordWrap: { width: panelWidth - 36 } }).setOrigin(0.5).setDepth(2);
-    const narrative = [this.i18n.text('introLine1'), this.i18n.text('introLine2'), this.i18n.text('introLine3')].join('\n\n');
-    const textWidth = portrait ? panelWidth - 36 : Math.min(400, panelWidth - 230);
-    const textX = portrait ? width / 2 : width / 2 + 100;
-    const textY = portrait ? panelY - 24 : panelY - 14;
-    this.add.text(textX, textY, narrative, { fontFamily: UITheme.fontFamily, fontSize: compact ? '12px' : '16px', color: '#fff6df', align: this.i18n.direction === 'rtl' ? 'right' : 'left', wordWrap: { width: Math.max(170, textWidth) }, lineSpacing: compact ? 4 : 8 }).setOrigin(0.5).setDepth(2);
-    const stacked = portrait || panelWidth < 500;
-    const buttonsY = panelY + panelHeight / 2 - (stacked ? 64 : (compact ? 42 : 36));
-    const startWidth = stacked ? panelWidth - 42 : 230;
-    const skipWidth = stacked ? panelWidth - 42 : 150;
-    const startButton = new PixelButton(this, this.i18n.text('startAdventure'), { width: startWidth, height: UITheme.minTouchTarget, fontSize: compact ? '13px' : '15px' }).setPosition(stacked ? width / 2 : width / 2 - 130, stacked ? buttonsY - 27 : buttonsY);
-    startButton.onPress(() => this.startLevel());
-    const skipButton = new PixelButton(this, this.i18n.text('skip'), { width: skipWidth, height: UITheme.minTouchTarget, fontSize: compact ? '13px' : '15px' }).setPosition(stacked ? width / 2 : width / 2 + 130, stacked ? buttonsY + 27 : buttonsY);
-    skipButton.onPress(() => this.startLevel());
+    this.add.image(width / 2, height / 2, 'menu-background-v2').setScale(scale).setAlpha(0.9);
+    const foregroundHeight = width * 941 / 1672;
+    this.add.image(width / 2, height - foregroundHeight / 2, 'menu-foreground-v3').setDisplaySize(width, foregroundHeight).setAlpha(0.82);
+    this.add.rectangle(width / 2, height / 2, width, height, 0x10172b, 0.28);
+    this.add.rectangle(width / 2, height * 0.40, width, height * 0.42, 0x10172b, 0.08);
+    this.introDialogue = new IntroDialogue(this, this.i18n, this.layout, {
+      onStart: () => this.startLevel(),
+      onSkip: () => this.startLevel(),
+    });
   }
 
   private startLevel(): void {

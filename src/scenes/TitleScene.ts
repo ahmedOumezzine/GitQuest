@@ -64,12 +64,31 @@ export class TitleScene extends Phaser.Scene {
     }
     this.backdrop = this.add.container(0, 0).setDepth(0);
     this.menuBranding = this.add.container(0, 0).setDepth(3).setVisible(!this.settingsPanel?.visible);
-    const backgroundScale = Math.max(width / 960, height / 540);
-    this.backdrop.add(this.add.image(width / 2, height / 2, 'menu-background-v2').setScale(backgroundScale).setDepth(0));
+    // The raster scene is 1672×941. Scaling against the old 960×540 design
+    // cropped away the beach and the edge landmarks on desktop viewports.
+    const backgroundScale = Math.max(width / 1672, height / 941);
+    const backgroundX = this.layout.current.portrait ? width * 0.53 : width / 2;
+    this.backdrop.add(this.add.image(backgroundX, height / 2, 'menu-background-v2').setScale(backgroundScale).setDepth(0));
+
+    // Keep the sand, vegetation and props as independent layers so the scene
+    // can animate them without baking UI or interaction into one image.
+    const foregroundHeight = width * 941 / 1672;
+    const foreground = this.add.image(width / 2, height - foregroundHeight / 2, 'menu-foreground-v3')
+      .setDisplaySize(width, foregroundHeight)
+      .setDepth(1);
+    this.backdrop.add(foreground);
+    const chestSize = compact ? (this.layout.current.portrait ? 82 : 118) : 148;
+    const groundY = height - 4;
+    const chest = this.add.image(width * (this.layout.current.portrait ? 0.15 : 0.12), groundY - chestSize / 2, 'menu-chest-v3')
+      .setDisplaySize(chestSize * 1.5, chestSize)
+      .setDepth(2);
+    this.backdrop.add(chest);
+
     const propScale = compact ? 0.82 : 1;
     [0.16, 0.34, 0.56, 0.78].forEach((x, index) => this.addAmbientWave(width * x, height * (0.70 + (index % 2) * 0.045)));
-    this.addMenuCharacter('player-menu-v2', width * 0.25, height * 0.82, 132 * propScale);
-    this.addMenuCharacter('midou-menu-v2', width * 0.36, height * 0.82, 132 * propScale);
+    const duoX = this.layout.current.portrait ? width * 0.56 : width * 0.31;
+    const duoHeight = this.layout.current.portrait ? 142 : (compact ? 176 : 224) * propScale;
+    this.addMenuDuo(duoX, groundY - duoHeight / 2, duoHeight);
     const logoWidth = Math.min(760, width - margin * 2);
     const logoHeight = logoWidth * 150 / 760;
     this.menuBranding.add(this.add.image(width / 2, Math.max(margin + logoHeight / 2, height * 0.18), 'menu-logo').setDisplaySize(logoWidth, logoHeight).setDepth(4));
@@ -84,9 +103,10 @@ export class TitleScene extends Phaser.Scene {
     }
   }
 
-  private addMenuCharacter(key: string, x: number, y: number, size: number): void {
-    const shadow = this.add.ellipse(x, y + size * 0.34, size * 0.42, size * 0.12, 0x10172b, 0.48).setDepth(2);
-    const character = this.add.image(x, y, key).setDisplaySize(size, size).setDepth(3);
+  private addMenuDuo(x: number, y: number, height: number): void {
+    const width = height * 1.5;
+    const shadow = this.add.ellipse(x, y + height * 0.38, width * 0.33, height * 0.09, 0x10172b, 0.48).setDepth(2);
+    const character = this.add.image(x, y, 'menu-duo-v3').setDisplaySize(width, height).setDepth(3);
     this.menuBranding.add([shadow, character]);
   }
 

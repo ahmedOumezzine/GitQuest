@@ -8,6 +8,10 @@ import type { GitCommandResult } from '../systems/GitSimulator';
 import { TerminalInputModel } from '../systems/TerminalInputModel';
 import { ResponsiveLayoutManager, type LayoutMetrics } from '../ui/layout/ResponsiveLayoutManager';
 import { UITheme } from '../ui/theme/UITheme';
+import { QuestTracker } from '../ui/hud/QuestTracker';
+import { XPBar } from '../ui/hud/XPBar';
+import { InventoryBar } from '../ui/hud/InventoryBar';
+import { CommandHint } from '../ui/hud/CommandHint';
 import { markQaDialogue, markQaQuestStep, markQaState, markQaTouchControls } from '../diagnostics/QaMarker';
 
 export class UIScene extends Phaser.Scene {
@@ -46,6 +50,10 @@ export class UIScene extends Phaser.Scene {
   private dialogueText!: Phaser.GameObjects.Text;
   private dialogueClose!: Phaser.GameObjects.Text;
   private touchInput?: InputManager;
+  private questTracker!: QuestTracker;
+  private xpBar!: XPBar;
+  private inventoryBar!: InventoryBar;
+  private commandHint!: CommandHint;
 
   public constructor() { super('UIScene'); }
 
@@ -62,6 +70,20 @@ export class UIScene extends Phaser.Scene {
     this.inventoryPanel = this.add.container(575, 33).setDepth(22);
     this.inventoryPanel.add(this.add.text(0, 0, '▣', { fontFamily: UITheme.fontFamily, fontSize: '16px', color: '#fff6df' }));
     this.prompt = this.add.text(480, 506, '', { fontFamily: UITheme.fontFamily, fontSize: '12px', color: '#fff6df', backgroundColor: '#18233e', padding: { x: 8, y: 5 }, align: 'center', wordWrap: { width: 700 } }).setOrigin(0.5).setDepth(30);
+    this.questTracker = new QuestTracker(this).setDepth(24);
+    this.xpBar = new XPBar(this).setDepth(24);
+    this.inventoryBar = new InventoryBar(this).setDepth(24);
+    this.commandHint = new CommandHint(this).setDepth(29);
+    this.add.existing(this.questTracker);
+    this.add.existing(this.xpBar);
+    this.add.existing(this.inventoryBar);
+    this.add.existing(this.commandHint);
+    this.levelTitle.setVisible(false);
+    this.objective.setVisible(false);
+    this.stats.setVisible(false);
+    this.xpTrack.setVisible(false);
+    this.xpFill.setVisible(false);
+    this.inventoryPanel.setVisible(false);
     this.toast = this.add.text(480, 92, '', { fontFamily: UITheme.fontFamily, fontSize: '15px', color: '#18233e', backgroundColor: '#f7d56a', padding: { x: 11, y: 7 }, align: 'center', wordWrap: { width: 700 } }).setOrigin(0.5).setDepth(40).setVisible(false);
     this.createLanguageButtons();
     this.createJournal();
@@ -80,7 +102,10 @@ export class UIScene extends Phaser.Scene {
     this.createDialoguePanel();
     this.layout.onResize((metrics) => this.applyLayout(metrics));
     EventBus.on('level-ready', ({ level }: { level: LevelDefinition }) => { this.level = level; this.world = this.scene.get('WorldScene') as import('./WorldScene').WorldScene; this.refresh(); });
-    EventBus.on('nearby', (item: Phaser.GameObjects.GameObject | null) => this.prompt.setText(item ? this.i18n.text('interact') + ' · E' : this.i18n.text('controls')));
+    EventBus.on('nearby', (item: Phaser.GameObjects.GameObject | null) => {
+      const kind = (item as (Phaser.GameObjects.GameObject & { interactionKind?: string }) | null)?.interactionKind;
+      this.prompt.setText(item ? this.i18n.interactionHint(kind) : this.i18n.text('controls'));
+    });
     EventBus.on('dialogue', ({ text }: { text: string }) => this.showDialogue(text));
     EventBus.on('toast', (text: string) => this.showToast(text));
     EventBus.on('terminal-open', () => {
@@ -282,6 +307,14 @@ export class UIScene extends Phaser.Scene {
   private refresh(): void {
     if (!this.world || !this.level) return;
     this.i18n.locale = this.session.locale;
+    const levelOne = this.level.id === 'level-01';
+    const forest = this.level.id === 'level-02';
+    const portrait = this.layout?.current.portrait ?? false;
+    this.levelTitle.setFontSize(levelOne ? '18px' : forest && portrait ? '13px' : forest ? '18px' : '14px');
+    this.objective.setFontSize(levelOne || forest ? portrait ? '12px' : '14px' : '12px');
+    this.stats.setFontSize(levelOne || forest ? portrait ? '13px' : '15px' : '13px');
+    this.prompt.setFontSize(levelOne || forest ? portrait ? '13px' : '14px' : '12px');
+    this.topBar.setFillStyle(levelOne || forest ? 0x10172b : UITheme.colors.panel, levelOne || forest ? 0.9 : 0.94);
     const rtl = this.i18n.direction === 'rtl';
     this.levelTitle.setOrigin(rtl ? 1 : 0, 0);
     this.objective.setOrigin(rtl ? 1 : 0, 0).setStyle({ align: rtl ? 'right' : 'left' });
@@ -292,10 +325,14 @@ export class UIScene extends Phaser.Scene {
     this.levelTitle.setText(this.i18n.localized(this.level.title));
     this.objective.setText(this.i18n.text('objective') + ' : ' + this.i18n.localized(this.level.quest.title) + ' · ' + (step ? this.i18n.stepLabel(step.id) : this.i18n.text('missionDone')));
     this.stats.setText(this.i18n.text('xp') + ': ' + this.session.xp.value);
-    this.xpFill.setDisplaySize(Math.max(1, Math.min(110, (this.session.xp.value % 100) * 1.1)), 8);
+    this.xpFill.setDisplaySize(Math.max(1, Math.min(forest ? 140 : 110, (this.session.xp.value % 100) * (forest ? 1.4 : 1.1))), forest ? 8 : 6);
     this.inventoryPanel.removeAll(true);
     this.inventoryPanel.add(this.add.text(0, 0, '▣', { fontFamily: 'monospace', fontSize: '16px', color: '#fff6df' }));
     this.session.inventory.list().forEach((item, index) => this.inventoryPanel.add(this.add.image(24 + index * 28, 8, item === 'pass-key' ? 'key' : 'chest').setDisplaySize(22, 22)));
+    this.questTracker.setQuest(this.level, quest, this.i18n, this.layout.current.compact ? this.layout.current.width - this.layout.current.margin * 2 : 360, this.layout.current.compact);
+    this.xpBar.setBarWidth(this.layout.current.compact ? 86 : 118).setValue(this.session.xp.value);
+    this.inventoryBar.setItems(this.session.inventory.list(), this.i18n);
+    this.commandHint.setHint(this.i18n, step?.kind === 'git-command' ? step.operation : undefined);
     this.journalText?.setText(this.level.quest.steps.map((step) => (quest.hasCompleted(step.id) ? '✓ ' : '○ ') + this.i18n.stepLabel(step.id)).join('\n'));
     const journalTitle = this.journalPanel?.getByName('journal-title') as Phaser.GameObjects.Text | undefined;
     journalTitle?.setText(this.i18n.text('journal'));
@@ -314,18 +351,19 @@ export class UIScene extends Phaser.Scene {
   }
 
   private applyLayout(metrics: LayoutMetrics): void {
+    const forest = this.level?.id === 'level-02';
     const rtl = this.i18n?.direction === 'rtl';
     const margin = metrics.margin;
-    this.topBar.setSize(metrics.width, metrics.topBarHeight);
+    this.topBar.setSize(metrics.width, metrics.topBarHeight + (forest ? 6 : 0));
     const sideWidth = Math.min(250, Math.max(140, metrics.width * 0.27));
     const textX = rtl ? metrics.width - margin : margin;
     const statsX = rtl ? margin : metrics.width - margin;
     this.levelTitle.setPosition(textX, 8).setOrigin(rtl ? 1 : 0, 0);
-    this.objective.setPosition(textX, 36).setOrigin(rtl ? 1 : 0, 0).setWordWrapWidth(Math.max(160, metrics.width - sideWidth - margin * 3));
+    this.objective.setPosition(textX, forest ? 38 : 36).setOrigin(rtl ? 1 : 0, 0).setWordWrapWidth(Math.max(160, metrics.width - sideWidth - margin * 3));
     this.stats.setPosition(statsX, 8).setOrigin(rtl ? 0 : 1, 0);
     const xpWidth = Math.min(140, Math.max(70, metrics.width * 0.14));
     const xpX = rtl ? margin : metrics.width - margin - sideWidth - xpWidth;
-    this.xpTrack.setPosition(xpX, metrics.compact ? 18 : 13).setSize(xpWidth, 6);
+    this.xpTrack.setPosition(xpX, metrics.compact ? 18 : 13).setSize(xpWidth, forest ? 8 : 6);
     this.xpFill.setPosition(xpX, metrics.compact ? 18 : 13);
     this.inventoryPanel.setPosition(xpX, metrics.compact ? 38 : 33);
     const buttonY = metrics.portrait ? metrics.topBarHeight - 24 : metrics.compact ? metrics.topBarHeight - 24 : 35;
@@ -338,6 +376,17 @@ export class UIScene extends Phaser.Scene {
     });
     this.journalButton?.setPosition(rtl ? margin + 24 : languageStart - 34, buttonY);
     this.prompt.setPosition(metrics.width / 2, metrics.height - margin - 18).setWordWrapWidth(Math.max(160, metrics.width - margin * 2));
+    const trackerWidth = metrics.compact ? metrics.width - margin * 2 : Math.min(360, metrics.width * 0.34);
+    this.questTracker.setPosition(rtl ? metrics.width - margin - trackerWidth : margin, metrics.topBarHeight + 6);
+    const compactHudY = metrics.topBarHeight + 58;
+    const xpHudX = metrics.portrait ? margin : (rtl ? margin : metrics.width - margin - this.xpBar.panelWidth);
+    const inventoryX = metrics.portrait
+      ? metrics.width - margin - this.inventoryBar.panelWidth
+      : (rtl ? margin : metrics.width - margin - this.inventoryBar.panelWidth);
+    this.xpBar.setPosition(xpHudX, metrics.portrait ? compactHudY : metrics.topBarHeight + 6);
+    this.inventoryBar.setPosition(inventoryX, metrics.portrait ? compactHudY : metrics.topBarHeight + 42);
+    this.commandHint.setPosition(metrics.width / 2 - Math.min(260, (metrics.width - margin * 2) / 2), metrics.height - margin - 62);
+    this.commandHint.setHintWidth(Math.min(520, metrics.width - margin * 2));
     this.toast.setPosition(metrics.width / 2, metrics.topBarHeight + 24).setWordWrapWidth(Math.max(180, metrics.width - margin * 2));
     const journalWidth = Math.min(360, metrics.width - margin * 2);
     const journalHeight = Math.min(250, Math.max(160, metrics.height - metrics.topBarHeight - margin * 2));

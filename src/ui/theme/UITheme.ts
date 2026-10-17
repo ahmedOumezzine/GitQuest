@@ -21,6 +21,7 @@ export const UITheme = {
   borderWidth: 3,
   panelBorderWidth: 4,
   button: { width: 270, height: 54, compactWidth: 250, compactHeight: 48 },
+  menuButton: { width: 330, height: 64, compactWidth: 270, compactHeight: 48 },
   panel: { maxWidth: 620, margin: 20, compactMargin: 12 },
 } as const;
 

@@ -8,6 +8,7 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "qa:local": "npm test && npm run typecheck && npm run build",
+    "qa": "npm run qa:browser",
     "qa:browser": "node scripts/browser-smoke.mjs",
     "qa:browser:matrix": "node scripts/browser-matrix.mjs",
     "qa:browser:touch": "node scripts/browser-touch.mjs",

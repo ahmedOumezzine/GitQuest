@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="32" viewBox="0 0 512 32" shape-rendering="crispEdges">
+  <!-- Local authored 32px terrain atlas. The 16 tiles share a warm tropical palette. -->
+  <g id="dry-sand">
+    <rect width="32" height="32" fill="#d9a761"/><path fill="#edc77c" d="M3 6h3v2H3zM20 4h2v2h-2zM11 18h3v2h-3zM26 24h3v2h-3z"/><path fill="#b9824e" d="M7 13h2v2H7zM22 15h2v2h-2zM15 28h2v1h-2z"/>
+  </g>
+  <g id="light-sand" transform="translate(32)">
+    <rect width="32" height="32" fill="#e0b16a"/><path fill="#f0cf88" d="M2 5h5v2H2zM18 9h3v2h-3zM8 23h3v2H8zM25 27h4v2h-4z"/><path fill="#bd8753" d="M12 13h2v2h-2zM27 16h2v2h-2zM4 29h2v1H4z"/>
+  </g>
+  <g id="deep-water" transform="translate(64)">
+    <rect width="32" height="32" fill="#247f9a"/><path fill="#42b6c2" d="M0 7h9v2H0zM15 14h12v2H15zM4 24h7v2H4zM22 28h10v2H22z"/><path fill="#1b607f" d="M7 11h8v2H7zM26 5h6v2h-6zM13 20h9v2h-9z"/><path fill="#8de1d1" d="M2 4h3v1H2zM24 19h4v1h-4z"/>
+  </g>
+  <g id="grass-edge" transform="translate(96)">
+    <rect width="32" height="32" fill="#8eaa55"/><path fill="#5e804b" d="M0 28h32v4H0zM4 24l2-7 2 7 3-9 2 9 4-6 2 6 3-8 2 8 3-5 2 5"/><path fill="#b6c967" d="M2 5h3v2H2zM18 8h4v2h-4zM27 3h3v2h-3z"/>
+  </g>
+  <g id="wet-sand" transform="translate(128)">
+    <rect width="32" height="32" fill="#c99a5e"/><path fill="#e4bd77" d="M0 2h32v3H0zM4 10h8v2H4zM21 18h7v2h-7zM2 27h6v2H2z"/><path fill="#916a4e" d="M13 7h5v2h-5zM15 23h9v2h-9z"/><path fill="#a7d6c2" d="M1 5h7v1H1zM24 20h6v1h-6z"/>
+  </g>
+  <g id="foam" transform="translate(160)">
+    <rect width="32" height="32" fill="#c99a5e"/><path fill="#f4e3b1" d="M0 3h5v2H0zM8 6h8v2H8zM19 3h6v2h-6zM28 7h4v2h-4z"/><path fill="#bce9d9" d="M3 10h7v2H3zM16 11h11v2H16zM26 15h6v2h-6z"/><path fill="#8bcdbf" d="M6 15h4v2H6zM20 15h4v2h-4z"/>
+  </g>
+  <g id="pebbles" transform="translate(192)">
+    <rect width="32" height="32" fill="#d9a761"/><path fill="#7f715f" d="M4 8h5v4H4zM7 6h3v2H7zM18 19h6v4h-6zM21 17h3v2h-3zM26 8h3v3h-3z"/><path fill="#ae9470" d="M5 7h3v2H5zM19 18h4v2h-4zM27 7h2v2h-2z"/>
+  </g>
+  <g id="stone" transform="translate(224)">
+    <rect width="32" height="32" fill="#9a927c"/><path fill="#6b6d67" d="M3 6h9v8H3zM17 4h11v7H17zM11 20h13v8H11z"/><path fill="#c4b795" d="M5 7h5v2H5zM19 5h6v2h-6zM13 21h8v2h-8z"/>
+  </g>
+  <g id="path" transform="translate(256)">
+    <rect width="32" height="32" fill="#c79558"/><path fill="#e0b76f" d="M0 5h32v3H0zM0 23h32v3H0z"/><path fill="#b17b4f" d="M5 12h7v3H5zM20 10h6v3h-6zM13 28h8v2h-8z"/>
+  </g>
+  <g id="wet-dark" transform="translate(288)">
+    <rect width="32" height="32" fill="#a87957"/><path fill="#c59361" d="M0 4h10v2H0zM15 10h17v2H15zM2 22h13v2H2z"/><path fill="#769f95" d="M7 7h6v1H7zM22 25h7v1h-7z"/>
+  </g>
+  <g id="foam-left" transform="translate(320)">
+    <rect width="32" height="32" fill="#c99a5e"/><path fill="#f6e7bd" d="M0 0h4v4H0zM4 4h6v3H4zM10 7h7v2h-7zM17 4h5v3h-5z"/><path fill="#9ed9c8" d="M0 12h9v2H0zM8 14h6v2H8z"/>
+  </g>
+  <g id="foam-right" transform="translate(352)">
+    <rect width="32" height="32" fill="#c99a5e"/><path fill="#f6e7bd" d="M28 0h4v4h-4zM22 4h6v3h-6zM15 7h7v2h-7zM10 4h5v3h-5z"/><path fill="#9ed9c8" d="M23 12h9v2h-9zM18 14h6v2h-6z"/>
+  </g>
+  <g id="flower-ground" transform="translate(384)">
+    <rect width="32" height="32" fill="#d9a761"/><path fill="#6e9a55" d="M5 23h3v-9h2v9h3v3H5zM22 26h3v-8h2v8h3v2H22z"/><path fill="#ef7d8b" d="M7 12h3v3H7zM24 15h3v3h-3z"/><path fill="#ffe18a" d="M8 13h1v1H8zM25 16h1v1h-1z"/>
+  </g>
+  <g id="shadow-ground" transform="translate(416)">
+    <rect width="32" height="32" fill="#d9a761"/><path fill="#9e724f" d="M3 24h26v4H3z"/><path fill="#bd8d58" d="M7 20h18v3H7z"/><path fill="#edc77c" d="M4 7h3v2H4zM22 11h5v2h-5z"/>
+  </g>
+  <g id="coral-sand" transform="translate(448)">
+    <rect width="32" height="32" fill="#e0ae67"/><path fill="#ef7f75" d="M5 25h3v-8h2v8h3v3H5zM22 28h3v-9h2v9h3v2H22z"/><path fill="#f5d18b" d="M2 6h7v2H2zM16 11h10v2H16z"/>
+  </g>
+  <g id="shell-sand" transform="translate(480)">
+    <rect width="32" height="32" fill="#d9a761"/><path fill="#f7dfae" d="M5 22h11v5H5zM7 19h7v3H7z"/><path fill="#d58b72" d="M8 21h6v2H8z"/><path fill="#b9824e" d="M23 8h3v3h-3zM26 12h3v2h-3z"/>
+  </g>
+</svg>

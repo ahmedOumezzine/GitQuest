@@ -27,8 +27,13 @@ export class WorldScene extends Phaser.Scene {
   private terminalOpen = false;
   private touchVector: Point = { x: 0, y: 0 };
   private nearby: Phaser.GameObjects.GameObject | null = null;
-  private playerAccent?: Phaser.GameObjects.Image;
-  private mentorAccent?: Phaser.GameObjects.Image;
+  private playerShadow?: Phaser.GameObjects.Ellipse;
+  private mentorShadow?: Phaser.GameObjects.Ellipse;
+  private mentorLabel?: Phaser.GameObjects.Text;
+  private gateLabel?: Phaser.GameObjects.Text;
+  private gateGlow?: Phaser.GameObjects.Image;
+  private gateGlowTween?: Phaser.Tweens.Tween;
+  private gateUnlocked = true;
   private shrineLabels: Phaser.GameObjects.Text[] = [];
   private worldTitle?: Phaser.GameObjects.Text;
   private runtimeMetrics?: RuntimeMetrics;
@@ -102,7 +107,187 @@ export class WorldScene extends Phaser.Scene {
       this.drawBeachWorld();
       return;
     }
+    const style = getLegacyWorldStyle(this.level.id);
+    if (style.tilemapKey && this.map.ground.length === this.map.width * this.map.height) {
+      this.drawForestWorld(style);
+      return;
+    }
     this.drawLegacyWorld();
+  }
+
+  private drawForestWorld(style: ReturnType<typeof getLegacyWorldStyle>): void {
+    const worldWidth = this.map.width * this.map.tileWidth;
+    const worldHeight = this.map.height * this.map.tileHeight;
+    const isCave = style.decorationProfile === 'cave';
+    const isHarbor = style.decorationProfile === 'harbor';
+    const isMountain = style.decorationProfile === 'mountain';
+    const isCastle = style.decorationProfile === 'castle';
+    this.cameras.main.setBackgroundColor(this.level.theme.sky).setBounds(0, 0, worldWidth, worldHeight).setRoundPixels(true);
+    // The authored regional illustration supplies the large-scale composition
+    // (paths, clearings and canopy). The Tiled Ground layer remains the
+    // playable source of truth, but is intentionally used as a restrained
+    // texture pass so individual atlas cells do not read as a checkerboard.
+    this.add.image(worldWidth / 2, worldHeight / 2, style.backgroundKey)
+      .setDisplaySize(worldWidth, worldHeight)
+      .setAlpha(1)
+      .setDepth(-2);
+    const rows: number[][] = [];
+    for (let row = 0; row < this.map.height; row += 1) {
+      rows.push(this.map.ground.slice(row * this.map.width, (row + 1) * this.map.width).map((gid) => gid > 0 ? gid - 1 : -1));
+    }
+    const tilemap = this.make.tilemap({ data: rows, tileWidth: this.map.tileWidth, tileHeight: this.map.tileHeight });
+    const tilesetName = isCave ? 'cave-tileset-v1' : isHarbor ? 'harbor-tileset-v1' : isMountain ? 'mountain-tileset-v1' : isCastle ? 'castle-tileset-v1' : 'forest-tileset-v1';
+    const tileset = tilemap.addTilesetImage(tilesetName, style.tilemapKey, this.map.tileWidth, this.map.tileHeight, 0, 0);
+    if (tileset) tilemap.createLayer(0, tileset, 0, 0)?.setAlpha(style.groundOverlayAlpha ?? (isCastle ? 0.08 : isCave || isHarbor || isMountain ? 0.18 : 0.14)).setDepth(0).setCullPadding(2, 2);
+    this.map.decorations.forEach((definition) => isCave
+      ? this.addCaveDecoration(definition.type, definition.x, definition.y)
+      : isHarbor ? this.addHarborDecoration(definition.type, definition.x, definition.y)
+      : isMountain ? this.addMountainDecoration(definition.type, definition.x, definition.y)
+      : isCastle ? this.addCastleDecoration(definition.type, definition.x, definition.y)
+      : this.addForestDecoration(definition.type, definition.x, definition.y));
+    const resizeCamera = isCave ? this.applyCaveCameraZoom : isHarbor ? this.applyHarborCameraZoom : isMountain ? this.applyMountainCameraZoom : isCastle ? this.applyCastleCameraZoom : this.applyForestCameraZoom;
+    resizeCamera.call(this);
+    this.scale.on('resize', resizeCamera, this);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.scale.off('resize', resizeCamera, this));
+  }
+
+  private addCaveDecoration(type: string, x: number, y: number): void {
+    const config: Record<string, { key: string; width: number; height: number; depth: number; alpha?: number }> = {
+      decoration: { key: 'cave-vines', width: 180, height: 120, depth: 1, alpha: 0.3 },
+      'cave-stalactites': { key: 'cave-stalactite', width: 150, height: 126, depth: 2 },
+      'cave-crystal': { key: 'cave-crystal-pink', width: 82, height: 82, depth: 3 },
+      'cave-torch': { key: 'cave-torch', width: 78, height: 100, depth: 3 },
+      'cave-tablet': { key: 'cave-memory-tablet', width: 118, height: 132, depth: 3 },
+      'cave-altar': { key: 'cave-commit-altar', width: 152, height: 138, depth: 3 },
+      'cave-vines': { key: 'cave-vines', width: 150, height: 126, depth: 1, alpha: 0.8 },
+    };
+    const selected = config[type];
+    if (!selected) return;
+    const sprite = this.add.image(x, y, selected.key).setOrigin(0, 0).setDisplaySize(selected.width, selected.height).setDepth(selected.depth).setAlpha(selected.alpha ?? 1);
+    this.decorations.push(sprite);
+    if (type === 'cave-crystal' || type === 'cave-torch' || type === 'cave-altar') {
+      this.tweens.add({ targets: sprite, alpha: { from: selected.alpha ?? 1, to: (selected.alpha ?? 1) * 0.78 }, duration: type === 'cave-torch' ? 900 : 1400, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
+    }
+    if (type === 'cave-altar') {
+      const label = this.add.text(x + selected.width / 2, y - 5, new I18nManager(this.session.locale).text('shrine'), { fontFamily: 'monospace', fontSize: '13px', color: '#e9b8ff', stroke: '#17132d', strokeThickness: 4 }).setOrigin(0.5, 1).setDepth(5);
+      this.shrineLabels.push(label);
+    }
+  }
+
+  private addHarborDecoration(type: string, x: number, y: number): void {
+    const config: Record<string, { key: string; width: number; height: number; depth: number; alpha?: number }> = {
+      decoration: { key: 'harbor-wave-foam', width: 220, height: 90, depth: 1, alpha: 0.32 },
+      'harbor-docks': { key: 'harbor-dock-post', width: 170, height: 142, depth: 2 },
+      'harbor-lantern': { key: 'harbor-lantern', width: 74, height: 104, depth: 3 },
+      'harbor-boat': { key: 'harbor-boat', width: 180, height: 126, depth: 2 },
+      'harbor-crates': { key: 'harbor-crate', width: 126, height: 112, depth: 3 },
+      'harbor-barrel': { key: 'harbor-barrel', width: 92, height: 104, depth: 3 },
+      'harbor-pylons': { key: 'harbor-local-pylon', width: 118, height: 134, depth: 3 },
+      'harbor-altar': { key: 'harbor-connection-altar', width: 162, height: 148, depth: 3 },
+      'harbor-buoy': { key: 'harbor-buoy', width: 78, height: 78, depth: 2 },
+      'harbor-rocks': { key: 'harbor-rocks', width: 148, height: 98, depth: 2 },
+      'harbor-shells': { key: 'harbor-shells', width: 108, height: 74, depth: 2 },
+      'harbor-lighthouse': { key: 'harbor-lighthouse', width: 164, height: 176, depth: 2 },
+    };
+    const selected = config[type];
+    if (!selected) return;
+    const sprite = this.add.image(x, y, selected.key).setOrigin(0, 0).setDisplaySize(selected.width, selected.height).setDepth(selected.depth).setAlpha(selected.alpha ?? 1);
+    this.decorations.push(sprite);
+    if (type === 'decoration' || type === 'harbor-buoy' || type === 'harbor-lantern') {
+      this.tweens.add({ targets: sprite, y: y + 2, alpha: { from: selected.alpha ?? 1, to: (selected.alpha ?? 1) * 0.78 }, duration: type === 'harbor-lantern' ? 1000 : 1800, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
+    }
+    if (type === 'harbor-altar') {
+      const label = this.add.text(x + selected.width / 2, y - 5, new I18nManager(this.session.locale).text('shrine'), { fontFamily: 'monospace', fontSize: '13px', color: '#ffe6a5', stroke: '#102b43', strokeThickness: 4 }).setOrigin(0.5, 1).setDepth(5);
+      this.shrineLabels.push(label);
+    }
+  }
+
+  private addMountainDecoration(type: string, x: number, y: number): void {
+    const config: Record<string, { key: string; width: number; height: number; depth: number; alpha?: number }> = {
+      decoration: { key: 'mountain-wind-flag', width: 176, height: 118, depth: 1, alpha: 0.32 },
+      'mountain-rocks': { key: 'mountain-cliff-rock', width: 176, height: 132, depth: 2 },
+      'mountain-pines': { key: 'mountain-pine', width: 154, height: 174, depth: 2 },
+      'mountain-pine': { key: 'mountain-pine', width: 148, height: 166, depth: 2 },
+      'mountain-snow-pine': { key: 'mountain-snow-pine', width: 154, height: 174, depth: 2 },
+      'mountain-cairn': { key: 'mountain-cairn', width: 88, height: 102, depth: 3 },
+      'mountain-bridge': { key: 'mountain-bridge', width: 196, height: 122, depth: 3 },
+      'mountain-fork': { key: 'mountain-fork-sign', width: 126, height: 132, depth: 3 },
+      'mountain-altar': { key: 'mountain-branch-altar', width: 156, height: 146, depth: 3 },
+      'mountain-marker': { key: 'mountain-branch-marker', width: 92, height: 116, depth: 3 },
+      'mountain-rail': { key: 'mountain-rope-rail', width: 180, height: 110, depth: 2 },
+      'mountain-snow': { key: 'mountain-snow-patch', width: 150, height: 82, depth: 2 },
+      'mountain-flowers': { key: 'mountain-wildflowers', width: 112, height: 82, depth: 2 },
+      'mountain-flag': { key: 'mountain-wind-flag', width: 108, height: 132, depth: 3 },
+      'mountain-wind': { key: 'mountain-wind-flag', width: 108, height: 132, depth: 3 },
+    };
+    const selected = config[type];
+    if (!selected) return;
+    const sprite = this.add.image(x, y, selected.key).setOrigin(0, 0).setDisplaySize(selected.width, selected.height).setDepth(selected.depth).setAlpha(selected.alpha ?? 1);
+    this.decorations.push(sprite);
+    if (type === 'decoration' || type === 'mountain-flag' || type === 'mountain-wind') {
+      this.tweens.add({ targets: sprite, x: x + 2, duration: 1800, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
+    }
+    if (type === 'mountain-altar') {
+      const label = this.add.text(x + selected.width / 2, y - 5, new I18nManager(this.session.locale).text('shrine'), { fontFamily: 'monospace', fontSize: '13px', color: '#dff5ff', stroke: '#202a42', strokeThickness: 4 }).setOrigin(0.5, 1).setDepth(5);
+      this.shrineLabels.push(label);
+    }
+  }
+
+  private addCastleDecoration(type: string, x: number, y: number): void {
+    const config: Record<string, { key: string; width: number; height: number; depth: number; alpha?: number }> = {
+      decoration: { key: 'castle-thorn-vine', width: 190, height: 130, depth: 1, alpha: 0.34 },
+      'castle-banners': { key: 'castle-banner', width: 108, height: 142, depth: 2 },
+      'castle-arch': { key: 'castle-arch', width: 164, height: 156, depth: 2 },
+      'castle-brazier': { key: 'castle-brazier', width: 92, height: 112, depth: 3 },
+      'castle-rune': { key: 'castle-rune-tablet', width: 116, height: 130, depth: 3 },
+      'castle-altar': { key: 'castle-merge-altar', width: 166, height: 154, depth: 3 },
+      'castle-sigil': { key: 'castle-merge-sigil', width: 154, height: 118, depth: 2, alpha: 0.72 },
+      'castle-gargoyle': { key: 'castle-gargoyle', width: 112, height: 130, depth: 3 },
+      'castle-vines': { key: 'castle-thorn-vine', width: 156, height: 112, depth: 1 },
+      'castle-cart': { key: 'castle-cart', width: 138, height: 112, depth: 3 },
+      'castle-sign': { key: 'castle-signpost', width: 112, height: 122, depth: 3 },
+      'castle-rail': { key: 'castle-rail', width: 184, height: 104, depth: 2 },
+      'castle-rubble': { key: 'castle-rubble', width: 116, height: 92, depth: 2 },
+    };
+    const selected = config[type];
+    if (!selected) return;
+    const sprite = this.add.image(x, y, selected.key).setOrigin(0, 0).setDisplaySize(selected.width, selected.height).setDepth(selected.depth).setAlpha(selected.alpha ?? 1);
+    this.decorations.push(sprite);
+    if (type === 'castle-brazier' || type === 'castle-sigil' || type === 'castle-altar') {
+      this.tweens.add({ targets: sprite, alpha: { from: selected.alpha ?? 1, to: (selected.alpha ?? 1) * 0.76 }, duration: type === 'castle-brazier' ? 850 : 1500, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
+    }
+    if (type === 'castle-altar') {
+      const label = this.add.text(x + selected.width / 2, y - 5, new I18nManager(this.session.locale).text('shrine'), { fontFamily: 'monospace', fontSize: '13px', color: '#ffb5e8', stroke: '#251b37', strokeThickness: 4 }).setOrigin(0.5, 1).setDepth(5);
+      this.shrineLabels.push(label);
+    }
+  }
+
+  private addForestDecoration(type: string, x: number, y: number): void {
+    const config: Record<string, { key: string; width: number; height: number; depth: number; alpha?: number }> = {
+      decoration: { key: 'forest-canopy-shadow', width: 180, height: 120, depth: 1, alpha: 0.18 },
+      'forest-trees': { key: 'forest-ancient-tree', width: 166, height: 174, depth: 2 },
+      'forest-tree': { key: 'forest-ancient-tree', width: 176, height: 184, depth: 2 },
+      'forest-root': { key: 'forest-root-cluster', width: 148, height: 126, depth: 2 },
+      'forest-fern': { key: 'forest-fern-cluster', width: 126, height: 118, depth: 2 },
+      'forest-flower': { key: 'forest-flower-bush', width: 126, height: 116, depth: 2 },
+      'forest-mushroom': { key: 'forest-mushroom-patch', width: 132, height: 124, depth: 2 },
+      'forest-rock': { key: 'forest-mossy-rock', width: 126, height: 116, depth: 2 },
+      'forest-ruin': { key: 'forest-ruin-fragment', width: 138, height: 130, depth: 3 },
+      'forest-crate': { key: 'forest-archive-crate', width: 110, height: 110, depth: 3 },
+      'forest-shrine': { key: 'forest-staging-shrine', width: 132, height: 132, depth: 3 },
+      'forest-canopy': { key: 'forest-canopy-shadow', width: 360, height: 220, depth: 1, alpha: 0.22 },
+    };
+    const selected = config[type];
+    if (!selected) return;
+    const sprite = this.add.image(x, y, selected.key).setOrigin(0, 0).setDisplaySize(selected.width, selected.height).setDepth(selected.depth).setAlpha(selected.alpha ?? 1);
+    this.decorations.push(sprite);
+    if (type === 'forest-canopy' || type === 'forest-fern' || type === 'forest-flower') {
+      this.tweens.add({ targets: sprite, y: y + 2, duration: type === 'forest-canopy' ? 2600 : 1500, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
+    }
+    if (type === 'forest-shrine') {
+      const label = this.add.text(x + selected.width / 2, y - 5, new I18nManager(this.session.locale).text('shrine'), { fontFamily: 'monospace', fontSize: '13px', color: '#f4e29a', stroke: '#18233e', strokeThickness: 4 }).setOrigin(0.5, 1).setDepth(5);
+      this.shrineLabels.push(label);
+    }
   }
 
   private drawLegacyWorld(): void {
@@ -155,37 +340,128 @@ export class WorldScene extends Phaser.Scene {
   private drawBeachWorld(): void {
     const worldWidth = this.map.width * this.map.tileWidth;
     const worldHeight = this.map.height * this.map.tileHeight;
-    this.cameras.main.setBackgroundColor('#27718a').setBounds(0, 0, worldWidth, worldHeight).setZoom(1.15).setRoundPixels(true);
+    this.cameras.main.setBackgroundColor('#206b82').setBounds(0, 0, worldWidth, worldHeight).setRoundPixels(true);
     const rows: number[][] = [];
-    for (let row = 0; row < this.map.height; row += 1) rows.push(this.map.ground.slice(row * this.map.width, (row + 1) * this.map.width));
+    // Tiled stores global ids with firstgid=1, while Phaser's raw `data`
+    // constructor expects zero-based atlas indexes. Keep the adapter's
+    // 1-based ids for gameplay/collisions and convert only this render copy.
+    for (let row = 0; row < this.map.height; row += 1) {
+      rows.push(this.map.ground.slice(row * this.map.width, (row + 1) * this.map.width).map((gid) => gid > 0 ? gid - 1 : -1));
+    }
     const tilemap = this.make.tilemap({ data: rows, tileWidth: this.map.tileWidth, tileHeight: this.map.tileHeight });
     const tileset = tilemap.addTilesetImage('beach-tileset', 'beach-tileset', this.map.tileWidth, this.map.tileHeight, 0, 0);
-    if (tileset) tilemap.createLayer(0, tileset, 0, 0)?.setDepth(0).setCullPadding(0, 0);
+    if (tileset) tilemap.createLayer(0, tileset, 0, 0)?.setDepth(0).setCullPadding(2, 2);
+    // A very light sun wash keeps the authored 32×32 terrain readable on
+    // displays with strong contrast without hiding the Tiled ground layer.
+    this.add.rectangle(worldWidth / 2, worldHeight / 2, worldWidth, worldHeight, 0xffe9b0, 0.08).setDepth(0.5);
+    this.applyBeachCameraZoom();
+    this.scale.on('resize', this.applyBeachCameraZoom, this);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.scale.off('resize', this.applyBeachCameraZoom, this));
     this.map.decorations.forEach((definition) => {
-      const key = ['palm', 'rock', 'grass', 'ruin', 'shrine', 'shrine-glow', 'wave', 'flower', 'shell'].includes(definition.type) ? definition.type : undefined;
+      const key = this.beachDecorationTexture(definition.type);
       if (!key) return;
-      const sprite = this.add.image(definition.x, definition.y, key).setOrigin(0, 0).setDepth(definition.type === 'wave' || definition.type === 'shrine-glow' ? 1 : definition.type === 'shrine' ? 4 : 2);
-      if (definition.width && definition.height) sprite.setDisplaySize(definition.width, definition.height);
+      const isShrine = definition.type === 'shrine' || definition.type === 'shrine-rich';
+      const sprite = this.add.image(definition.x, definition.y, key).setOrigin(0, 0).setDepth(definition.type === 'wave' || definition.type === 'shrine-glow' ? 1 : isShrine ? 4 : 2);
+      const displaySize = this.beachDecorationSize(definition.type, definition.width, definition.height);
+      if (displaySize) sprite.setDisplaySize(displaySize.width, displaySize.height);
       this.decorations.push(sprite);
-      if (definition.type === 'wave' || definition.type === 'grass' || definition.type === 'palm' || definition.type === 'flower') {
+      if (definition.type === 'wave' || definition.type === 'grass' || definition.type === 'palm' || definition.type === 'palm-rich' || definition.type === 'flower') {
         this.tweens.add({ targets: sprite, y: definition.y + 2, duration: definition.type === 'wave' ? 900 : 1400, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
       }
       if (definition.type === 'shrine-glow') this.tweens.add({ targets: sprite, alpha: 0.45, duration: 1200, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
-      if (definition.type === 'shrine') {
+      if (isShrine) {
         const label = this.add.text(definition.x + (definition.width || 96) / 2, definition.y - 8, new I18nManager(this.session.locale).text('shrine'), { fontFamily: 'monospace', fontSize: '13px', color: '#ffe08a', stroke: '#18233e', strokeThickness: 4 }).setOrigin(0.5, 1).setDepth(5);
         this.shrineLabels.push(label);
       }
     });
   }
 
+  private applyBeachCameraZoom(): void {
+    if (this.level?.id !== 'level-01') return;
+    const compact = this.scale.width < 760 || this.scale.height < 500;
+    this.cameras.main.setZoom(compact ? 1.2 : 1.42);
+  }
+
+  private applyForestCameraZoom(): void {
+    if (this.level?.id !== 'level-02') return;
+    const portrait = this.scale.height > this.scale.width * 1.35;
+    const compact = this.scale.width < 760 || this.scale.height < 500;
+    this.cameras.main.setZoom(portrait ? 1.6 : compact ? 1.05 : 1.35);
+  }
+
+  private applyCaveCameraZoom(): void {
+    if (this.level?.id !== 'level-03') return;
+    const portrait = this.scale.height > this.scale.width * 1.35;
+    const compact = this.scale.width < 760 || this.scale.height < 500;
+    this.cameras.main.setZoom(portrait ? 1.6 : compact ? 1.08 : 1.34);
+  }
+
+  private applyHarborCameraZoom(): void {
+    if (this.level?.id !== 'level-04') return;
+    const portrait = this.scale.height > this.scale.width * 1.35;
+    const compact = this.scale.width < 760 || this.scale.height < 500;
+    this.cameras.main.setZoom(portrait ? 1.55 : compact ? 1.06 : 1.3);
+  }
+
+  private applyMountainCameraZoom(): void {
+    if (this.level?.id !== 'level-05') return;
+    const portrait = this.scale.height > this.scale.width * 1.35;
+    const compact = this.scale.width < 760 || this.scale.height < 500;
+    this.cameras.main.setZoom(portrait ? 1.55 : compact ? 1.06 : 1.3);
+  }
+
+  private applyCastleCameraZoom(): void {
+    if (this.level?.id !== 'level-06') return;
+    const portrait = this.scale.height > this.scale.width * 1.35;
+    const compact = this.scale.width < 760 || this.scale.height < 500;
+    this.cameras.main.setZoom(portrait ? 1.55 : compact ? 1.06 : 1.3);
+  }
+
+  private beachDecorationTexture(type: string): string | undefined {
+    const textures: Record<string, string> = {
+      palm: 'level-01-palm-v1',
+      'palm-rich': 'level-01-palm-v1',
+      rock: 'level-01-rock-garden-v1',
+      'rock-rich': 'level-01-rock-garden-v1',
+      ruin: 'level-01-ruin-garden-v1',
+      'ruin-rich': 'level-01-ruin-garden-v1',
+      shrine: 'level-01-shrine-v1',
+      'shrine-rich': 'level-01-shrine-v1',
+      grass: 'grass', flower: 'flower', shell: 'shell', wave: 'wave', 'shrine-glow': 'shrine-glow',
+    };
+    return textures[type];
+  }
+
+  private beachDecorationSize(type: string, width?: number, height?: number): { width: number; height: number } | undefined {
+    const authored: Record<string, { width: number; height: number }> = {
+      palm: { width: 132, height: 128 }, 'palm-rich': { width: 142, height: 136 },
+      rock: { width: 104, height: 72 }, 'rock-rich': { width: 112, height: 78 },
+      ruin: { width: 168, height: 132 }, 'ruin-rich': { width: 184, height: 142 },
+      shrine: { width: 190, height: 174 }, 'shrine-rich': { width: 198, height: 182 },
+    };
+    return authored[type] ?? (width && height ? { width, height } : undefined);
+  }
+
   private createEntities(): void {
     const isBeach = this.level.id === 'level-01';
-    const playerTexture = isBeach ? 'player-4dir' : 'player-sheet';
-    const playerSize = isBeach ? 42 : 32;
+    const style = getLegacyWorldStyle(this.level.id);
+    const isEnhancedRegion = isBeach || style.decorationProfile === 'forest' || style.decorationProfile === 'cave' || style.decorationProfile === 'harbor' || style.decorationProfile === 'mountain' || style.decorationProfile === 'castle';
+    const isCave = style.decorationProfile === 'cave';
+    const isHarbor = style.decorationProfile === 'harbor';
+    const isMountain = style.decorationProfile === 'mountain';
+    const isCastle = style.decorationProfile === 'castle';
+    const playerTexture = isEnhancedRegion ? 'level-01-player-sheet-v1' : 'player-sheet';
+    const playerSize = isEnhancedRegion ? 82 : 32;
     const playerSpawn = this.resolveSafeSpawn(resolveTiledObjectPoint(this.map.objects, 'spawn', 'player-spawn', this.level.playerSpawn));
     const mentorSpawn = this.resolveSafeSpawn(resolveTiledObjectPoint(this.map.objects, 'npc', 'midou', this.level.mentor));
     this.player = this.physics.add.sprite(playerSpawn.x, playerSpawn.y, playerTexture, 0).setDisplaySize(playerSize, playerSize).setDepth(5);
     this.player.setCollideWorldBounds(true);
+    if (isEnhancedRegion && this.player.body) {
+      // The 96px art frame includes a generous transparent margin and a
+      // shadow. Keep the Arcade body on the feet so collisions stay faithful
+      // to the 32px Tiled grid instead of the illustration bounds.
+      this.player.body.setSize(22, 18).setOffset(37, 70);
+    }
     const worldWidth = this.map.width * this.map.tileWidth;
     const worldHeight = this.map.height * this.map.tileHeight;
     // The physics world must follow the Tiled map, not the responsive canvas.
@@ -194,7 +470,9 @@ export class WorldScene extends Phaser.Scene {
     this.physics.world.setBounds(0, 0, worldWidth, worldHeight);
     this.cameras.main.setBounds(0, 0, worldWidth, worldHeight);
     this.cameras.main.startFollow(this.player, true, 0.08, 0.08);
-    if (isBeach) this.cameras.main.setZoom(1.15);
+    if (this.level.id === 'level-02' && this.scale.width < 900 && this.scale.height < 500) {
+      this.cameras.main.setFollowOffset(0, 78);
+    }
     const obstacles = this.physics.add.staticGroup();
     this.map.colliders.forEach((rect) => {
       const block = this.add.zone(rect.x + rect.width / 2, rect.y + rect.height / 2, rect.width, rect.height);
@@ -205,20 +483,74 @@ export class WorldScene extends Phaser.Scene {
     this.physics.add.collider(this.player, obstacles);
     this.objects = this.level.objects.filter((object) => !this.session.hasCollected(this.level.id, object.id)).map((object) => {
       const position = resolveTiledObjectPoint(this.map.objects, object.kind, object.id, object.position);
-      const sprite = this.physics.add.staticImage(position.x, position.y, object.kind).setDisplaySize(isBeach ? 42 : 32, isBeach ? 42 : 32).setDepth(3) as Phaser.Physics.Arcade.Image & { objectId?: string; objectKind?: string };
+      const texture = isCave
+        ? object.kind === 'crystal' ? 'cave-crystal-cyan' : object.kind === 'chest' ? 'cave-archive-chest' : object.kind === 'scroll' ? 'cave-memory-tablet' : object.kind
+        : isHarbor
+          ? object.kind === 'crystal' ? 'harbor-local-pylon' : object.kind === 'chest' ? 'harbor-crate' : object.kind === 'scroll' ? 'harbor-remote-pylon' : object.kind
+          : isMountain
+            ? object.kind === 'crystal' ? 'mountain-crystal' : object.kind === 'chest' ? 'mountain-archive-chest' : object.kind === 'scroll' ? 'mountain-fork-sign' : object.kind
+            : isCastle
+              ? object.kind === 'crystal' ? 'castle-crystal' : object.kind === 'chest' ? 'castle-archive-chest' : object.kind === 'scroll' ? 'castle-rune-tablet' : object.kind
+            : object.kind;
+      const displaySize = isBeach ? 42 : isCave ? object.kind === 'chest' ? 68 : 54 : isHarbor ? object.kind === 'chest' ? 70 : 58 : isMountain ? object.kind === 'chest' ? 68 : 56 : isCastle ? object.kind === 'chest' ? 72 : 58 : 32;
+      const sprite = this.physics.add.staticImage(position.x, position.y, texture).setDisplaySize(displaySize, displaySize).setDepth(3) as Phaser.Physics.Arcade.Image & { objectId?: string; objectKind?: string; interactionKind?: string };
       sprite.objectId = object.id;
       sprite.objectKind = object.kind;
+      sprite.interactionKind = object.kind;
       return sprite;
     });
     const gatePosition = resolveTiledObjectPoint(this.map.objects, 'door', 'exit-gate', this.level.exit.position);
-    this.gate = this.physics.add.staticImage(gatePosition.x, gatePosition.y, 'gate').setDisplaySize(isBeach ? 52 : 40, isBeach ? 58 : 44).setDepth(3);
-    this.mentor = this.add.sprite(mentorSpawn.x, mentorSpawn.y, isBeach ? 'midou-4dir' : 'midou-sheet', 0).setDisplaySize(isBeach ? 42 : 32, isBeach ? 42 : 32).setDepth(4);
-    this.mentor.play(isBeach ? 'midou-idle-down' : 'midou-idle');
-    if (isBeach) {
-      this.playerAccent = this.add.image(playerSpawn.x, playerSpawn.y, 'player-scarf').setDisplaySize(42, 42).setDepth(6);
-      this.mentorAccent = this.add.image(mentorSpawn.x, mentorSpawn.y, 'midou-staff').setDisplaySize(42, 42).setDepth(6);
+    const gateTexture = isBeach ? 'level-01-gate-v1' : style.gateTextures?.closed ?? 'gate';
+    this.gate = this.physics.add.staticImage(gatePosition.x, gatePosition.y, gateTexture)
+      .setDisplaySize(isBeach ? 120 : style.decorationProfile === 'forest' ? 118 : style.decorationProfile === 'cave' ? 132 : style.decorationProfile === 'harbor' ? 128 : style.decorationProfile === 'mountain' ? 124 : style.decorationProfile === 'castle' ? 132 : 40, isBeach ? 110 : style.decorationProfile === 'forest' ? 124 : style.decorationProfile === 'cave' ? 136 : style.decorationProfile === 'harbor' ? 130 : style.decorationProfile === 'mountain' ? 132 : style.decorationProfile === 'castle' ? 138 : 44)
+      .setOrigin(0.5, isEnhancedRegion ? 0.92 : 0.5)
+      .setDepth(isEnhancedRegion ? 4 : 3);
+    (this.gate as Phaser.Physics.Arcade.Image & { interactionKind?: string }).interactionKind = 'gate';
+    this.mentor = this.add.sprite(mentorSpawn.x, mentorSpawn.y, isEnhancedRegion ? 'level-01-midou-sheet-v1' : 'midou-sheet', 1).setDisplaySize(isEnhancedRegion ? 78 : 32, isEnhancedRegion ? 78 : 32).setOrigin(0.5, 0.82).setDepth(4);
+    (this.mentor as Phaser.GameObjects.Sprite & { interactionKind?: string }).interactionKind = 'mentor';
+    this.mentor.play(isEnhancedRegion ? 'level-01-midou-idle-down' : 'midou-idle');
+    if (isEnhancedRegion) {
+      this.player.setOrigin(0.5, 0.82).setFrame(1);
+      this.playerShadow = this.add.ellipse(playerSpawn.x, playerSpawn.y + 23, 34, 12, 0x102033, 0.42).setDepth(4.5);
+      this.mentorShadow = this.add.ellipse(mentorSpawn.x, mentorSpawn.y + 22, 32, 11, 0x102033, 0.42).setDepth(3.5);
+      const i18n = new I18nManager(this.session.locale);
+      this.mentorLabel = this.add.text(mentorSpawn.x, mentorSpawn.y - 48, i18n.text('midouName'), { fontFamily: 'monospace', fontSize: '13px', color: '#fff4c7', stroke: '#18233e', strokeThickness: 4 }).setOrigin(0.5, 1).setDepth(6).setVisible(false);
+      this.gateGlow = this.add.image(gatePosition.x, gatePosition.y, isBeach ? 'level-01-gate-v1' : style.gateTextures?.open ?? gateTexture).setOrigin(0.5, 0.92).setDisplaySize(isBeach ? 120 : style.decorationProfile === 'cave' ? 132 : style.decorationProfile === 'harbor' ? 128 : style.decorationProfile === 'mountain' ? 124 : style.decorationProfile === 'castle' ? 132 : 118, isBeach ? 110 : style.decorationProfile === 'cave' ? 136 : style.decorationProfile === 'harbor' ? 130 : style.decorationProfile === 'mountain' ? 132 : style.decorationProfile === 'castle' ? 138 : 124).setTint(isBeach ? 0x70edff : style.decorationProfile === 'cave' ? 0xd48cff : style.decorationProfile === 'harbor' ? 0x6fe6ff : style.decorationProfile === 'mountain' ? 0xcdefff : style.decorationProfile === 'castle' ? 0xff4fd8 : 0xb4e26c).setAlpha(0).setDepth(3.2);
+      // Keep the label inside the playable camera bounds: the gate anchor is
+      // intentionally close to the eastern edge of the Tiled map.
+      this.gateLabel = this.add.text(gatePosition.x - 110, gatePosition.y - 100, i18n.text('gateName'), { fontFamily: 'monospace', fontSize: '13px', color: '#c6d1e7', stroke: '#18233e', strokeThickness: 4 }).setOrigin(1, 1).setDepth(6);
+      this.gateUnlocked = true;
+      this.refreshGatePresentation();
     }
-    this.interactionHint = this.add.text(0, 0, '✦', { fontFamily: 'monospace', fontSize: '16px', color: '#ffe08a', stroke: '#45334a', strokeThickness: 3 }).setOrigin(0.5).setDepth(20).setVisible(false);
+    this.interactionHint = this.add.text(0, 0, '✦ E', { fontFamily: 'monospace', fontSize: '13px', color: '#ffe08a', stroke: '#45334a', strokeThickness: 3 }).setOrigin(0.5).setDepth(20).setVisible(false);
+  }
+
+  private refreshGatePresentation(): void {
+    const style = getLegacyWorldStyle(this.level.id);
+    if ((this.level.id !== 'level-01' && !style.gateTextures) || !this.gate) return;
+    const unlocked = this.quest.currentStep?.kind === 'open-exit' && this.session.inventory.has(this.level.exit.requiredItemId);
+    if (typeof document !== 'undefined') document.documentElement.dataset.gitquestGateState = unlocked ? 'open' : 'locked';
+    if (unlocked === this.gateUnlocked) return;
+    this.gateUnlocked = unlocked;
+    if (unlocked) {
+      this.gate.setTexture(this.level.id === 'level-01' ? 'level-01-gate-v1' : style.gateTextures?.open ?? 'gate').clearTint().setAlpha(1);
+      this.gateGlow?.setVisible(true).setAlpha(0.18);
+      this.gateGlowTween?.stop();
+      if (this.gateGlow) this.gateGlowTween = this.tweens.add({ targets: this.gateGlow, alpha: { from: 0.12, to: 0.32 }, duration: 1250, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
+      this.gateLabel?.setColor(this.level.id === 'level-01' ? '#ffe08a' : '#d6f58b');
+    } else {
+      this.gate.setTexture(this.level.id === 'level-01' ? 'level-01-gate-v1' : style.gateTextures?.closed ?? 'gate').setTint(0x64718a).setAlpha(0.84);
+      this.gateGlowTween?.stop();
+      this.gateGlow?.setVisible(false).setAlpha(0);
+      this.gateLabel?.setColor('#aeb9cb');
+    }
+    this.refreshGateLabel();
+  }
+
+  private refreshGateLabel(): void {
+    if (!this.gateLabel) return;
+    const i18n = new I18nManager(this.session.locale);
+    this.gateLabel.setText(i18n.text('gateName') + ' · ' + i18n.text(this.gateUnlocked ? 'gateOpen' : 'gateLocked'));
   }
 
   private resolveSafeSpawn(point: Point): Point {
@@ -246,7 +578,10 @@ export class WorldScene extends Phaser.Scene {
         if (water && start < 0) start = column;
         if ((!water || column === this.map.width) && start >= 0) {
           const width = (column - start) * this.map.tileWidth;
-          const padding = 24;
+          // Keep the collision lip inside the water edge. A 24px expansion
+          // swallowed the first wet-sand tile and made the crystal route
+          // unreachable with the larger level-1 character body.
+          const padding = 8;
           const block = this.add.zone(start * this.map.tileWidth - padding + (width + padding * 2) / 2, row * this.map.tileHeight + this.map.tileHeight / 2, width + padding * 2, this.map.tileHeight + padding * 2);
           this.physics.add.existing(block, true);
           obstacles.add(block);
@@ -267,17 +602,25 @@ export class WorldScene extends Phaser.Scene {
     const vector = this.touchVector.x || this.touchVector.y ? this.touchVector : keyboard;
     this.player.setVelocity(vector.x * 145, vector.y * 145);
     if (vector.x || vector.y) {
-      if (this.level.id === 'level-01') {
+      if (this.level.id === 'level-01' || this.level.id === 'level-02') {
         if (Math.abs(vector.x) > Math.abs(vector.y)) this.facing = vector.x < 0 ? 'left' : 'right';
         else this.facing = vector.y < 0 ? 'up' : 'down';
-        this.player.play('player-walk-' + this.facing, true);
+        this.player.play('level-01-player-walk-' + this.facing, true);
       } else this.player.play('player-walk', true);
     }
-    else this.player.setFrame(0);
+    else this.player.setFrame(this.level.id === 'level-01' || this.level.id === 'level-02' ? 1 : 0);
+    if (this.level.id === 'level-01' && typeof document !== 'undefined') {
+      document.documentElement.dataset.gitquestPlayerAnimation = this.player.anims.currentAnim?.key ?? '';
+    }
     this.nearby = this.findNearby();
+    this.refreshGatePresentation();
     markQaPlayerPosition(this.player.x, this.player.y);
-    this.playerAccent?.setPosition(this.player.x, this.player.y);
-    this.mentorAccent?.setPosition(this.mentor.x, this.mentor.y);
+    this.playerShadow?.setPosition(this.player.x, this.player.y + 23);
+    this.mentorShadow?.setPosition(this.mentor.x, this.mentor.y + 22);
+    if (this.mentorLabel) {
+      const mentorDistance = Phaser.Math.Distance.Between(this.player.x, this.player.y, this.mentor.x, this.mentor.y);
+      this.mentorLabel.setPosition(this.mentor.x, this.mentor.y - 48).setVisible(mentorDistance < 150);
+    }
     if (this.interactionHint) {
       this.interactionHint.setVisible(Boolean(this.nearby));
       if (this.nearby) {
@@ -307,8 +650,13 @@ export class WorldScene extends Phaser.Scene {
       return;
     }
     if (this.nearby === this.gate) {
-      if (this.quest.currentStep?.kind !== 'open-exit' || !this.session.inventory.has(this.level.exit.requiredItemId)) { EventBus.emit('toast', new I18nManager(this.session.locale).text('locked')); return; }
+      if (this.quest.currentStep?.kind !== 'open-exit' || !this.session.inventory.has(this.level.exit.requiredItemId)) {
+        const i18n = new I18nManager(this.session.locale);
+        EventBus.emit('toast', i18n.text(this.level.id === 'level-01' ? 'gateLockedHint' : 'locked'));
+        return;
+      }
       if (!this.quest.acceptExit()) return;
+      this.refreshGatePresentation();
       this.showRewardEffect(this.gate.x, this.gate.y - 35, new I18nManager(this.session.locale).text('gateOpened'), '#ffe08a');
       this.session.inventory.remove(this.level.exit.requiredItemId);
       this.session.save();
@@ -358,6 +706,9 @@ export class WorldScene extends Phaser.Scene {
     i18n.applyDirection(this.game.canvas);
     this.worldTitle?.setText(i18n.localized(this.level.title));
     this.shrineLabels.forEach((label) => label.setText(i18n.text('shrine')));
+    this.mentorLabel?.setText(i18n.text('midouName'));
+    this.gateLabel?.setText(i18n.text('gateName'));
+    this.refreshGateLabel();
   }
 
   private publishRuntimeMetrics(): void {

@@ -12,6 +12,12 @@ Puis ouvrir l'URL indiquée par Vite. Pour produire une version déployable :
     npm run build
     npm run preview
 
+## Publication GitHub Pages
+
+Le workflow `.github/workflows/deploy.yml` publie automatiquement `dist/` sur GitHub Pages à chaque push sur `main`. Le build local reste servi à la racine pour conserver `npm run dev` ; le build GitHub Actions utilise automatiquement la base `/GitQuest/`.
+
+URL publique attendue : <https://ahmedoumezzine.github.io/GitQuest/>
+
 ## Commandes utiles
 
 - ZQSD ou les flèches : se déplacer

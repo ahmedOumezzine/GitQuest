@@ -1,4 +1,5 @@
 import type { LevelDefinition, Point, TiledMapData, TiledMapJson, TiledObject } from '../models/game';
+import { publicUrl } from '../core/publicUrl';
 
 /** Resolve a named Tiled anchor while keeping a data-definition fallback. */
 export function resolveTiledObjectPoint(objects: TiledObject[], type: string, name: string, fallback: Point): Point {
@@ -52,7 +53,7 @@ export class LevelManager {
   private async fetchJson<T>(path: string): Promise<T> {
     // Window.fetch est une méthode Web qui exige son contexte Window.
     // L’appeler via this.fetcher(path) peut déclencher "Illegal invocation" dans Chrome.
-    const response = await this.fetcher.call(globalThis, path);
+    const response = await this.fetcher.call(globalThis, publicUrl(path));
     if (!response.ok) throw new Error('Impossible de charger ' + path + ' (' + response.status + ')');
     return response.json() as Promise<T>;
   }

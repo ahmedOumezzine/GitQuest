@@ -4,6 +4,7 @@ import type { LevelDefinition } from '../models/game';
 import { resolveQaLevelId, resolveQaScene } from '../diagnostics/QaRoute';
 import { imageAssets, spriteSheetAssets } from '../data/AssetManifest';
 import { markQaState } from '../diagnostics/QaMarker';
+import { publicUrl } from '../core/publicUrl';
 
 type SessionLike = { locale?: import('../models/game').Locale };
 
@@ -18,8 +19,8 @@ export class PreloadScene extends Phaser.Scene {
     this.i18n = new I18nManager(session?.locale ?? 'fr');
     this.i18n.applyDirection(this.game.canvas);
     this.load.on('loaderror', (file: Phaser.Loader.File) => { this.loadError = this.i18n.text('assetMissing') + ' : ' + file.key + ' (' + file.url + ')'; });
-    imageAssets.forEach((asset) => this.load.image(asset.key, asset.path));
-    spriteSheetAssets.forEach((asset) => this.load.spritesheet(asset.key, asset.path, { frameWidth: asset.frameWidth, frameHeight: asset.frameHeight }));
+    imageAssets.forEach((asset) => this.load.image(asset.key, publicUrl(asset.path)));
+    spriteSheetAssets.forEach((asset) => this.load.spritesheet(asset.key, publicUrl(asset.path), { frameWidth: asset.frameWidth, frameHeight: asset.frameHeight }));
     this.add.text(this.scale.width / 2, this.scale.height / 2, 'GITQUEST', { fontFamily: 'monospace', fontSize: '32px', color: '#f7d56a' }).setOrigin(0.5);
   }
 
@@ -31,6 +32,8 @@ export class PreloadScene extends Phaser.Scene {
     Object.entries(directions).forEach(([direction, start]) => {
       this.anims.create({ key: 'player-walk-' + direction, frames: this.anims.generateFrameNumbers('player-4dir', { start, end: start + 2 }), frameRate: 8, repeat: -1 });
       this.anims.create({ key: 'midou-idle-' + direction, frames: this.anims.generateFrameNumbers('midou-4dir', { start, end: start + 2 }), frameRate: 3, repeat: -1 });
+      this.anims.create({ key: 'level-01-player-walk-' + direction, frames: this.anims.generateFrameNumbers('level-01-player-sheet-v1', { start, end: start + 2 }), frameRate: 8, repeat: -1 });
+      this.anims.create({ key: 'level-01-midou-idle-' + direction, frames: this.anims.generateFrameNumbers('level-01-midou-sheet-v1', { start, end: start + 2 }), frameRate: 3, repeat: -1 });
     });
     const levels = this.registry.get('levels') as LevelDefinition[];
     const qaSearch = typeof window !== 'undefined' ? window.location.search : '';

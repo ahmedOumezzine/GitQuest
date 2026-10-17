@@ -62,8 +62,8 @@ export class MainMenu extends Phaser.GameObjects.Container {
   public setMenuVisible(value: boolean): this { this.setVisible(value); return this; }
 
   private applyLayout(metrics: LayoutMetrics): void {
-    const buttonWidth = Math.min(UITheme.button.width, metrics.width - metrics.margin * 2);
-    const buttonHeight = metrics.compact ? UITheme.button.compactHeight : UITheme.button.height;
+    const buttonWidth = Math.min(metrics.compact ? UITheme.menuButton.compactWidth : UITheme.menuButton.width, metrics.width - metrics.margin * 2);
+    const buttonHeight = metrics.compact ? UITheme.menuButton.compactHeight : UITheme.menuButton.height;
     const fontSize = metrics.compact ? '18px' : '21px';
     const gap = metrics.compact ? 10 : 12;
     const buttons = [this.newGameButton, ...(this.continueButton ? [this.continueButton] : []), this.settingsButton];

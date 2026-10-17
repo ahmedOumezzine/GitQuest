@@ -1,4 +1,4 @@
-# GitQuest — certification courante des phases 3 B.2 à 6
+# GitQuest — certification courante V0.1 des phases 3 B.2 à 6
 
 Date : 2026-10-17
 
@@ -9,11 +9,11 @@ Ce document décrit l’état courant vérifié dans le dépôt. Les rapports `P
 Commandes exécutées depuis `C:\Users\ahmed\source\repos\GitQuest` :
 
 ```text
-npm test       -> 42/42 PASS
+npm test       -> 48/48 PASS
 npm run typecheck -> PASS
 npm run build  -> PASS
 npm run qa:browser -> PASS (Chrome headless local)
-npm run qa:browser:matrix -> PASS (sept viewports Chrome headless)
+npm run qa:browser:matrix -> PASS (sept viewports, parcours complet des six niveaux)
 npm run qa:browser:touch -> PASS (émulation tactile portrait ciblée)
 ```
 
@@ -27,10 +27,10 @@ Le build conserve un avertissement connu sur le chunk Phaser vendor (`1 208 kB` 
 |---|---|---|---|
 | 3 B.2 — menu artistique | Implémentée, vérifiée visuellement | Fond raster local, sprites de présentation détaillés, logo, boutons, paramètres, FR/EN/AR ; viewports `1280×720`, `844×390`, `390×844` observés dans Chrome | Les assets générés restent soumis à une confirmation de licence de distribution finale |
 | 3 C — chargement/introduction | Implémentée | Progression réelle du loader, introduction localisée, Passer, transition vers niveau 1, aucune validation de quête pendant l’introduction ; smoke test Chrome versionné | Parcours tactile physique non couvert |
-| 3 D — niveau 1/HUD | Fonctionnelle | TiledLayer, collisions eau, spawns sûrs, HUD, Midou, terminal, coffre, clé, porte et sauvegarde vérifiés ; fonds raster dédiés ajoutés aux niveaux 2–6 | Les cartes 2–6 n’ont pas encore des tilesets 32×32 et une finition d’objets aussi complète que le niveau 1 |
+| 3 D — niveau 1/HUD | Fonctionnelle | TiledLayer, collisions eau, spawns sûrs, HUD, Midou, terminal, coffre, clé, porte et sauvegarde vérifiés ; les six niveaux possèdent désormais un terrain Tiled et des assets régionaux dédiés | La finition pixel art reste moins poussée que le niveau 1 sur certains détails de terrain |
 | 4 — interaction/i18n/sauvegarde | Partiellement certifiée | Terminal DOM avec espaces/historique, messages localisés, RTL, sauvegarde versionnée et migration testées ; saisie `git init` exercée par smoke test Chrome | Audio absent |
-| 5 — tactile/responsive | Partiellement certifiée | Joystick, actions tactiles, nettoyage des gestes, caméra/limites physiques des cartes et parcours complet vérifiés à `1280×720`, `844×390` et `390×844` ; visibilité tactile confirmée en émulation | Aucun appareil tactile physique testé |
-| 6 — performance/stabilisation | Partiellement certifiée | Mesure FPS des six niveaux via route QA dédiée, smoke test Chrome des six missions jusqu’à Victoire, découpage applicatif, runner de matrice à sept viewports et erreurs de chargement contrôlées | Bundle Phaser au-dessus du seuil |
+| 5 — tactile/responsive | Certifiée en émulation | Joystick, actions tactiles, nettoyage des gestes, caméra/limites physiques des cartes et parcours complet vérifiés aux sept viewports ; émulation tactile portrait PASS | Aucun appareil tactile physique testé |
+| 6 — performance/stabilisation | Certifiée V0.1 | Mesure FPS des six niveaux, smoke test Chrome des six missions jusqu’à Victoire, sauvegarde/reprise, runner de matrice à sept viewports et erreurs de chargement contrôlées | Bundle Phaser au-dessus du seuil ; optimisation ultérieure possible |
 
 ## Intégration Tiled ajoutée dans la dernière passe
 
@@ -93,6 +93,26 @@ Recheck Chrome du 17 octobre 2026 via `?qa=benchmark&qaLevel=level-XX&perf=1` à
 
 Ces vérifications ont été réalisées dans Chrome desktop via l’outil d’interface et Chrome headless. La matrice à sept viewports et l’émulation tactile ciblée ont réussi localement ; cela ne constitue toujours pas un test sur appareil tactile réel.
 
+## Certification V0.1 — recheck final
+
+Le 17 octobre 2026, les vérifications suivantes ont été rejouées après la
+finition du niveau 6 :
+
+- `npm run qa:local` : PASS — 48/48 tests, typecheck et build.
+- `npm run qa` : PASS — menu, paramètres, RTL, niveaux 1 à 6, commandes Git,
+  récompenses, portes, victoire, sauvegarde et reprise.
+- `npm run qa:browser:matrix` : PASS — 1920×1080, 1366×768, 1280×720,
+  844×390, 390×844, 768×1024 et 1024×768.
+- `npm run qa:browser:touch` : PASS — émulation tactile en portrait,
+  progression du niveau 2 et terminal utilisable.
+- Contrôle tactile ciblé des six niveaux en `390×844` : PASS — scènes
+  initialisées, contrôles visibles et aucune erreur console.
+- Les six cartes ont été vérifiées avec leurs couches Tiled obligatoires,
+  collisions, spawns, objets et portes de sortie.
+
+Conclusion : **V0.1 stable techniquement**. Les six niveaux sont jouables,
+responsive dans la matrice automatisée et sans régression détectée.
+
 ## Conditions de clôture restantes
 
 Pour déclarer les phases entièrement certifiées, il faut encore fournir ou réaliser :
@@ -100,9 +120,10 @@ Pour déclarer les phases entièrement certifiées, il faut encore fournir ou r�
 1. une validation sur au moins un appareil tactile physique ;
 2. une décision de licence pour les assets locaux générés et les assets de distribution ;
 3. une stratégie audio réelle ou le maintien documenté de l’absence d’audio ;
-4. une finition artistique dédiée aux niveaux 2 à 6 ; la passe actuelle est une amélioration stylisée, pas un pack pixel-art professionnel complet ;
-5. une décision sur le seuil de bundle Phaser et une matrice release finale.
+4. une décision sur le seuil de bundle Phaser ; le warning de taille du chunk
+   Phaser ne bloque ni le build ni l’exécution.
 
 ## Git
 
-Le dépôt est propre sur la branche locale `main`. Aucun push distant n’a été effectué.
+Le working tree contient les changements de cette modernisation et n’a pas été
+nettoyé ni réinitialisé. Aucun push distant n’a été effectué.

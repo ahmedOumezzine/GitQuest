@@ -26,6 +26,12 @@ test('la plage conserve ses couches Tiled et ses spawns hors de l’eau', async 
   assert.notEqual(tileAt(level.playerSpawn), 3);
   assert.notEqual(tileAt(level.mentor), 3);
   assert.ok(data.ground.includes(3));
+  data.ground.forEach((tile, index) => {
+    if (tile !== 3) return;
+    const x = index % data.width;
+    const y = Math.floor(index / data.width);
+    assert.ok(y <= 2 || y >= data.height - 3 || x <= 4 || x >= data.width - 5, `water shoreline anomaly at ${x},${y}`);
+  });
 });
 
 test('les six cartes Tiled exposent les couches et objets de progression attendus', async () => {
@@ -39,6 +45,87 @@ test('les six cartes Tiled exposent les couches et objets de progression attendu
     assert.ok(objects.some((object) => object.type === 'npc'), `mentor level-0${index}`);
     assert.ok(objects.some((object) => object.type === 'door'), `door level-0${index}`);
   }
+});
+
+test('la Forêt des Fichiers possède un terrain Tiled forestier et ses landmarks', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const map = JSON.parse(await readFile('public/data/maps/level-02.json', 'utf8')) as {
+    width: number;
+    height: number;
+    tilesets?: Array<{ source: string }>;
+    layers: Array<{ name: string; type: string; data?: number[]; objects?: Array<{ name: string; type: string }> }>;
+  };
+  const ground = map.layers.find((layer) => layer.name === 'Ground');
+  const decorations = map.layers.find((layer) => layer.name === 'Decorations')?.objects ?? [];
+  assert.equal(ground?.type, 'tilelayer');
+  assert.equal(ground?.data?.length, map.width * map.height);
+  assert.equal(map.tilesets?.[0]?.source, '../../assets/tilesets/forest-tileset.tsx');
+  assert.ok(['forest-tree', 'forest-root', 'forest-shrine', 'forest-canopy'].every((type) => decorations.some((object) => object.type === type)));
+});
+
+test('la Grotte des Souvenirs possède un terrain Tiled rocheux et ses repères de commit', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const map = JSON.parse(await readFile('public/data/maps/level-03.json', 'utf8')) as {
+    width: number;
+    height: number;
+    tilesets?: Array<{ source: string }>;
+    layers: Array<{ name: string; type: string; data?: number[]; objects?: Array<{ name: string; type: string }> }>;
+  };
+  const ground = map.layers.find((layer) => layer.name === 'Ground');
+  const decorations = map.layers.find((layer) => layer.name === 'Decorations')?.objects ?? [];
+  assert.equal(ground?.type, 'tilelayer');
+  assert.equal(ground?.data?.length, map.width * map.height);
+  assert.equal(map.tilesets?.[0]?.source, '../../assets/tilesets/cave-tileset.tsx');
+  assert.ok(decorations.some((object) => object.name === 'cave-stalactites'));
+  assert.ok(['cave-torch', 'cave-altar'].every((type) => decorations.some((object) => object.type === type)));
+});
+
+test('le Port des Connexions possède un terrain Tiled de quai et ses repères push-pull', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const map = JSON.parse(await readFile('public/data/maps/level-04.json', 'utf8')) as {
+    width: number;
+    height: number;
+    tilesets?: Array<{ source: string }>;
+    layers: Array<{ name: string; type: string; data?: number[]; objects?: Array<{ name: string; type: string }> }>;
+  };
+  const ground = map.layers.find((layer) => layer.name === 'Ground');
+  const decorations = map.layers.find((layer) => layer.name === 'Decorations')?.objects ?? [];
+  assert.equal(ground?.type, 'tilelayer');
+  assert.equal(ground?.data?.length, map.width * map.height);
+  assert.equal(map.tilesets?.[0]?.source, '../../assets/tilesets/harbor-tileset.tsx');
+  assert.ok(['harbor-docks', 'harbor-pylons', 'harbor-altar', 'harbor-lighthouse'].every((name) => decorations.some((object) => object.name === name)));
+});
+
+test('la Montagne des Branches possède un terrain Tiled de sentier et ses repères branch-switch', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const map = JSON.parse(await readFile('public/data/maps/level-05.json', 'utf8')) as {
+    width: number;
+    height: number;
+    tilesets?: Array<{ source: string }>;
+    layers: Array<{ name: string; type: string; data?: number[]; objects?: Array<{ name: string; type: string }> }>;
+  };
+  const ground = map.layers.find((layer) => layer.name === 'Ground');
+  const decorations = map.layers.find((layer) => layer.name === 'Decorations')?.objects ?? [];
+  assert.equal(ground?.type, 'tilelayer');
+  assert.equal(ground?.data?.length, map.width * map.height);
+  assert.equal(map.tilesets?.[0]?.source, '../../assets/tilesets/mountain-tileset.tsx');
+  assert.ok(['mountain-fork', 'mountain-altar', 'mountain-marker', 'mountain-wind'].every((name) => decorations.some((object) => object.name === name)));
+});
+
+test('le Château des Conflits possède un terrain Tiled de cour et ses repères de merge', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const map = JSON.parse(await readFile('public/data/maps/level-06.json', 'utf8')) as {
+    width: number;
+    height: number;
+    tilesets?: Array<{ source: string }>;
+    layers: Array<{ name: string; type: string; data?: number[]; objects?: Array<{ name: string; type: string }> }>;
+  };
+  const ground = map.layers.find((layer) => layer.name === 'Ground');
+  const decorations = map.layers.find((layer) => layer.name === 'Decorations')?.objects ?? [];
+  assert.equal(ground?.type, 'tilelayer');
+  assert.equal(ground?.data?.length, map.width * map.height);
+  assert.equal(map.tilesets?.[0]?.source, '../../assets/tilesets/castle-tileset.tsx');
+  assert.ok(['castle-altar', 'castle-rune', 'castle-brazier', 'castle-arch'].every((name) => decorations.some((object) => object.name === name)));
 });
 
 test('TiledMapAdapter expose la couche Objects sans la mélanger aux décorations', () => {
