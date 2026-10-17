@@ -12,7 +12,7 @@ Date : 2026-10-17
 - Le parcours navigateur réel a été prolongé jusqu’à l’écran Victoire : les six niveaux ont été parcourus dans Chrome desktop avec les commandes propres à chaque mission, les coffres, les clés, les portes et l’XP observés.
 - Un compteur optionnel `?perf=1` publie une mesure DOM lisible sans modifier le gameplay. Sur le niveau 1 à `1280×720`, Chrome a mesuré `143,99 FPS`, `6,95 ms/frame`, soit `144 frames` sur `1000 ms`.
 - Les tests `RuntimeMetrics.test.ts` vérifient le calcul déterministe du FPS et la résolution sûre de la route QA ; la suite globale compte 32 tests.
-- La route QA `?qaLevel=level-XX&perf=1` permet de mesurer chaque carte sans modifier la sauvegarde ni sa progression :
+- La route QA `?qa=benchmark&qaLevel=level-XX&perf=1` permet de mesurer chaque carte sans modifier la sauvegarde ni sa progression :
 
 | Niveau | FPS | Temps/image | Échantillon |
 |---|---:|---:|---:|

@@ -40,7 +40,7 @@ Date : 2026-10-17
 - L’écran de confirmation, l’introduction et la transition vers le niveau 1 ont été observés à `844×390`, avec console sans erreur. Dans le runtime arabe, `html[lang]=ar`, `html[dir]=rtl`, le canvas `dir=rtl` et une surface `844×390` ont été constatés.
 - Le HUD français du niveau 1 a été observé à `844×390` sans chevauchement visible ; aucune erreur console n’a été relevée.
 - Avec `?perf=1`, le niveau 1 a fourni une mesure Chrome réelle à `1280×720` : **143,99 FPS**, **6,95 ms/frame**, **144 frames/1000 ms**.
-- La route QA `?qaLevel=level-XX&perf=1` a mesuré les six cartes à `1280×720` : niveaux 1 à 6 entre **137,99 et 144,02 FPS**, sans erreur ni avertissement console.
+- La route QA `?qa=benchmark&qaLevel=level-XX&perf=1` a mesuré les six cartes à `1280×720` : niveaux 1 à 6 entre **137,99 et 144,02 FPS**, sans erreur ni avertissement console.
 
 ## Non certifié
 
