@@ -16,6 +16,7 @@ La Phase 4 est partiellement implémentée sans modification des règles de `Git
 - Saisie des espaces et caractères spéciaux conservée.
 - Textes d’aide et erreurs ajoutés en FR, EN et AR.
 - Messages visibles produits par le simulateur Git courant localisés à l’affichage en FR, EN et AR.
+- La direction `dir` de la surface Phaser suit désormais la locale active, en complément des alignements RTL du HUD.
 - `SaveManager` tolère les erreurs de lecture, d’écriture, de suppression et les JSON corrompus sans supprimer la donnée brute.
 - Compatibilité de migration existante conservée.
 
