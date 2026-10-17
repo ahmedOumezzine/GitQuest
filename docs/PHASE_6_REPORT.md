@@ -60,3 +60,5 @@ Le smoke test versionné a ensuite été exécuté en mode direct, sans progress
 | 6 | 58,03 | 0 | PASS |
 
 La capture du niveau 2 confirme visuellement le fond forestier raster et l’absence des anciens rectangles translucides d’obstacles. Les cinq fonds sont des assets locaux générés le 17 octobre 2026 ; leur licence de distribution finale reste à confirmer avant publication commerciale.
+
+Le même runner a été exécuté à viewport exact `1280×720` sur les six routes directes : niveau 1 `49,18 FPS`, niveau 2 `57,05 FPS`, niveau 3 `56,07 FPS`, niveau 4 `57,05 FPS`, niveau 5 `57,05 FPS` et niveau 6 `57,05 FPS`, avec zéro erreur console. Le niveau 1 reste fonctionnel mais passe sous 60 FPS dans cette session Chrome headless avec GPU désactivé ; cette mesure doit rester un risque de performance à traiter avant une certification matérielle.

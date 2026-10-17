@@ -71,6 +71,15 @@ Le script `scripts/browser-smoke.mjs` démarre un serveur Vite isolé sur le por
 - Nouvelle partie, le chargement et l’introduction ;
 - Passer vers le niveau 1 ;
 - l’ouverture du terminal, la saisie de `git init` et la sauvegarde `localStorage` version 1 ;
+- une actualisation réelle, puis le bouton Continuer et la reprise du niveau 1 sauvegardé ;
 - l’absence d’exception JavaScript ou d’erreur console applicative.
 
-Le test ne touche pas le profil Chrome principal. Pour un chemin non standard, définir `GITQUEST_CHROME`. Il ne remplace pas la validation sur appareil tactile physique ni le parcours manuel complet des six niveaux.
+Le test ne touche pas le profil Chrome principal. Pour un chemin non standard, définir `GITQUEST_CHROME`. Le viewport peut être contrôlé avec `GITQUEST_QA_WIDTH` et `GITQUEST_QA_HEIGHT`, par exemple :
+
+```powershell
+$env:GITQUEST_QA_WIDTH = '390'
+$env:GITQUEST_QA_HEIGHT = '844'
+npm run qa:browser
+```
+
+`GITQUEST_QA_TOUCH=1` active en plus l’émulation tactile Chrome. Le test ne remplace pas la validation sur appareil tactile physique ni le parcours manuel complet des six niveaux.

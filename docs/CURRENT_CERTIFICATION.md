@@ -51,7 +51,7 @@ Cette intégration ne modifie ni les règles Git, ni l’ordre des quêtes, ni l
 
 ## Vérifications Chrome disponibles
 
-- Menu, paramètres, confirmation, introduction et HUD niveau 1 : `1280×720`, `844×390`, `390×844`.
+- Menu, paramètres, confirmation, introduction, HUD niveau 1 et reprise après actualisation : `1920×1080`, `1366×768`, `1280×720`, `844×390`, `390×844`, `768×1024`, `1024×768` via le runner Chrome versionné.
 - RTL arabe : `html[lang]=ar`, `html[dir]=rtl`, canvas et champ terminal synchronisés.
 - Parcours manuel complet des six niveaux : commandes Git, coffres, clés, portes, XP et victoire.
 - Benchmark QA des six niveaux à `1280×720` : environ `137,99` à `144,02 FPS`, sans erreur ni avertissement applicatif.
@@ -60,7 +60,7 @@ Cette intégration ne modifie ni les règles Git, ni l’ordre des quêtes, ni l
 - Le contrat de touches du monde couvre `E` et `Entrée` pour interagir, ainsi que `T` pour le terminal ; il est testé dans `tests/InputBindings.test.ts`.
 - `tests/Extensibility.test.ts` charge un niveau 7 et une carte Tiled synthétiques uniquement par données, puis valide sa quête sans modifier les scènes Phaser.
 - `tests/ManifestConsistency.test.ts` vérifie que les six définitions actuelles sont exactement celles du manifest et que chaque carte référencée existe.
-- `npm run qa:browser` exécute un smoke test Chrome/Edge headless versionné via `scripts/browser-smoke.mjs` ; il couvre le menu, les paramètres, le RTL, Nouvelle partie, l’introduction, le niveau 1, le terminal et la sauvegarde.
+- `npm run qa:browser` exécute un smoke test Chrome/Edge headless versionné via `scripts/browser-smoke.mjs` ; il couvre le menu, les paramètres, le RTL, Nouvelle partie, l’introduction, le niveau 1, le terminal, la sauvegarde et la reprise après actualisation. `GITQUEST_QA_WIDTH`, `GITQUEST_QA_HEIGHT` et `GITQUEST_QA_TOUCH=1` permettent la matrice responsive et l’émulation tactile.
 
 Recheck headless direct des cartes legacy le 17 octobre 2026, avec `npm run qa:browser` et `GITQUEST_QA_LEVEL=level-XX` :
 
@@ -73,6 +73,8 @@ Recheck headless direct des cartes legacy le 17 octobre 2026, avec `npm run qa:b
 | 6 | 58,03 | 0 | non conservée |
 
 Cette série vérifie le rendu de chaque région après l’ajout des fonds raster locaux et le remplacement des anciens obstacles graphiques par des textures Phaser répétées. Elle ne certifie pas encore une finition complète en tilesets 32×32 ni un appareil tactile physique.
+
+Un recheck à viewport exact `1280×720` a mesuré les six niveaux à `49,18–57,05 FPS` dans Chrome headless avec GPU désactivé, sans erreur console. Le niveau 1 est le point bas à `49,18 FPS` ; aucune optimisation supplémentaire n’est déclarée terminée sur ce point.
 
 Recheck Chrome du 17 octobre 2026 via `?qa=benchmark&qaLevel=level-XX&perf=1` à `1280×720` :
 

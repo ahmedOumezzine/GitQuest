@@ -5,6 +5,9 @@ import { join } from 'node:path';
 
 const appPort = Number(process.env.GITQUEST_QA_PORT ?? 5181);
 const cdpPort = Number(process.env.GITQUEST_CDP_PORT ?? 9223);
+const viewportWidth = Number(process.env.GITQUEST_QA_WIDTH ?? 960);
+const viewportHeight = Number(process.env.GITQUEST_QA_HEIGHT ?? 540);
+const emulateTouch = process.env.GITQUEST_QA_TOUCH === '1';
 const requestedLevel = process.env.GITQUEST_QA_LEVEL;
 const appUrl = requestedLevel
   ? `http://127.0.0.1:${appPort}/?qa=benchmark&qaLevel=${encodeURIComponent(requestedLevel)}&perf=1`
@@ -119,15 +122,62 @@ async function click(cdp, x, y) {
   await cdp.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: pageX, y: pageY, button: 'left', buttons: 0, clickCount: 1, pointerType: 'mouse' });
 }
 
+async function getGameSize(cdp) {
+  return cdp.evaluate('(() => { const canvas = document.querySelector("canvas"); return { width: canvas?.width ?? 0, height: canvas?.height ?? 0 }; })()');
+}
+
+function layoutFor(width, height) {
+  const portrait = height > width;
+  const compact = width < 760 || height < 500;
+  return { width, height, portrait, compact, margin: compact ? 12 : 20 };
+}
+
+async function clickMenuButton(cdp, index, count) {
+  const { width, height } = await getGameSize(cdp);
+  const metrics = layoutFor(width, height);
+  const buttonHeight = metrics.compact ? 48 : 54;
+  const gap = metrics.compact ? 10 : 12;
+  const totalHeight = count * buttonHeight + (count - 1) * gap;
+  const preferredCenter = metrics.compact && !metrics.portrait
+    ? height - metrics.margin - totalHeight / 2
+    : height * (metrics.portrait ? 0.68 : 0.62);
+  const centerY = Math.min(height - metrics.margin - totalHeight / 2, preferredCenter);
+  const y = centerY - totalHeight / 2 + buttonHeight / 2 + index * (buttonHeight + gap);
+  await click(cdp, width / 2, y);
+}
+
+async function clickLanguage(cdp, index) {
+  const { width, height } = await getGameSize(cdp);
+  const metrics = layoutFor(width, height);
+  const languageWidth = metrics.compact ? 48 : 54;
+  const languageGap = metrics.compact ? 6 : 8;
+  const total = languageWidth * 3 + languageGap * 2;
+  const startX = width - metrics.margin - total + languageWidth / 2;
+  await click(cdp, startX + index * (languageWidth + languageGap), metrics.margin + 22);
+}
+
+async function clickIntroductionSkip(cdp) {
+  const { width, height } = await getGameSize(cdp);
+  const metrics = layoutFor(width, height);
+  const panelWidth = Math.min(670, width - metrics.margin * 2);
+  const panelHeight = Math.min(430, height - metrics.margin * 2);
+  const panelY = height / 2 + (metrics.compact ? 8 : 16);
+  const stacked = metrics.portrait || panelWidth < 500;
+  const buttonsY = panelY + panelHeight / 2 - (stacked ? 64 : (metrics.compact ? 42 : 36));
+  await click(cdp, stacked ? width / 2 : width / 2 + 130, stacked ? buttonsY + 27 : buttonsY);
+}
+
 async function assertBrowserBasics(cdp) {
   const basics = await cdp.evaluate(`(() => ({
     canvas: Boolean(document.querySelector('canvas')),
     lang: document.documentElement.lang,
     dir: document.documentElement.dir,
     canvasWidth: document.querySelector('canvas')?.width ?? 0,
-    canvasHeight: document.querySelector('canvas')?.height ?? 0
+    canvasHeight: document.querySelector('canvas')?.height ?? 0,
+    viewportWidth: window.innerWidth,
+    viewportHeight: window.innerHeight
   }))()`);
-  if (!basics.canvas || !basics.canvasWidth || !basics.canvasHeight || basics.lang !== 'fr' || basics.dir !== 'ltr') {
+  if (!basics.canvas || !basics.canvasWidth || !basics.canvasHeight || basics.lang !== 'fr' || basics.dir !== 'ltr' || Math.abs(basics.viewportWidth - viewportWidth) > 2 || Math.abs(basics.viewportHeight - viewportHeight) > 2) {
     throw new Error('Le canvas ou la direction initiale n’est pas correctement exposé.');
   }
 }
@@ -160,7 +210,7 @@ const server = spawn(process.execPath, [viteEntry, '--host', '127.0.0.1', '--por
 const profile = await mkdtemp(join(tmpdir(), 'gitquest-browser-'));
 const chrome = spawn(chromePath, [
   '--headless=new', '--disable-gpu', '--no-sandbox', `--remote-debugging-port=${cdpPort}`,
-  `--user-data-dir=${profile}`, '--window-size=960,540', appUrl,
+  `--user-data-dir=${profile}`, `--window-size=${viewportWidth},${viewportHeight}`, appUrl,
 ], { stdio: 'ignore', windowsHide: true });
 
 let cdp;
@@ -174,6 +224,8 @@ try {
   await cdp.send('Runtime.enable');
   await cdp.send('Log.enable');
   await cdp.send('Page.enable');
+  await cdp.send('Emulation.setDeviceMetricsOverride', { width: viewportWidth, height: viewportHeight, deviceScaleFactor: 1, mobile: false });
+  if (emulateTouch) await cdp.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
   await cdp.send('Storage.clearDataForOrigin', { origin: `http://127.0.0.1:${appPort}`, storageTypes: 'all' });
   await cdp.send('Page.reload', { ignoreCache: true });
   await waitForState(cdp, requestedLevel ? 'world' : 'title');
@@ -196,21 +248,21 @@ try {
     console.log(`QA navigateur PASS: ${requestedLevel}, niveau rendu et FPS ${runtime.fps}.`);
   } else {
 
-  await click(cdp, 480, 353);
+  await clickMenuButton(cdp, 1, 2);
   await waitForState(cdp, 'settings');
   await key(cdp, 'Escape');
   await waitForState(cdp, 'title');
 
-  await click(cdp, 910, 42);
+  await clickLanguage(cdp, 2);
   const rtl = await cdp.evaluate('({ lang: document.documentElement.lang, dir: document.documentElement.dir })');
   if (rtl.lang !== 'ar' || rtl.dir !== 'rtl') throw new Error('Le changement arabe/RTL n’est pas effectif.');
-  await click(cdp, 790, 42);
+  await clickLanguage(cdp, 0);
   await waitForState(cdp, 'title');
 
-  await click(cdp, 480, 295);
+  await clickMenuButton(cdp, 0, 2);
   await waitForState(cdp, 'loading');
   await waitForState(cdp, 'introduction');
-  await click(cdp, 602, 343);
+  await clickIntroductionSkip(cdp);
   await waitForState(cdp, 'world');
 
   await key(cdp, 't');
@@ -222,8 +274,18 @@ try {
   if (!save || save.version !== 1 || save.levelId !== 'level-01' || !save.git?.initialized) throw new Error('La sauvegarde ou git init n’est pas confirmé par le navigateur.');
   await key(cdp, 'Escape');
   await waitForState(cdp, 'world');
+  await cdp.send('Page.reload', { ignoreCache: true });
+  await waitForState(cdp, 'title');
+  // With an existing save the compact landscape layout has three buttons;
+  // Continue is the middle action at this viewport.
+  await clickMenuButton(cdp, 1, 3);
+  await waitForState(cdp, 'world');
+  const resumed = await cdp.evaluate('JSON.parse(localStorage.getItem("gitquest-save") ?? "null")');
+  if (!resumed || resumed.version !== 1 || resumed.levelId !== 'level-01' || !resumed.git?.initialized) {
+    throw new Error('La reprise après actualisation n’a pas restauré la partie sauvegardée.');
+  }
   if (consoleErrors.length) throw new Error(`Erreurs navigateur : ${consoleErrors.join(' | ')}`);
-  console.log('QA navigateur PASS: menu, paramètres, RTL, nouvelle partie, chargement, introduction, niveau 1, terminal et sauvegarde.');
+  console.log('QA navigateur PASS: menu, paramètres, RTL, nouvelle partie, chargement, introduction, niveau 1, terminal, sauvegarde et reprise après actualisation.');
   }
 } finally {
   cdp?.socket.close();

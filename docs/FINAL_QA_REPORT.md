@@ -16,6 +16,9 @@ Date : 2026-10-17
 - `npm test` : **41/41 PASS**.
 - `npm run typecheck` : **PASS**.
 - `npm run build` : **PASS**.
+- `npm run qa:browser` : **PASS** sur le parcours menu → niveau 1, avec actualisation et reprise via Continuer.
+- Le même parcours a réussi sur `1920×1080`, `1366×768`, `1280×720`, `844×390`, `390×844`, `768×1024` et `1024×768` ; une variante `390×844` avec émulation tactile Chrome a également réussi.
+- Les routes directes des six niveaux à `1280×720` ont rendu sans erreur console ; FPS observés : niveau 1 `49,18`, niveau 2 `57,05`, niveau 3 `56,07`, niveaux 4 à 6 `57,05` dans Chrome headless GPU désactivé.
 - Chrome desktop : menu, paramètres, changement de langue, niveau 1 et absence d’erreur console vérifiés.
 - Niveau 1 : carte Tiled, objectif initial, collisions et rendu TilemapLayer observés.
 - Parcours frais dans Chrome sur `http://192.168.115.51:5174/?qa=fresh` : Nouvelle partie → écran de chargement à 100 % → introduction → Passer → niveau 1 vérifié.
@@ -53,16 +56,16 @@ Date : 2026-10-17
 
 ## Non certifié
 
-- Parcours navigateur complet automatisé sous Playwright/WebDriver : non réalisé ; un smoke test Chrome/Edge headless versionné couvre désormais le menu, les paramètres, le RTL, Nouvelle partie, l’introduction, le niveau 1, le terminal et la sauvegarde. Le parcours complet des six niveaux reste exécuté manuellement dans Chrome desktop.
+- Parcours navigateur complet automatisé des six niveaux sous Playwright/WebDriver : non réalisé ; le smoke test Chrome/Edge headless versionné couvre le menu, les paramètres, le RTL, Nouvelle partie, l’introduction, le niveau 1, le terminal, la sauvegarde et la reprise. Le parcours complet des six missions reste exécuté manuellement dans Chrome desktop.
 - Automatisation navigateur de la saisie DOM et de l’historique : non ajoutée au dépôt ; la vérification a été exécutée directement dans Chrome via l’outil d’interface.
-- Appareils tactiles physiques et parcours tactile réel ; les trois viewports exacts du menu/paramètres sont désormais vérifiés.
+- Appareils tactiles physiques, clavier virtuel natif et safe areas système ; l’émulation tactile Chrome et les sept viewports ont été vérifiés, mais ne remplacent pas un appareil réel.
 - Temps de chargement comparables et validation sur appareils tactiles physiques ; les FPS des six cartes sont désormais mesurés dans l’environnement Chrome courant.
 - Comparaison artistique complète des six régions avec les références ; les niveaux 2 à 6 disposent d’une passe stylisée mais pas encore d’une finition pixel-art commerciale complète.
 - Audio réel : aucun asset audio n’est présent, donc aucun faux réglage n’a été activé.
 
 ### Mise à jour — smoke test navigateur versionné
 
-`npm run qa:browser` a réussi le 17 octobre 2026 sur Windows avec Chrome headless. Le script lance Vite et Chrome dans des processus et un profil temporaires, puis confirme le parcours menu → paramètres → RTL → Nouvelle partie → chargement → introduction → niveau 1 → terminal `git init` → sauvegarde versionnée, sans exception ni erreur console applicative.
+`npm run qa:browser` a réussi le 17 octobre 2026 sur Windows avec Chrome headless. Le script lance Vite et Chrome dans des processus et un profil temporaires, puis confirme le parcours menu → paramètres → RTL → Nouvelle partie → chargement → introduction → niveau 1 → terminal `git init` → sauvegarde versionnée → actualisation → Continuer, sans exception ni erreur console applicative. Les dimensions et l’émulation tactile sont configurables par variables d’environnement.
 
 ## Fichiers principaux modifiés
 

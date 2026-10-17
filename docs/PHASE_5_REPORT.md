@@ -16,7 +16,7 @@ Date : 2026-10-17
 
 Le code et le typecheck sont validés. Une vérification Chrome desktop du niveau 1 ne montre aucune erreur console. Le menu et les paramètres ont désormais été capturés avec un contrôle explicite du viewport aux dimensions `1280×720`, `844×390` et `390×844`. La règle de placement du menu paysage compact et le calcul des zones sûres des contrôles tactiles sont couverts par des tests unitaires ; la suite compte désormais 41 tests.
 
-Le parcours tactile réel et l’affichage des contrôles sur appareils physiques restent à vérifier. Les viewports exacts suivants n’ont pas encore été exécutés pour le niveau en jeu avec un navigateur automatisé :
+Le parcours tactile réel et l’affichage des contrôles sur appareils physiques restent à vérifier. Le runner Chrome versionné a depuis exécuté le parcours complet menu → nouvelle partie → introduction → niveau 1 → terminal → sauvegarde → reprise sur les sept viewports demandés :
 
 - 1920×1080
 - 1366×768
@@ -26,6 +26,8 @@ Le parcours tactile réel et l’affichage des contrôles sur appareils physique
 - 768×1024
 - 1024×768
 
-Le HUD du niveau 1 a toutefois été observé en français à `844×390` : titre, objectif, XP, langues, journal et aide de contrôle restent visibles sans chevauchement, avec console Chrome sans erreur.
+Chaque exécution a terminé sans erreur console. Une exécution supplémentaire à `390×844` avec `GITQUEST_QA_TOUCH=1` a également réussi sous émulation tactile Chrome. Cette émulation ne constitue pas un test d’écran tactile physique.
 
-Ils restent à certifier manuellement ou avec une matrice navigateur disposant d’un contrôle explicite du viewport.
+Le HUD du niveau 1 a été exercé dans ces mêmes parcours ; le titre, l’objectif, l’XP, les langues, le journal, le terminal et l’aide de contrôle sont restés accessibles sans erreur.
+
+La validation d’un vrai appareil tactile, des claviers virtuels natifs et des safe areas propres à chaque système reste manuelle.
