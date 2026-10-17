@@ -6,6 +6,7 @@ import { I18nManager } from '../managers/I18nManager';
 import { LevelManager } from '../managers/LevelManager';
 import { SceneManager } from '../phaser/SceneManager';
 import { InputManager } from '../phaser/InputManager';
+import { RuntimeMetrics } from '../diagnostics/RuntimeMetrics';
 
 export class WorldScene extends Phaser.Scene {
   private session!: GameSession;
@@ -27,6 +28,8 @@ export class WorldScene extends Phaser.Scene {
   private playerAccent?: Phaser.GameObjects.Image;
   private mentorAccent?: Phaser.GameObjects.Image;
   private shrineLabels: Phaser.GameObjects.Text[] = [];
+  private runtimeMetrics?: RuntimeMetrics;
+  private publishedRuntimeSample = 0;
 
   public constructor() { super('WorldScene'); }
 
@@ -37,6 +40,17 @@ export class WorldScene extends Phaser.Scene {
   }
 
   public create(): void {
+    if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('perf')) {
+      this.runtimeMetrics = new RuntimeMetrics();
+      window.__gitquestRuntimeMetrics = this.runtimeMetrics;
+      this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+        if (window.__gitquestRuntimeMetrics === this.runtimeMetrics) delete window.__gitquestRuntimeMetrics;
+        delete document.documentElement.dataset.gitquestFps;
+        delete document.documentElement.dataset.gitquestFrameTimeMs;
+        delete document.documentElement.dataset.gitquestSampleFrames;
+        delete document.documentElement.dataset.gitquestSampleDurationMs;
+      });
+    }
     void this.buildWorld().catch((error: unknown) => this.showLoadError(error));
   }
 
@@ -196,7 +210,9 @@ export class WorldScene extends Phaser.Scene {
     }
   }
 
-  public update(): void {
+  public update(time: number): void {
+    this.runtimeMetrics?.frame(time);
+    this.publishRuntimeMetrics();
     if (!this.player?.body || this.terminalOpen) {
       if (this.player?.body) this.player.setVelocity(0);
       return;
@@ -294,6 +310,17 @@ export class WorldScene extends Phaser.Scene {
     const i18n = new I18nManager(this.session.locale);
     i18n.applyDirection(this.game.canvas);
     this.shrineLabels.forEach((label) => label.setText(i18n.text('shrine')));
+  }
+
+  private publishRuntimeMetrics(): void {
+    if (!this.runtimeMetrics || typeof document === 'undefined') return;
+    const snapshot = this.runtimeMetrics.snapshot();
+    if (!snapshot.sampleDurationMs || snapshot.sampleDurationMs === this.publishedRuntimeSample) return;
+    this.publishedRuntimeSample = snapshot.sampleDurationMs;
+    document.documentElement.dataset.gitquestFps = snapshot.fps.toFixed(2);
+    document.documentElement.dataset.gitquestFrameTimeMs = snapshot.frameTimeMs.toFixed(2);
+    document.documentElement.dataset.gitquestSampleFrames = String(snapshot.sampleFrames);
+    document.documentElement.dataset.gitquestSampleDurationMs = String(Math.round(snapshot.sampleDurationMs));
   }
 
   private showRewardEffect(x: number, y: number, text: string, color: string): void {

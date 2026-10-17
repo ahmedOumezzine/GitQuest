@@ -13,7 +13,7 @@ Date : 2026-10-17
 
 ## Résultats vérifiables
 
-- `npm test` : **30/30 PASS**.
+- `npm test` : **31/31 PASS**.
 - `npm run typecheck` : **PASS**.
 - `npm run build` : **PASS**.
 - Chrome desktop : menu, paramètres, changement de langue, niveau 1 et absence d’erreur console vérifiés.
@@ -39,13 +39,14 @@ Date : 2026-10-17
 - Une capture avec viewport contrôlé confirme le menu et les paramètres à `1280×720`, `844×390` et `390×844`; le chevauchement du menu paysage compact a été corrigé et couvert par un test de layout.
 - L’écran de confirmation, l’introduction et la transition vers le niveau 1 ont été observés à `844×390`, avec console sans erreur. Dans le runtime arabe, `html[lang]=ar`, `html[dir]=rtl`, le canvas `dir=rtl` et une surface `844×390` ont été constatés.
 - Le HUD français du niveau 1 a été observé à `844×390` sans chevauchement visible ; aucune erreur console n’a été relevée.
+- Avec `?perf=1`, le niveau 1 a fourni une mesure Chrome réelle à `1280×720` : **143,99 FPS**, **6,95 ms/frame**, **144 frames/1000 ms**.
 
 ## Non certifié
 
 - Parcours navigateur complet automatisé : non réalisé sous Playwright/WebDriver ; le parcours complet a toutefois été exécuté manuellement par clavier dans Chrome desktop.
 - Automatisation navigateur de la saisie DOM et de l’historique : non ajoutée au dépôt ; la vérification a été exécutée directement dans Chrome via l’outil d’interface.
 - Appareils tactiles physiques et parcours tactile réel ; les trois viewports exacts du menu/paramètres sont désormais vérifiés.
-- FPS et temps de chargement mesurés sur les six niveaux.
+- FPS et temps de chargement comparables sur les niveaux 2 à 6 ; le niveau 1 dispose désormais d’une mesure instrumentée.
 - Comparaison artistique complète des six régions avec les références.
 - Audio réel : aucun asset audio n’est présent, donc aucun faux réglage n’a été activé.
 
