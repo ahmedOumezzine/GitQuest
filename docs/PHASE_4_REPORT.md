@@ -33,4 +33,4 @@ La Phase 4 est partiellement implémentée sans modification des règles de `Git
 ## Reste à faire
 
 - Les messages internes de `GitSimulator` restent canoniquement en français ; seule leur présentation est localisée par `I18nManager`, afin de préserver la logique métier.
-- Le test navigateur manuel du terminal et de `git init` est passé ; automatiser ce parcours reste à faire.
+- Le smoke test Chrome versionné automatise désormais l’ouverture du terminal DOM, la saisie de `git init`, la sauvegarde et la reprise après actualisation ; l’historique multi-commandes et le parcours des commandes avancées restent couverts par les tests TypeScript et la vérification manuelle.
