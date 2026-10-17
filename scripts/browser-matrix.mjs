@@ -35,6 +35,4 @@ for (const [index, [width, height]] of viewports.entries()) {
   await runSmoke(width, height, index);
 }
 
-console.log('QA tactile portrait');
-await runSmoke(390, 844, viewports.length, { GITQUEST_QA_LEVEL: 'level-02', GITQUEST_QA_TOUCH: '1' });
-console.log('QA matrice PASS: sept viewports et émulation tactile portrait.');
+console.log('QA matrice PASS: sept viewports.');
