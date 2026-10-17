@@ -53,12 +53,16 @@ Date : 2026-10-17
 
 ## Non certifié
 
-- Parcours navigateur complet automatisé : non réalisé sous Playwright/WebDriver ; le parcours complet a toutefois été exécuté manuellement par clavier dans Chrome desktop.
+- Parcours navigateur complet automatisé sous Playwright/WebDriver : non réalisé ; un smoke test Chrome/Edge headless versionné couvre désormais le menu, les paramètres, le RTL, Nouvelle partie, l’introduction, le niveau 1, le terminal et la sauvegarde. Le parcours complet des six niveaux reste exécuté manuellement dans Chrome desktop.
 - Automatisation navigateur de la saisie DOM et de l’historique : non ajoutée au dépôt ; la vérification a été exécutée directement dans Chrome via l’outil d’interface.
 - Appareils tactiles physiques et parcours tactile réel ; les trois viewports exacts du menu/paramètres sont désormais vérifiés.
 - Temps de chargement comparables et validation sur appareils tactiles physiques ; les FPS des six cartes sont désormais mesurés dans l’environnement Chrome courant.
 - Comparaison artistique complète des six régions avec les références ; les niveaux 2 à 6 disposent d’une passe stylisée mais pas encore d’une finition pixel-art commerciale complète.
 - Audio réel : aucun asset audio n’est présent, donc aucun faux réglage n’a été activé.
+
+### Mise à jour — smoke test navigateur versionné
+
+`npm run qa:browser` a réussi le 17 octobre 2026 sur Windows avec Chrome headless. Le script lance Vite et Chrome dans des processus et un profil temporaires, puis confirme le parcours menu → paramètres → RTL → Nouvelle partie → chargement → introduction → niveau 1 → terminal `git init` → sauvegarde versionnée, sans exception ni erreur console applicative.
 
 ## Fichiers principaux modifiés
 
@@ -78,6 +82,9 @@ Date : 2026-10-17
 - `src/scenes/BootScene.ts`
 - `src/scenes/PreloadScene.ts`
 - `src/scenes/VictoryScene.ts`
+- `src/diagnostics/QaMarker.ts`
+- `scripts/browser-smoke.mjs`
+- `package.json` (`qa:browser`)
 - `src/models/game.ts`
 - tests de sauvegarde, Tiled et régression
 - rapports Phase 3 à 6

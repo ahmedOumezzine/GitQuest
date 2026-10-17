@@ -55,3 +55,22 @@ npm run qa:local
 ```
 
 Cette commande exécute `npm test`, `npm run typecheck` puis `npm run build`. Elle ne démarre pas de serveur et ne modifie pas la sauvegarde.
+
+## Smoke test navigateur versionné
+
+Sur Windows, si Chrome est installé dans son chemin standard :
+
+```text
+npm run qa:browser
+```
+
+Le script `scripts/browser-smoke.mjs` démarre un serveur Vite isolé sur le port 5181 et une session Chrome/Edge headless avec un profil temporaire. Il vérifie réellement :
+
+- le menu et l’écran Paramètres ;
+- le changement FR → AR et `html[dir]="rtl"` ;
+- Nouvelle partie, le chargement et l’introduction ;
+- Passer vers le niveau 1 ;
+- l’ouverture du terminal, la saisie de `git init` et la sauvegarde `localStorage` version 1 ;
+- l’absence d’exception JavaScript ou d’erreur console applicative.
+
+Le test ne touche pas le profil Chrome principal. Pour un chemin non standard, définir `GITQUEST_CHROME`. Il ne remplace pas la validation sur appareil tactile physique ni le parcours manuel complet des six niveaux.

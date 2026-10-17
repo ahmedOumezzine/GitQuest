@@ -39,8 +39,9 @@ Les scènes Phaser n’ont pas besoin d’être modifiées si le niveau réutili
 
     npm test
     npm run qa:local
+    npm run qa:browser
 
-Les tests couvrent GitSimulator, QuestManager, SaveManager, LevelManager, le manifeste d’assets et TiledMapAdapter. Le protocole Chrome est décrit dans `docs/CHROME_QA_RUNBOOK.md` et les limites restantes dans `docs/CURRENT_CERTIFICATION.md`.
+Les tests couvrent GitSimulator, QuestManager, SaveManager, LevelManager, le manifeste d’assets et TiledMapAdapter. `npm run qa:browser` lance un smoke test Chrome/Edge headless local via DevTools ; le protocole manuel et les limites restantes sont décrits dans `docs/CHROME_QA_RUNBOOK.md` et `docs/CURRENT_CERTIFICATION.md`.
 
 ## Licence
 

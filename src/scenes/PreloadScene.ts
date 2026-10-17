@@ -3,6 +3,7 @@ import { I18nManager } from '../managers/I18nManager';
 import type { LevelDefinition } from '../models/game';
 import { resolveQaLevelId } from '../diagnostics/QaRoute';
 import { imageAssets, spriteSheetAssets } from '../data/AssetManifest';
+import { markQaState } from '../diagnostics/QaMarker';
 
 type SessionLike = { locale?: import('../models/game').Locale };
 
@@ -12,6 +13,7 @@ export class PreloadScene extends Phaser.Scene {
   public constructor() { super('PreloadScene'); }
 
   public preload(): void {
+    markQaState('preload');
     const session = this.registry.get('session') as SessionLike | undefined;
     this.i18n = new I18nManager(session?.locale ?? 'fr');
     this.i18n.applyDirection(this.game.canvas);

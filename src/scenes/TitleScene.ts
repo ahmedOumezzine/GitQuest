@@ -7,6 +7,7 @@ import { SettingsPanel } from '../ui/SettingsPanel';
 import { ConfirmPanel } from '../ui/ConfirmPanel';
 import { ResponsiveLayoutManager } from '../ui/layout/ResponsiveLayoutManager';
 import { UITheme } from '../ui/theme/UITheme';
+import { markQaState } from '../diagnostics/QaMarker';
 
 export class TitleScene extends Phaser.Scene {
   private session!: GameSession;
@@ -22,6 +23,7 @@ export class TitleScene extends Phaser.Scene {
   public constructor() { super('TitleScene'); }
 
   public create(): void {
+    markQaState('title');
     this.session = this.registry.get('session') as GameSession;
     this.i18n = new I18nManager(this.session.locale);
     this.layout = new ResponsiveLayoutManager(this);
@@ -96,10 +98,11 @@ export class TitleScene extends Phaser.Scene {
 
   private changeLocale(locale: Locale): void { this.session.locale = locale; this.refreshLocale(); this.session.save(); }
   private refreshLocale(): void { this.i18n.locale = this.session.locale; this.i18n.applyDirection(this.game.canvas); this.backdropSubtitle.setText(this.i18n.text('title')); this.mainMenu.refresh(this.session.locale); this.settingsPanel.refresh(this.session.locale, this.session.touchControlsMode); this.confirmPanel?.refresh(this.session.locale); }
-  private showSettings(): void { this.mainMenu.setMenuVisible(false); this.menuBranding?.setVisible(false); this.settingsPanel.setVisible(true); }
-  private hideSettings(): void { this.settingsPanel.setVisible(false); this.menuBranding?.setVisible(true); this.mainMenu.setMenuVisible(true); }
+  private showSettings(): void { markQaState('settings'); this.mainMenu.setMenuVisible(false); this.menuBranding?.setVisible(false); this.settingsPanel.setVisible(true); }
+  private hideSettings(): void { markQaState('title'); this.settingsPanel.setVisible(false); this.menuBranding?.setVisible(true); this.mainMenu.setMenuVisible(true); }
   private requestNewGame(): void {
     if (this.session.hadExistingSave) {
+      markQaState('new-game-confirm');
       this.mainMenu.setMenuVisible(false);
       this.confirmPanel.setVisible(true);
       return;
@@ -107,7 +110,7 @@ export class TitleScene extends Phaser.Scene {
     this.startNewGame();
   }
   private hideNewGameConfirmation(): void { this.confirmPanel.setVisible(false); this.mainMenu.setMenuVisible(true); }
-  private startNewGame(): void { this.confirmPanel.setVisible(false); this.session.reset(); this.session.hadExistingSave = false; this.session.save(); this.scene.start('NewGameScene'); }
+  private startNewGame(): void { markQaState('new-game'); this.confirmPanel.setVisible(false); this.session.reset(); this.session.hadExistingSave = false; this.session.save(); this.scene.start('NewGameScene'); }
   private continueGame(): void { this.startWorld(); }
   private startWorld(): void { this.scene.start('WorldScene', { levelId: this.session.levelId }); this.scene.launch('UIScene'); }
 }

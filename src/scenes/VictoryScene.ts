@@ -1,11 +1,13 @@
 import Phaser from 'phaser';
 import type { GameSession } from '../core/GameSession';
 import { I18nManager } from '../managers/I18nManager';
+import { markQaState } from '../diagnostics/QaMarker';
 
 export class VictoryScene extends Phaser.Scene {
   public constructor() { super('VictoryScene'); }
 
   public create(): void {
+    markQaState('victory');
     const session = this.registry.get('session') as GameSession;
     const i18n = new I18nManager(session.locale);
     i18n.applyDirection(this.game.canvas);

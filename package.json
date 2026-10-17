@@ -8,6 +8,7 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "qa:local": "npm test && npm run typecheck && npm run build",
+    "qa:browser": "node scripts/browser-smoke.mjs",
     "preview": "vite preview",
     "test": "tsx --test tests/*.test.ts",
     "test:watch": "tsx --test --watch tests/*.test.ts",

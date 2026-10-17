@@ -12,6 +12,7 @@ Commandes exécutées depuis `C:\Users\ahmed\source\repos\GitQuest` :
 npm test       -> 41/41 PASS
 npm run typecheck -> PASS
 npm run build  -> PASS
+npm run qa:browser -> PASS (Chrome headless local)
 ```
 
 La commande groupée équivalente est `npm run qa:local`.
@@ -23,9 +24,9 @@ Le build conserve un avertissement connu sur le chunk Phaser vendor (`1 208 kB` 
 | Phase | État | Preuve actuelle | Limite restante |
 |---|---|---|---|
 | 3 B.2 — menu artistique | Implémentée, vérifiée visuellement | Fond raster local, logo, boutons, paramètres, FR/EN/AR ; viewports `1280×720`, `844×390`, `390×844` observés dans Chrome | Les personnages et certains assets restent moins détaillés que la référence ; licence de distribution finale à confirmer |
-| 3 C — chargement/introduction | Implémentée | Progression réelle du loader, introduction localisée, Passer, transition vers niveau 1, aucune validation de quête pendant l’introduction | Parcours navigateur reproductible non livré sous Playwright/WebDriver |
+| 3 C — chargement/introduction | Implémentée | Progression réelle du loader, introduction localisée, Passer, transition vers niveau 1, aucune validation de quête pendant l’introduction ; smoke test Chrome versionné | Parcours tactile physique non couvert |
 | 3 D — niveau 1/HUD | Fonctionnelle | TiledLayer, collisions eau, spawns sûrs, HUD, Midou, terminal, coffre, clé, porte et sauvegarde vérifiés | Les niveaux 2–6 ont maintenant une passe de style distincte, mais pas encore une finition artistique équivalente au niveau 1 |
-| 4 — interaction/i18n/sauvegarde | Partiellement certifiée | Terminal DOM avec espaces/historique, messages localisés, RTL, sauvegarde versionnée et migration testées | Pas de test navigateur automatisé conservé dans le dépôt ; audio absent |
+| 4 — interaction/i18n/sauvegarde | Partiellement certifiée | Terminal DOM avec espaces/historique, messages localisés, RTL, sauvegarde versionnée et migration testées ; saisie `git init` exercée par smoke test Chrome | Audio absent |
 | 5 — tactile/responsive | Partiellement certifiée | Joystick, actions tactiles, nettoyage des gestes, zones sûres et viewports UI vérifiés | Aucun appareil tactile physique testé |
 | 6 — performance/stabilisation | Partiellement certifiée | Mesure FPS des six niveaux via route QA dédiée, découpage applicatif, erreur de chargement contrôlée | Bundle Phaser au-dessus du seuil, matrice release complète non exécutée |
 
@@ -59,6 +60,7 @@ Cette intégration ne modifie ni les règles Git, ni l’ordre des quêtes, ni l
 - Le contrat de touches du monde couvre `E` et `Entrée` pour interagir, ainsi que `T` pour le terminal ; il est testé dans `tests/InputBindings.test.ts`.
 - `tests/Extensibility.test.ts` charge un niveau 7 et une carte Tiled synthétiques uniquement par données, puis valide sa quête sans modifier les scènes Phaser.
 - `tests/ManifestConsistency.test.ts` vérifie que les six définitions actuelles sont exactement celles du manifest et que chaque carte référencée existe.
+- `npm run qa:browser` exécute un smoke test Chrome/Edge headless versionné via `scripts/browser-smoke.mjs` ; il couvre le menu, les paramètres, le RTL, Nouvelle partie, l’introduction, le niveau 1, le terminal et la sauvegarde.
 
 Recheck Chrome du 17 octobre 2026 via `?qa=benchmark&qaLevel=level-XX&perf=1` à `1280×720` :
 
@@ -71,18 +73,17 @@ Recheck Chrome du 17 octobre 2026 via `?qa=benchmark&qaLevel=level-XX&perf=1` à
 | 5 | 141,00 | 141 | 0 |
 | 6 | 139,99 | 140 | 0 |
 
-Ces vérifications ont été réalisées dans Chrome desktop via l’outil d’interface ; elles ne constituent pas un test sur appareil tactile réel ni un runner navigateur versionné.
+Ces vérifications ont été réalisées dans Chrome desktop via l’outil d’interface. Le smoke test headless est désormais versionné et a réussi localement ; cela ne constitue toujours pas un test sur appareil tactile réel.
 
 ## Conditions de clôture restantes
 
 Pour déclarer les phases entièrement certifiées, il faut encore fournir ou réaliser :
 
-1. un test navigateur reproductible et versionné dans le dépôt ;
-2. une validation sur au moins un appareil tactile physique ;
-3. une décision de licence pour les assets locaux générés et les assets de distribution ;
-4. une stratégie audio réelle ou le maintien documenté de l’absence d’audio ;
-5. une finition artistique dédiée aux niveaux 2 à 6 ; la passe actuelle est une amélioration stylisée, pas un pack pixel-art professionnel complet ;
-6. une décision sur le seuil de bundle Phaser et une matrice release finale.
+1. une validation sur au moins un appareil tactile physique ;
+2. une décision de licence pour les assets locaux générés et les assets de distribution ;
+3. une stratégie audio réelle ou le maintien documenté de l’absence d’audio ;
+4. une finition artistique dédiée aux niveaux 2 à 6 ; la passe actuelle est une amélioration stylisée, pas un pack pixel-art professionnel complet ;
+5. une décision sur le seuil de bundle Phaser et une matrice release finale.
 
 ## Git
 

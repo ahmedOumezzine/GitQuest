@@ -8,6 +8,7 @@ import type { GitCommandResult } from '../systems/GitSimulator';
 import { TerminalInputModel } from '../systems/TerminalInputModel';
 import { ResponsiveLayoutManager, type LayoutMetrics } from '../ui/layout/ResponsiveLayoutManager';
 import { UITheme } from '../ui/theme/UITheme';
+import { markQaState } from '../diagnostics/QaMarker';
 
 export class UIScene extends Phaser.Scene {
   private session!: GameSession;
@@ -80,6 +81,7 @@ export class UIScene extends Phaser.Scene {
     EventBus.on('dialogue', ({ text }: { text: string }) => this.showDialogue(text));
     EventBus.on('toast', (text: string) => this.showToast(text));
     EventBus.on('terminal-open', () => {
+      markQaState('terminal');
       this.setTerminalVisible(true);
       this.terminalInputModel.clear();
       this.inputField.setText('');
@@ -191,6 +193,7 @@ export class UIScene extends Phaser.Scene {
 
   private closeTerminal(): void {
     this.setTerminalVisible(false);
+    markQaState('world');
     EventBus.emit('terminal-close');
   }
 

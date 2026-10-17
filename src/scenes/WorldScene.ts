@@ -8,6 +8,7 @@ import { SceneManager } from '../phaser/SceneManager';
 import { InputManager } from '../phaser/InputManager';
 import { RuntimeMetrics } from '../diagnostics/RuntimeMetrics';
 import { getLegacyWorldStyle } from '../world/LegacyWorldStyle';
+import { markQaState } from '../diagnostics/QaMarker';
 
 export class WorldScene extends Phaser.Scene {
   private session!: GameSession;
@@ -63,6 +64,7 @@ export class WorldScene extends Phaser.Scene {
     this.createEntities();
     this.cameras.main.fadeIn(350, 0, 0, 0);
     this.sceneManager = new SceneManager(this);
+    markQaState('world');
     this.inputManager = new InputManager(this, () => { if (!this.terminalOpen) this.interact(); }, () => { if (!this.terminalOpen) EventBus.emit('terminal-open'); });
     this.input.on('pointerdown', () => undefined);
     this.events.on('touch-move', (vector: Point) => { this.touchVector = vector; });

@@ -6,6 +6,7 @@ import { LevelManager } from '../managers/LevelManager';
 import { PixelButton } from '../ui/PixelButton';
 import { ResponsiveLayoutManager } from '../ui/layout/ResponsiveLayoutManager';
 import { UITheme } from '../ui/theme/UITheme';
+import { markQaState } from '../diagnostics/QaMarker';
 
 export class NewGameScene extends Phaser.Scene {
   private session!: GameSession;
@@ -31,6 +32,7 @@ export class NewGameScene extends Phaser.Scene {
   }
 
   public preload(): void {
+    markQaState('loading');
     this.loadingStartedAt = performance.now();
     this.i18n.applyDirection(this.game.canvas);
     this.drawLoadingScreen();
@@ -84,6 +86,7 @@ export class NewGameScene extends Phaser.Scene {
   }
 
   private showIntroduction(): void {
+    markQaState('introduction');
     this.introVisible = true;
     this.children.removeAll(true);
     const { width, height, margin, compact, portrait } = this.layout.current;
@@ -119,6 +122,7 @@ export class NewGameScene extends Phaser.Scene {
   private startLevel(): void {
     if (this.transitioning) return;
     this.transitioning = true;
+    markQaState('transition');
     this.session.levelId = this.level.id;
     this.session.save();
     this.cameras.main.fadeOut(350, 0, 0, 0);

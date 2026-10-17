@@ -3,11 +3,13 @@ import { GameSession } from '../core/GameSession';
 import { LevelManager } from '../managers/LevelManager';
 import { I18nManager } from '../managers/I18nManager';
 import { SaveManager } from '../managers/SaveManager';
+import { markQaState } from '../diagnostics/QaMarker';
 
 export class BootScene extends Phaser.Scene {
   public constructor() { super('BootScene'); }
 
   public create(): void {
+    markQaState('boot');
     const locale = new SaveManager().load()?.locale ?? 'fr';
     const i18n = new I18nManager(locale);
     i18n.applyDirection(this.game.canvas);
