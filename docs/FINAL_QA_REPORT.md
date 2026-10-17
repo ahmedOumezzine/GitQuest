@@ -13,7 +13,7 @@ Date : 2026-10-17
 
 ## Résultats vérifiables
 
-- `npm test` : **24/24 PASS**.
+- `npm test` : **25/25 PASS**.
 - `npm run typecheck` : **PASS**.
 - `npm run build` : **PASS**.
 - Chrome desktop : menu, paramètres, changement de langue, niveau 1 et absence d’erreur console vérifiés.
@@ -25,6 +25,7 @@ Date : 2026-10-17
 - Parcours niveau 1 complété dans Chrome : coffre ouvert, clé obtenue, XP `50` visible, porte ouverte et transition vers « Forêt des Fichiers » vérifiée.
 - Correctif appliqué dans `WorldScene.interact()` : la cible interactive est recalculée au moment de l’action pour éviter une interaction de porte dépendante d’un tick précédent.
 - Messages du terminal localisés pour les sorties Git courantes en FR, EN et AR, sans modifier `GitSimulator`.
+- Les six cartes JSON Tiled ont été vérifiées par test sur les couches `Ground`, `Decorations`, `Collisions`, `Objects`, le spawn, Midou et la porte.
 - Console Chrome sur le parcours isolé : **0 erreur / 0 avertissement**.
 
 ## Non certifié

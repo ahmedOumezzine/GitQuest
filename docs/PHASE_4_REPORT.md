@@ -21,7 +21,7 @@ La Phase 4 est partiellement implémentée sans modification des règles de `Git
 
 ## Tests
 
-- 24 tests unitaires passent, dont un parcours data-driven des six niveaux et un test de localisation du terminal.
+- 25 tests unitaires passent, dont un parcours data-driven des six niveaux et un test de localisation du terminal.
 - TypeScript passe.
 - Build Vite passe.
 

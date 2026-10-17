@@ -28,6 +28,19 @@ test('la plage conserve ses couches Tiled et ses spawns hors de l’eau', async 
   assert.ok(data.ground.includes(3));
 });
 
+test('les six cartes Tiled exposent les couches et objets de progression attendus', async () => {
+  const { readFile } = await import('node:fs/promises');
+  for (let index = 1; index <= 6; index += 1) {
+    const map = JSON.parse(await readFile(`public/data/maps/level-0${index}.json`, 'utf8')) as { layers: Array<{ name: string; objects?: Array<{ name: string; type: string }> }> };
+    const names = map.layers.map((layer) => layer.name);
+    assert.deepEqual(names.sort(), ['Collisions', 'Decorations', 'Ground', 'Objects'].sort(), `level-0${index}`);
+    const objects = map.layers.find((layer) => layer.name === 'Objects')?.objects ?? [];
+    assert.ok(objects.some((object) => object.type === 'spawn'), `spawn level-0${index}`);
+    assert.ok(objects.some((object) => object.type === 'npc'), `mentor level-0${index}`);
+    assert.ok(objects.some((object) => object.type === 'door'), `door level-0${index}`);
+  }
+});
+
 test('TiledMapAdapter expose la couche Objects sans la mélanger aux décorations', () => {
   const data = TiledMapAdapter.fromJson({ width: 2, height: 2, tilewidth: 32, tileheight: 32, layers: [
     { name: 'Decorations', type: 'objectgroup', objects: [{ id: 1, name: 'palm', type: 'palm', x: 0, y: 0, width: 32, height: 32 }] },
