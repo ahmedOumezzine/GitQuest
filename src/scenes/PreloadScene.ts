@@ -1,5 +1,7 @@
 import Phaser from 'phaser';
 import { I18nManager } from '../managers/I18nManager';
+import type { LevelDefinition } from '../models/game';
+import { resolveQaLevelId } from '../diagnostics/QaRoute';
 
 type SessionLike = { locale?: import('../models/game').Locale };
 
@@ -37,7 +39,13 @@ export class PreloadScene extends Phaser.Scene {
       this.anims.create({ key: 'player-walk-' + direction, frames: this.anims.generateFrameNumbers('player-4dir', { start, end: start + 2 }), frameRate: 8, repeat: -1 });
       this.anims.create({ key: 'midou-idle-' + direction, frames: this.anims.generateFrameNumbers('midou-4dir', { start, end: start + 2 }), frameRate: 3, repeat: -1 });
     });
-    const session = this.registry.get('session') as import('../core/GameSession').GameSession;
+    const levels = this.registry.get('levels') as LevelDefinition[];
+    const qaLevelId = typeof window !== 'undefined' ? resolveQaLevelId(window.location.search, levels.map((level) => level.id)) : undefined;
+    if (qaLevelId) {
+      this.scene.start('WorldScene', { levelId: qaLevelId });
+      this.scene.launch('UIScene');
+      return;
+    }
     this.scene.start('TitleScene');
   }
 
