@@ -30,11 +30,13 @@ Date : 2026-10-17
 - Vérification Chrome arabe : menu traduit, paramètres centrés, branding du menu masqué derrière le panneau, Retour fonctionnel, console à 0 erreur/0 avertissement.
 - Chargement asynchrone vérifié dans Chrome après découpage Vite : le menu démarre correctement et la console reste sans erreur.
 - Parcours navigateur niveau 2 vérifié : Midou → `git add .` → coffre/clé → XP cumulée `100` → porte → chargement de « Grotte des Souvenirs » (niveau 3), sans erreur console.
+- Parcours navigateur complet vérifié dans Chrome desktop sur `http://172.29.192.1:5174/?qa=level3` : niveaux 3 à 6 enchaînés avec `git commit -m 'archive'`, `git push`, `git pull`, `git branch feature`, `git switch feature` et `git merge main` ; chaque coffre, clé, porte et gain d’XP a été observé jusqu’à l’écran Victoire (`XP totale : 300`).
+- Console Chrome sur ce parcours complet : aucune erreur ni avertissement applicatif ; seuls les messages normaux de connexion Vite et de démarrage Phaser sont présents.
 - Console Chrome sur le parcours isolé : **0 erreur / 0 avertissement**.
 
 ## Non certifié
 
-- Parcours navigateur complet automatisé des six niveaux ; le parcours manuel vérifié s’arrête après le chargement du niveau 2.
+- Parcours navigateur complet automatisé : non réalisé sous Playwright/WebDriver ; le parcours complet a toutefois été exécuté manuellement par clavier dans Chrome desktop.
 - Viewports mobiles exacts et appareils tactiles physiques.
 - FPS et temps de chargement mesurés sur les six niveaux.
 - Comparaison artistique complète des six régions avec les références.
