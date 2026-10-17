@@ -1,0 +1,27 @@
+{
+  "id": "level-01",
+  "order": 1,
+  "title": { "fr": "Plage des Origines", "en": "Origins Beach", "ar": "شاطئ البدايات" },
+  "map": { "path": "/data/maps/level-01.json" },
+  "theme": { "sky": "#4d9bb5", "ground": "#d5ae67", "accent": "#f7d56a" },
+  "playerSpawn": { "x": 176, "y": 270 },
+  "mentor": { "x": 240, "y": 210 },
+  "objects": [
+    { "id": "memory-crystal", "kind": "crystal", "position": { "x": 155, "y": 405 }, "xp": 10 },
+    { "id": "origin-chest", "kind": "chest", "position": { "x": 780, "y": 390 }, "itemId": "pass-key" },
+    { "id": "origin-scroll", "kind": "scroll", "position": { "x": 300, "y": 250 }, "dialogueId": "scroll-01" }
+  ],
+  "dialogues": [
+    { "id": "midou-01", "speaker": "Midou", "text": { "fr": "Commence par créer un dépôt avec git init.", "en": "Start by creating a repository with git init.", "ar": "ابدأ بإنشاء مستودع باستخدام git init." } },
+    { "id": "scroll-01", "speaker": "Parchemin", "text": { "fr": "Un dépôt garde la mémoire de ton aventure.", "en": "A repository keeps the memory of your adventure.", "ar": "المستودع يحفظ ذاكرة مغامرتك." } }
+  ],
+  "quest": { "id": "quest-01", "title": { "fr": "Réveiller le dépôt", "en": "Awaken the repository", "ar": "إيقاظ المستودع" }, "steps": [
+    { "id": "talk-midou", "kind": "dialogue", "dialogueId": "midou-01" },
+    { "id": "run-init", "kind": "git-command", "operation": "init" },
+    { "id": "collect-key", "kind": "collect", "objectId": "origin-chest", "itemId": "pass-key" },
+    { "id": "open-exit", "kind": "open-exit" }
+  ] },
+  "gitCommands": ["init"],
+  "key": { "itemId": "pass-key", "objectId": "origin-chest" },
+  "exit": { "position": { "x": 900, "y": 270 }, "requiredItemId": "pass-key" }
+}

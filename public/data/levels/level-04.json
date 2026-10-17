@@ -1,0 +1,28 @@
+{
+  "id": "level-04",
+  "order": 4,
+  "title": { "fr": "Port des Connexions", "en": "Harbor of Connections", "ar": "ميناء الاتصالات" },
+  "map": { "path": "/data/maps/level-04.json" },
+  "theme": { "sky": "#266a82", "ground": "#d2935d", "accent": "#f4c06b" },
+  "playerSpawn": { "x": 70, "y": 270 },
+  "mentor": { "x": 110, "y": 190 },
+  "objects": [
+    { "id": "harbor-crystal", "kind": "crystal", "position": { "x": 130, "y": 390 }, "xp": 10 },
+    { "id": "harbor-chest", "kind": "chest", "position": { "x": 740, "y": 330 }, "itemId": "pass-key" },
+    { "id": "harbor-scroll", "kind": "scroll", "position": { "x": 500, "y": 155 }, "dialogueId": "scroll-04" }
+  ],
+  "dialogues": [
+    { "id": "midou-04", "speaker": "Midou", "text": { "fr": "Push envoie tes commits ; pull les ramène.", "en": "Push sends commits; pull brings them back.", "ar": "يرسل push الالتزامات ويعيدها pull." } },
+    { "id": "scroll-04", "speaker": "Parchemin", "text": { "fr": "Le dépôt local et le dépôt distant doivent être synchronisés.", "en": "Local and remote repositories must be synchronized.", "ar": "يجب مزامنة المستودع المحلي والبعيد." } }
+  ],
+  "quest": { "id": "quest-04", "title": { "fr": "Relier les rives", "en": "Connect the shores", "ar": "ربط الضفتين" }, "steps": [
+    { "id": "talk-midou", "kind": "dialogue", "dialogueId": "midou-04" },
+    { "id": "run-push", "kind": "git-command", "operation": "push" },
+    { "id": "run-pull", "kind": "git-command", "operation": "pull" },
+    { "id": "collect-key", "kind": "collect", "objectId": "harbor-chest", "itemId": "pass-key" },
+    { "id": "open-exit", "kind": "open-exit" }
+  ] },
+  "gitCommands": ["push", "pull"],
+  "key": { "itemId": "pass-key", "objectId": "harbor-chest" },
+  "exit": { "position": { "x": 900, "y": 270 }, "requiredItemId": "pass-key" }
+}

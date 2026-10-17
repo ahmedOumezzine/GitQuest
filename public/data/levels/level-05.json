@@ -1,0 +1,28 @@
+{
+  "id": "level-05",
+  "order": 5,
+  "title": { "fr": "Montagne des Branches", "en": "Branch Mountain", "ar": "جبل الفروع" },
+  "map": { "path": "/data/maps/level-05.json" },
+  "theme": { "sky": "#59637d", "ground": "#927d70", "accent": "#c5e3ef" },
+  "playerSpawn": { "x": 70, "y": 270 },
+  "mentor": { "x": 110, "y": 180 },
+  "objects": [
+    { "id": "mountain-crystal", "kind": "crystal", "position": { "x": 130, "y": 405 }, "xp": 10 },
+    { "id": "mountain-chest", "kind": "chest", "position": { "x": 720, "y": 190 }, "itemId": "pass-key" },
+    { "id": "mountain-scroll", "kind": "scroll", "position": { "x": 510, "y": 410 }, "dialogueId": "scroll-05" }
+  ],
+  "dialogues": [
+    { "id": "midou-05", "speaker": "Midou", "text": { "fr": "Une branche est un chemin parallèle pour expérimenter.", "en": "A branch is a parallel path for experiments.", "ar": "الفرع هو مسار مواز للتجارب." } },
+    { "id": "scroll-05", "speaker": "Parchemin", "text": { "fr": "Crée une branche, puis change de chemin.", "en": "Create a branch, then switch paths.", "ar": "أنشئ فرعاً ثم بدّل المسار." } }
+  ],
+  "quest": { "id": "quest-05", "title": { "fr": "Choisir son chemin", "en": "Choose your path", "ar": "اختيار الطريق" }, "steps": [
+    { "id": "talk-midou", "kind": "dialogue", "dialogueId": "midou-05" },
+    { "id": "run-branch", "kind": "git-command", "operation": "branch" },
+    { "id": "run-switch", "kind": "git-command", "operation": "switch" },
+    { "id": "collect-key", "kind": "collect", "objectId": "mountain-chest", "itemId": "pass-key" },
+    { "id": "open-exit", "kind": "open-exit" }
+  ] },
+  "gitCommands": ["branch", "switch"],
+  "key": { "itemId": "pass-key", "objectId": "mountain-chest" },
+  "exit": { "position": { "x": 900, "y": 270 }, "requiredItemId": "pass-key" }
+}

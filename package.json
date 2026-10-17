@@ -1,0 +1,22 @@
+{
+  "name": "gitquest",
+  "version": "0.1.0",
+  "private": true,
+  "description": "GitQuest — RPG éducatif pour apprendre Git",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "tsx --test tests/*.test.ts",
+    "test:watch": "tsx --test --watch tests/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": { "phaser": "^3.90.0" },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vite": "^7.1.7"
+  }
+}

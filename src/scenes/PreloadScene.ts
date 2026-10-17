@@ -1,0 +1,45 @@
+import Phaser from 'phaser';
+
+export class PreloadScene extends Phaser.Scene {
+  private loadError: string | null = null;
+  public constructor() { super('PreloadScene'); }
+
+  public preload(): void {
+    this.load.on('loaderror', (file: Phaser.Loader.File) => { this.loadError = 'Asset introuvable : ' + file.key + ' (' + file.url + ')'; });
+    const base = '/assets/sprites/';
+    const ui = '/assets/ui/';
+    ['menu-background', 'menu-logo', 'menu-subtitle', 'menu-button-gold', 'menu-button-navy', 'menu-panel'].forEach((name) => this.load.image(name, ui + name + '.svg'));
+    this.load.image('menu-background-v2', ui + 'menu-background-v2.png');
+    this.load.image('island-tileset', '/assets/tilesets/island-tileset.svg');
+    this.load.spritesheet('beach-tileset', '/assets/tilesets/beach-tileset.svg', { frameWidth: 32, frameHeight: 32 });
+    ['player', 'midou', 'chest', 'crystal', 'scroll', 'gate', 'key'].forEach((name) => this.load.image(name, base + name + '.svg'));
+    ['palm', 'rock', 'grass', 'ruin', 'shrine', 'shrine-glow', 'lighthouse', 'wave', 'flower', 'shell', 'player-scarf', 'midou-staff'].forEach((name) => this.load.image(name, base + name + '.svg'));
+    this.load.spritesheet('player-sheet', base + 'player-sheet.svg', { frameWidth: 32, frameHeight: 32 });
+    this.load.spritesheet('midou-sheet', base + 'midou-sheet.svg', { frameWidth: 32, frameHeight: 32 });
+    this.load.spritesheet('player-4dir', base + 'player-4dir.svg', { frameWidth: 32, frameHeight: 32 });
+    this.load.spritesheet('midou-4dir', base + 'midou-4dir.svg', { frameWidth: 32, frameHeight: 32 });
+    this.add.text(480, 270, 'GITQUEST', { fontFamily: 'monospace', fontSize: '32px', color: '#f7d56a' }).setOrigin(0.5);
+  }
+
+  public create(): void {
+    if (this.loadError) { this.showLoadError(this.loadError); return; }
+    this.anims.create({ key: 'player-walk', frames: this.anims.generateFrameNumbers('player-sheet', { start: 0, end: 2 }), frameRate: 7, repeat: -1 });
+    this.anims.create({ key: 'midou-idle', frames: this.anims.generateFrameNumbers('midou-sheet', { start: 0, end: 2 }), frameRate: 3, repeat: -1 });
+    const directions = { down: 0, left: 3, up: 6, right: 9 };
+    Object.entries(directions).forEach(([direction, start]) => {
+      this.anims.create({ key: 'player-walk-' + direction, frames: this.anims.generateFrameNumbers('player-4dir', { start, end: start + 2 }), frameRate: 8, repeat: -1 });
+      this.anims.create({ key: 'midou-idle-' + direction, frames: this.anims.generateFrameNumbers('midou-4dir', { start, end: start + 2 }), frameRate: 3, repeat: -1 });
+    });
+    const session = this.registry.get('session') as import('../core/GameSession').GameSession;
+    this.scene.start('TitleScene');
+  }
+
+  private showLoadError(message: string): void {
+    this.children.removeAll(true);
+    this.add.rectangle(480, 270, 720, 250, 0x10172b, 0.98).setStrokeStyle(3, 0xd96565);
+    this.add.text(480, 200, 'Asset manquant', { fontFamily: 'monospace', fontSize: '26px', color: '#ff9b9b' }).setOrigin(0.5);
+    this.add.text(480, 270, message, { fontFamily: 'monospace', fontSize: '15px', color: '#fff6df', align: 'center', wordWrap: { width: 620 } }).setOrigin(0.5);
+    const retry = this.add.text(480, 340, 'Réessayer', { fontFamily: 'monospace', fontSize: '20px', color: '#18233e', backgroundColor: '#f7d56a', padding: { x: 20, y: 8 } }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+    retry.on('pointerdown', () => this.scene.restart());
+  }
+}

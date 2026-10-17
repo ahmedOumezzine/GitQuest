@@ -1,0 +1,10 @@
+{
+  "levels": [
+    "/data/levels/level-01.json",
+    "/data/levels/level-02.json",
+    "/data/levels/level-03.json",
+    "/data/levels/level-04.json",
+    "/data/levels/level-05.json",
+    "/data/levels/level-06.json"
+  ]
+}

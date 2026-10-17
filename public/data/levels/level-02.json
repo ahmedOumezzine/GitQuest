@@ -1,0 +1,27 @@
+{
+  "id": "level-02",
+  "order": 2,
+  "title": { "fr": "Forêt des Fichiers", "en": "File Forest", "ar": "غابة الملفات" },
+  "map": { "path": "/data/maps/level-02.json" },
+  "theme": { "sky": "#355b4a", "ground": "#6f9a58", "accent": "#b4e26c" },
+  "playerSpawn": { "x": 70, "y": 270 },
+  "mentor": { "x": 105, "y": 180 },
+  "objects": [
+    { "id": "forest-crystal", "kind": "crystal", "position": { "x": 125, "y": 410 }, "xp": 10 },
+    { "id": "forest-chest", "kind": "chest", "position": { "x": 760, "y": 240 }, "itemId": "pass-key" },
+    { "id": "forest-scroll", "kind": "scroll", "position": { "x": 530, "y": 130 }, "dialogueId": "scroll-02" }
+  ],
+  "dialogues": [
+    { "id": "midou-02", "speaker": "Midou", "text": { "fr": "Les fichiers doivent être préparés avant le commit.", "en": "Files must be staged before a commit.", "ar": "يجب تجهيز الملفات قبل الالتزام." } },
+    { "id": "scroll-02", "speaker": "Parchemin", "text": { "fr": "git add place un fichier dans l’index.", "en": "git add places a file in the staging area.", "ar": "يضع git add الملف في منطقة التجهيز." } }
+  ],
+  "quest": { "id": "quest-02", "title": { "fr": "Ranger les fichiers", "en": "Stage the files", "ar": "ترتيب الملفات" }, "steps": [
+    { "id": "talk-midou", "kind": "dialogue", "dialogueId": "midou-02" },
+    { "id": "run-add", "kind": "git-command", "operation": "add" },
+    { "id": "collect-key", "kind": "collect", "objectId": "forest-chest", "itemId": "pass-key" },
+    { "id": "open-exit", "kind": "open-exit" }
+  ] },
+  "gitCommands": ["add"],
+  "key": { "itemId": "pass-key", "objectId": "forest-chest" },
+  "exit": { "position": { "x": 900, "y": 270 }, "requiredItemId": "pass-key" }
+}

@@ -1,0 +1,27 @@
+{
+  "id": "level-06",
+  "order": 6,
+  "title": { "fr": "Château des Conflits", "en": "Conflict Castle", "ar": "قلعة التعارضات" },
+  "map": { "path": "/data/maps/level-06.json" },
+  "theme": { "sky": "#432e49", "ground": "#8b5361", "accent": "#ffb46b" },
+  "playerSpawn": { "x": 70, "y": 270 },
+  "mentor": { "x": 110, "y": 180 },
+  "objects": [
+    { "id": "castle-crystal", "kind": "crystal", "position": { "x": 115, "y": 390 }, "xp": 10 },
+    { "id": "castle-chest", "kind": "chest", "position": { "x": 790, "y": 255 }, "itemId": "pass-key" },
+    { "id": "castle-scroll", "kind": "scroll", "position": { "x": 390, "y": 270 }, "dialogueId": "scroll-06" }
+  ],
+  "dialogues": [
+    { "id": "midou-06", "speaker": "Midou", "text": { "fr": "Une fusion rassemble les chemins, mais un conflit demande une décision.", "en": "A merge brings paths together, but a conflict needs a decision.", "ar": "تجمع عملية الدمج المسارات، لكن التعارض يحتاج قراراً." } },
+    { "id": "scroll-06", "speaker": "Parchemin", "text": { "fr": "Observe l’état du dépôt avant de fusionner.", "en": "Inspect the repository state before merging.", "ar": "افحص حالة المستودع قبل الدمج." } }
+  ],
+  "quest": { "id": "quest-06", "title": { "fr": "Apaiser les versions", "en": "Resolve the versions", "ar": "حل الإصدارات" }, "steps": [
+    { "id": "talk-midou", "kind": "dialogue", "dialogueId": "midou-06" },
+    { "id": "run-merge", "kind": "git-command", "operation": "merge" },
+    { "id": "collect-key", "kind": "collect", "objectId": "castle-chest", "itemId": "pass-key" },
+    { "id": "open-exit", "kind": "open-exit" }
+  ] },
+  "gitCommands": ["merge"],
+  "key": { "itemId": "pass-key", "objectId": "castle-chest" },
+  "exit": { "position": { "x": 900, "y": 270 }, "requiredItemId": "pass-key" }
+}

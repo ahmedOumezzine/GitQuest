@@ -1,0 +1,28 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { I18nManager } from '../src/managers/I18nManager';
+
+test('le menu expose les textes principaux dans les trois langues', () => {
+  const i18n = new I18nManager('fr');
+  assert.equal(i18n.text('newGame'), 'Nouvelle partie');
+  i18n.locale = 'en';
+  assert.equal(i18n.text('newGame'), 'New game');
+  i18n.locale = 'ar';
+  assert.equal(i18n.direction, 'rtl');
+  assert.ok(i18n.text('settings').length > 0);
+});
+
+test('les réglages audio indiquent honnêtement leur indisponibilité', () => {
+  const i18n = new I18nManager('fr');
+  assert.match(i18n.text('audioUnavailable'), /audio/i);
+});
+
+test('le parcours Nouvelle partie est traduit dans les trois langues', () => {
+  for (const locale of ['fr', 'en', 'ar'] as const) {
+    const i18n = new I18nManager(locale);
+    assert.ok(i18n.text('newGameConfirmMessage').length > 0);
+    assert.ok(i18n.text('introLine1').length > 0);
+    assert.ok(i18n.text('skip').length > 0);
+  }
+  assert.equal(new I18nManager('ar').direction, 'rtl');
+});

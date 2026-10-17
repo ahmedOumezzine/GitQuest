@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="150" viewBox="0 0 760 150" shape-rendering="crispEdges">
+  <text x="380" y="108" text-anchor="middle" font-family="monospace" font-size="82" font-weight="900" letter-spacing="3" fill="#0b1931" stroke="#0b1931" stroke-width="18" stroke-linejoin="round">GITQUEST</text>
+  <text x="380" y="102" text-anchor="middle" font-family="monospace" font-size="82" font-weight="900" letter-spacing="3" fill="#f7c84b" stroke="#ffe49a" stroke-width="4" stroke-linejoin="round">GITQUEST</text>
+  <path d="M380 24l-12-13 4-5 11 9 11-15 7 5-13 19z" fill="#59a951" stroke="#132b37" stroke-width="4"/>
+  <rect x="373" y="23" width="13" height="10" fill="#3b7e45"/>
+</svg>
