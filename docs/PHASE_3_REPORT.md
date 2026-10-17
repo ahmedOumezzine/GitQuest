@@ -327,3 +327,7 @@ Il subsiste une différence avec la référence : le joueur et Midou utilisent e
 - Le panneau Paramètres masque désormais la couche branding du menu ; le décor tropical reste visible en arrière-plan et le Retour a été vérifié en arabe.
 
 Ces améliorations ne constituent pas encore une certification graphique complète des six niveaux ni une validation mobile exacte.
+
+### Rectification documentaire — validations ultérieures
+
+Cette phrase correspondait à l’état de l’étape B.2 au moment de sa rédaction. Les validations ultérieures ont depuis couvert les viewports exacts `1280×720`, `844×390` et `390×844` pour le menu, les paramètres, la confirmation et l’introduction. La validation d’appareil tactile physique et la certification artistique complète des niveaux 2 à 6 restent ouvertes.

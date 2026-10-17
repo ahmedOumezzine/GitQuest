@@ -19,3 +19,14 @@ Date : 2026-10-17
 Le benchmark comparable des niveaux 2 à 6 n’a pas encore été exécuté. L’instrumentation est activée uniquement avec `?perf=1` et publie ses valeurs dans `html[data-gitquest-fps]`, `data-gitquest-frame-time-ms`, `data-gitquest-sample-frames` et `data-gitquest-sample-duration-ms`. Les niveaux 2 à 6 restent fonctionnels via leur rendu générique, mais ne disposent pas encore d’une finition artistique équivalente au niveau 1. Le parcours complet a été vérifié manuellement dans Chrome desktop, pas sous un runner navigateur automatisé.
 
 Le build passe. L’avertissement Vite restant concerne uniquement le chunk vendor Phaser (environ 1,21 MB minifié, 332 kB gzip) ; le code GitQuest et son point d’entrée sont désormais découpés.
+
+### Mise à jour de certification — 2026-10-17
+
+Les paragraphes historiques de ce rapport décrivent l’état intermédiaire de la phase. L’état courant est le suivant :
+
+- `npm test` : **31/31 PASS** ;
+- `npm run typecheck` : **PASS** ;
+- `npm run build` : **PASS** ;
+- menu, paramètres, confirmation, introduction et HUD niveau 1 vérifiés avec viewport explicite `1280×720`, `844×390` et `390×844` ;
+- benchmark FPS réel obtenu pour le niveau 1 à `1280×720` via `?perf=1` ;
+- benchmark comparable des niveaux 2 à 6, appareil tactile physique et test navigateur automatisé dans le dépôt : **non réalisés**.
