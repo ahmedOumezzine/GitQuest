@@ -18,6 +18,7 @@ Date : 2026-10-17
 - `npm run build` : **PASS**.
 - `npm run qa:browser` : **PASS** sur le parcours menu → niveau 1, avec actualisation et reprise via Continuer.
 - Le même parcours a réussi sur `1920×1080`, `1366×768`, `1280×720`, `844×390`, `390×844`, `768×1024` et `1024×768` ; une variante `390×844` avec émulation tactile Chrome a également réussi.
+- L’écran Victoire a été vérifié isolément à `1280×720` et `390×844` via `?qa=victory`, avec capture visuelle et console sans erreur.
 - Les routes directes des six niveaux à `1280×720` ont rendu sans erreur console après culling Tiled ; FPS observés : niveau 1 `57,00`, niveau 2 `57,05`, niveau 3 `56,07`, niveaux 4 à 6 `57,05` dans Chrome headless GPU désactivé.
 - Chrome desktop : menu, paramètres, changement de langue, niveau 1 et absence d’erreur console vérifiés.
 - Niveau 1 : carte Tiled, objectif initial, collisions et rendu TilemapLayer observés.

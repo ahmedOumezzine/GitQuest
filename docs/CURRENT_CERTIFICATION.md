@@ -52,6 +52,7 @@ Cette intégration ne modifie ni les règles Git, ni l’ordre des quêtes, ni l
 ## Vérifications Chrome disponibles
 
 - Menu, paramètres, confirmation, introduction, HUD niveau 1 et reprise après actualisation : `1920×1080`, `1366×768`, `1280×720`, `844×390`, `390×844`, `768×1024`, `1024×768` via le runner Chrome versionné.
+- Écran Victoire : `1280×720` et `390×844` via `?qa=victory`, capture visuelle et bouton Rejouer lisible.
 - RTL arabe : `html[lang]=ar`, `html[dir]=rtl`, canvas et champ terminal synchronisés.
 - Parcours manuel complet des six niveaux : commandes Git, coffres, clés, portes, XP et victoire.
 - Benchmark QA des six niveaux à `1280×720` : environ `137,99` à `144,02 FPS`, sans erreur ni avertissement applicatif.

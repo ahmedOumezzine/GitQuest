@@ -4,3 +4,7 @@ export function resolveQaLevelId(search: string, availableLevelIds: string[]): s
   const candidate = params.get('qaLevel');
   return candidate && availableLevelIds.includes(candidate) ? candidate : undefined;
 }
+
+export function resolveQaScene(search: string): 'victory' | undefined {
+  return new URLSearchParams(search).get('qa') === 'victory' ? 'victory' : undefined;
+}

@@ -9,8 +9,11 @@ const viewportWidth = Number(process.env.GITQUEST_QA_WIDTH ?? 960);
 const viewportHeight = Number(process.env.GITQUEST_QA_HEIGHT ?? 540);
 const emulateTouch = process.env.GITQUEST_QA_TOUCH === '1';
 const requestedLevel = process.env.GITQUEST_QA_LEVEL;
+const requestedScene = process.env.GITQUEST_QA_SCENE;
 const appUrl = requestedLevel
   ? `http://127.0.0.1:${appPort}/?qa=benchmark&qaLevel=${encodeURIComponent(requestedLevel)}&perf=1`
+  : requestedScene === 'victory'
+    ? `http://127.0.0.1:${appPort}/?qa=victory`
   : `http://127.0.0.1:${appPort}/?qa=browser`;
 
 function findChrome() {
@@ -228,7 +231,7 @@ try {
   if (emulateTouch) await cdp.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
   await cdp.send('Storage.clearDataForOrigin', { origin: `http://127.0.0.1:${appPort}`, storageTypes: 'all' });
   await cdp.send('Page.reload', { ignoreCache: true });
-  await waitForState(cdp, requestedLevel ? 'world' : 'title');
+  await waitForState(cdp, requestedLevel ? 'world' : requestedScene === 'victory' ? 'victory' : 'title');
   await assertBrowserBasics(cdp);
   if (process.env.GITQUEST_QA_SCREENSHOT) {
     const screenshot = await cdp.send('Page.captureScreenshot', { format: 'png' });
@@ -246,6 +249,9 @@ try {
     if (!runtime.fps) throw new Error(`Aucune mesure FPS pour ${requestedLevel}.`);
     if (consoleErrors.length) throw new Error(`Erreurs navigateur : ${consoleErrors.join(' | ')}`);
     console.log(`QA navigateur PASS: ${requestedLevel}, niveau rendu et FPS ${runtime.fps}.`);
+  } else if (requestedScene === 'victory') {
+    if (consoleErrors.length) throw new Error(`Erreurs navigateur : ${consoleErrors.join(' | ')}`);
+    console.log(`QA navigateur PASS: écran ${requestedScene}, viewport ${viewportWidth}x${viewportHeight}.`);
   } else {
 
   await clickMenuButton(cdp, 1, 2);

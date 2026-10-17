@@ -36,6 +36,15 @@ Pour chaque route, vérifier :
 
 La route `qa=benchmark` est explicitement obligatoire. Sans ce paramètre, `qaLevel` est ignoré et le démarrage normal passe par le menu.
 
+Pour vérifier directement l’écran Victoire sans modifier une partie, utiliser `?qa=victory` ou le runner :
+
+```powershell
+$env:GITQUEST_QA_SCENE = 'victory'
+$env:GITQUEST_QA_WIDTH = '390'
+$env:GITQUEST_QA_HEIGHT = '844'
+npm run qa:browser
+```
+
 ## Vérification des écrans
 
 Avec le démarrage normal, vérifier au minimum :
