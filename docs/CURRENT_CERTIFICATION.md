@@ -13,6 +13,7 @@ npm test       -> 42/42 PASS
 npm run typecheck -> PASS
 npm run build  -> PASS
 npm run qa:browser -> PASS (Chrome headless local)
+npm run qa:browser:matrix -> runner disponible ; vues vérifiées individuellement, une course de timing 768×1024 reste à stabiliser en exécution globale
 ```
 
 La commande groupée équivalente est `npm run qa:local`.
@@ -28,7 +29,7 @@ Le build conserve un avertissement connu sur le chunk Phaser vendor (`1 208 kB` 
 | 3 D — niveau 1/HUD | Fonctionnelle | TiledLayer, collisions eau, spawns sûrs, HUD, Midou, terminal, coffre, clé, porte et sauvegarde vérifiés ; fonds raster dédiés ajoutés aux niveaux 2–6 | Les cartes 2–6 n’ont pas encore des tilesets 32×32 et une finition d’objets aussi complète que le niveau 1 |
 | 4 — interaction/i18n/sauvegarde | Partiellement certifiée | Terminal DOM avec espaces/historique, messages localisés, RTL, sauvegarde versionnée et migration testées ; saisie `git init` exercée par smoke test Chrome | Audio absent |
 | 5 — tactile/responsive | Partiellement certifiée | Joystick, actions tactiles, nettoyage des gestes, caméra/limites physiques des cartes et parcours complet vérifiés à `1280×720`, `844×390` et `390×844` ; visibilité tactile confirmée en émulation | Aucun appareil tactile physique testé |
-| 6 — performance/stabilisation | Partiellement certifiée | Mesure FPS des six niveaux via route QA dédiée, smoke test Chrome des six missions jusqu’à Victoire, découpage applicatif, erreurs de chargement contrôlées | Bundle Phaser au-dessus du seuil, matrice release complète non exécutée |
+| 6 — performance/stabilisation | Partiellement certifiée | Mesure FPS des six niveaux via route QA dédiée, smoke test Chrome des six missions jusqu’à Victoire, découpage applicatif, erreurs de chargement contrôlées, runner de matrice versionné | Bundle Phaser au-dessus du seuil, course de timing intermittente à stabiliser dans la matrice complète |
 
 ## Intégration Tiled ajoutée dans la dernière passe
 
@@ -51,7 +52,7 @@ Cette intégration ne modifie ni les règles Git, ni l’ordre des quêtes, ni l
 
 ## Vérifications Chrome disponibles
 
-- Menu, paramètres, confirmation, introduction, HUD niveau 1 et reprise après actualisation : `1920×1080`, `1366×768`, `1280×720`, `844×390`, `390×844`, `768×1024`, `1024×768` via le runner Chrome versionné.
+- Menu, paramètres, confirmation, introduction, HUD niveau 1 et reprise après actualisation : les sept dimensions (`1920×1080`, `1366×768`, `1280×720`, `844×390`, `390×844`, `768×1024`, `1024×768`) ont été exercées individuellement via le runner Chrome versionné.
 - Parcours complet des six niveaux et Victoire rejoué sans diagnostic à `1280×720`, `844×390` et `390×844` après correction des limites physiques et du suivi caméra.
 - Écran Victoire : `1280×720` et `390×844` via `?qa=victory`, capture visuelle et bouton Rejouer lisible.
 - RTL arabe : `html[lang]=ar`, `html[dir]=rtl`, canvas et champ terminal synchronisés.
@@ -62,7 +63,7 @@ Cette intégration ne modifie ni les règles Git, ni l’ordre des quêtes, ni l
 - Le contrat de touches du monde couvre `E` et `Entrée` pour interagir, ainsi que `T` pour le terminal ; il est testé dans `tests/InputBindings.test.ts`.
 - `tests/Extensibility.test.ts` charge un niveau 7 et une carte Tiled synthétiques uniquement par données, puis valide sa quête sans modifier les scènes Phaser.
 - `tests/ManifestConsistency.test.ts` vérifie que les six définitions actuelles sont exactement celles du manifest et que chaque carte référencée existe.
-- `npm run qa:browser` exécute un smoke test Chrome/Edge headless versionné via `scripts/browser-smoke.mjs` ; il couvre le menu, les paramètres, le RTL, Nouvelle partie, l’introduction, les six missions, les commandes Git, les coffres, les clés, les portes, l’écran Victoire et la reprise après actualisation. `GITQUEST_QA_WIDTH`, `GITQUEST_QA_HEIGHT` et `GITQUEST_QA_TOUCH=1` permettent la matrice responsive et l’émulation tactile.
+- `npm run qa:browser` exécute un smoke test Chrome/Edge headless versionné via `scripts/browser-smoke.mjs` ; il couvre le menu, les paramètres, le RTL, Nouvelle partie, l’introduction, les six missions, les commandes Git, les coffres, les clés, les portes, l’écran Victoire et la reprise après actualisation. `npm run qa:browser:matrix` orchestre les sept dimensions et une passe tactile portrait. `GITQUEST_QA_WIDTH`, `GITQUEST_QA_HEIGHT` et `GITQUEST_QA_TOUCH=1` permettent les exécutions ciblées.
 
 Recheck headless direct des cartes legacy le 17 octobre 2026, avec `npm run qa:browser` et `GITQUEST_QA_LEVEL=level-XX` :
 
@@ -89,7 +90,7 @@ Recheck Chrome du 17 octobre 2026 via `?qa=benchmark&qaLevel=level-XX&perf=1` à
 | 5 | 141,00 | 141 | 0 |
 | 6 | 139,99 | 140 | 0 |
 
-Ces vérifications ont été réalisées dans Chrome desktop via l’outil d’interface. Le smoke test headless est désormais versionné et a réussi localement ; cela ne constitue toujours pas un test sur appareil tactile réel.
+Ces vérifications ont été réalisées dans Chrome desktop via l’outil d’interface et Chrome headless. Le smoke ciblé a réussi localement ; la matrice globale doit encore être rendue totalement non-flaky après la course de timing observée à `768×1024`. Cela ne constitue toujours pas un test sur appareil tactile réel.
 
 ## Conditions de clôture restantes
 

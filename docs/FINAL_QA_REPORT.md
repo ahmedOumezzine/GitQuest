@@ -17,7 +17,7 @@ Date : 2026-10-17
 - `npm run typecheck` : **PASS**.
 - `npm run build` : **PASS**.
 - `npm run qa:browser` : **PASS** sur le parcours menu → niveaux 1 à 6 → Victoire, avec commandes Git, récompenses, portes, actualisation et reprise via Continuer.
-- Le même parcours a réussi sur `1920×1080`, `1366×768`, `1280×720`, `844×390`, `390×844`, `768×1024` et `1024×768` ; une variante `390×844` avec émulation tactile Chrome a également réussi.
+- Le même parcours a été exécuté individuellement sur `1920×1080`, `1366×768`, `1280×720`, `844×390`, `390×844`, `768×1024` et `1024×768` ; une variante isolée `390×844` avec émulation tactile Chrome a également réussi. Une course de timing intermittente autour d’un coffre en `768×1024` reste à éliminer avant de déclarer la matrice globale PASS.
 - L’écran Victoire a été vérifié isolément à `1280×720` et `390×844` via `?qa=victory`, avec capture visuelle et console sans erreur.
 - Les routes directes des six niveaux à `1280×720` ont rendu sans erreur console après culling Tiled ; FPS observés : niveau 1 `57,00`, niveau 2 `57,05`, niveau 3 `56,07`, niveaux 4 à 6 `57,05` dans Chrome headless GPU désactivé.
 - Le parcours métier complet des six niveaux a été rejoué sans diagnostic aux viewports `1280×720`, `844×390` et `390×844`, avec caméra suivie, collisions, commandes Git, récompenses, portes et Victoire validées.
@@ -59,7 +59,7 @@ Date : 2026-10-17
 
 ## Non certifié
 
-- Parcours navigateur complet automatisé sous Playwright/WebDriver : non réalisé ; en revanche, `scripts/browser-smoke.mjs` automatise maintenant les six missions via Chrome DevTools headless jusqu’à Victoire, avec 0 erreur console. Une validation manuelle reste utile pour l’aspect visuel et les appareils réels.
+- Parcours navigateur complet automatisé sous Playwright/WebDriver : non réalisé ; en revanche, `scripts/browser-smoke.mjs` automatise maintenant les six missions via Chrome DevTools headless jusqu’à Victoire, avec 0 erreur console sur les exécutions ciblées. `scripts/browser-matrix.mjs` orchestre les viewports, mais sa stabilité globale doit encore être confirmée après la course de timing observée. Une validation manuelle reste utile pour l’aspect visuel et les appareils réels.
 - Automatisation navigateur de la saisie DOM et de l’historique : non ajoutée au dépôt ; la vérification a été exécutée directement dans Chrome via l’outil d’interface.
 - Appareils tactiles physiques, clavier virtuel natif et safe areas système ; l’émulation tactile Chrome confirme la visibilité des contrôles et les sept viewports sont vérifiés, mais le geste joystick et l’appareil réel restent non certifiés.
 - Temps de chargement comparables et validation sur appareils tactiles physiques ; les FPS des six cartes sont désormais mesurés dans l’environnement Chrome courant.
@@ -68,7 +68,7 @@ Date : 2026-10-17
 
 ### Mise à jour — smoke test navigateur versionné
 
-`npm run qa:browser` a réussi le 17 octobre 2026 sur Windows avec Chrome headless. Le script lance Vite et Chrome dans des processus et un profil temporaires, puis confirme le parcours menu → paramètres → RTL → Nouvelle partie → chargement → introduction → niveaux 1 à 6 → Victoire → sauvegarde/reprise, sans exception ni erreur console applicative. Les dimensions et l’émulation tactile sont configurables par variables d’environnement.
+`npm run qa:browser` a réussi le 17 octobre 2026 sur Windows avec Chrome headless. Le script lance Vite et Chrome dans des processus et un profil temporaires, puis confirme le parcours menu → paramètres → RTL → Nouvelle partie → chargement → introduction → niveaux 1 à 6 → Victoire → sauvegarde/reprise, sans exception ni erreur console applicative. `npm run qa:browser:matrix` fournit l’orchestration des sept viewports et de l’émulation tactile portrait ; une interaction de coffre intermittente en `768×1024` reste à stabiliser avant une certification globale de cette matrice. Les dimensions et l’émulation tactile sont configurables par variables d’environnement.
 
 ## Fichiers principaux modifiés
 
@@ -93,7 +93,8 @@ Date : 2026-10-17
 - `src/data/AssetManifest.ts`
 - `public/assets/sprites/player-menu-v2.png`
 - `public/assets/sprites/midou-menu-v2.png`
-- `package.json` (`qa:browser`)
+- `package.json` (`qa:browser`, `qa:browser:matrix`)
+- `scripts/browser-matrix.mjs`
 - `src/models/game.ts`
 - tests de sauvegarde, Tiled et régression
 - rapports Phase 3 à 6

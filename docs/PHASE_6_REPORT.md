@@ -14,7 +14,7 @@ Date : 2026-10-17
 - Le parcours navigateur réel a été prolongé jusqu’à l’écran Victoire : les six niveaux ont été parcourus dans Chrome desktop avec les commandes propres à chaque mission, les coffres, les clés, les portes et l’XP observés.
 - Le smoke test Chrome versionné automatise maintenant le parcours métier du niveau 1 : Midou, cristal, XP, terminal `git init`, coffre, clé, porte, chargement du niveau 2, actualisation et reprise sauvegardée.
 - Le même smoke test automatise désormais les six missions jusqu’à Victoire : `git init`, `git add .`, `git commit -m "archive"`, `git push`, `git pull`, `git branch feature`, `git switch feature` et `git merge main`, avec validation des coffres, clés, portes, XP et sauvegarde finale.
-- Le runner utilise désormais les coordonnées des objets Tiled et des waypoints de contournement ; il reste stable lorsque la caméra et les limites physiques changent avec le viewport.
+- Le runner utilise désormais les coordonnées des objets Tiled et des waypoints de contournement ; les scénarios isolés restent stables lorsque la caméra et les limites physiques changent avec le viewport. Le helper d’interaction réessaie l’action près des coffres pour absorber les variations de timing Chrome.
 - Les cartes legacy appliquent leurs dimensions Tiled au monde physique et à la caméra, ce qui rend les cristaux et coffres situés sous la fenêtre initiale accessibles en paysage compact et en portrait.
 - Un compteur optionnel `?perf=1` publie une mesure DOM lisible sans modifier le gameplay. Sur le niveau 1 à `1280×720`, Chrome a mesuré `143,99 FPS`, `6,95 ms/frame`, soit `144 frames` sur `1000 ms`.
 - Les tests `RuntimeMetrics.test.ts` vérifient le calcul déterministe du FPS et la résolution sûre de la route QA ; la suite globale compte 42 tests.
@@ -47,7 +47,7 @@ Les paragraphes historiques de ce rapport décrivent l’état intermédiaire de
 - `npm run build` : **PASS** ;
 - menu, paramètres, confirmation, introduction et HUD niveau 1 vérifiés avec viewport explicite `1280×720`, `844×390` et `390×844` ;
 - benchmark FPS réel obtenu pour le niveau 1 à `1280×720` via `?perf=1` ;
-- benchmark comparable des niveaux 2 à 6 et appareil tactile physique : les benchmarks sont réalisés, le tactile physique reste **non réalisé** ; un smoke test navigateur headless versionné est désormais disponible via `npm run qa:browser`.
+- benchmark comparable des niveaux 2 à 6 et appareil tactile physique : les benchmarks sont réalisés, le tactile physique reste **non réalisé** ; les smoke tests navigateur headless versionnés sont disponibles via `npm run qa:browser` et `npm run qa:browser:matrix`.
 - les ancres `Objects` des six cartes pilotent désormais les positions du joueur, de Midou et des portes ; un test vérifie leur concordance avec les définitions de niveau.
 - les niveaux 2 à 6 utilisent maintenant un style de rendu distinct et data-driven (palette, chemin, obstacles et props) ; les niveaux 2 et 6 ont été observés dans Chrome sans erreur console.
 

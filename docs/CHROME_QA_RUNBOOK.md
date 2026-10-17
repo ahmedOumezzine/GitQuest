@@ -75,6 +75,14 @@ Sur Windows, si Chrome est installé dans son chemin standard :
 npm run qa:browser
 ```
 
+Pour enchaîner les sept viewports de certification et une vérification tactile portrait :
+
+```text
+npm run qa:browser:matrix
+```
+
+Le runner utilise des ports et des profils temporaires distincts. Une réussite isolée d’un viewport ne remplace pas la validation sur appareil tactile physique.
+
 Le script `scripts/browser-smoke.mjs` démarre un serveur Vite isolé sur le port 5181 et une session Chrome/Edge headless avec un profil temporaire. Il vérifie réellement :
 
 - le menu et l’écran Paramètres ;
