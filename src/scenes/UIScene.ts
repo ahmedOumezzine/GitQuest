@@ -132,7 +132,7 @@ export class UIScene extends Phaser.Scene {
     this.terminal.add(this.terminalClose);
     this.input.keyboard!.on('keydown', (event: KeyboardEvent) => {
       if (!this.terminal.visible) return;
-      if (this.terminalInput) return;
+      if (this.terminalInput && typeof document !== 'undefined' && document.activeElement === this.terminalInput) return;
       if (event.key === 'Escape') { this.closeTerminal(); return; }
       if (this.skipTerminalShortcutKey && event.key.toLowerCase() === 't') {
         this.skipTerminalShortcutKey = false;
