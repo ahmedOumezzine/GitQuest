@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import type { Point } from '../models/game';
-import type { LayoutMetrics } from '../ui/layout/ResponsiveLayoutManager';
+import { calculateTouchLayout, type LayoutMetrics } from '../ui/layout/ResponsiveLayoutManager';
 
 export class InputManager {
   private readonly cursors: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -58,13 +58,12 @@ export class InputManager {
   }
 
   public layoutTouch(metrics: Pick<LayoutMetrics, 'width' | 'height' | 'margin'>): void {
-    const left = metrics.margin + 70;
-    const bottom = metrics.height - metrics.margin - 70;
-    this.touchCenter = { x: left, y: bottom };
-    this.touchPad?.setPosition(left, bottom);
-    this.touchThumb?.setPosition(left, bottom);
-    this.touchAction?.setPosition(metrics.width - metrics.margin - 48, bottom);
-    this.touchTerminal?.setPosition(metrics.width - metrics.margin - 48, bottom - 70);
+    const layout = calculateTouchLayout(metrics);
+    this.touchCenter = layout.joystick;
+    this.touchPad?.setPosition(layout.joystick.x, layout.joystick.y);
+    this.touchThumb?.setPosition(layout.joystick.x, layout.joystick.y);
+    this.touchAction?.setPosition(layout.action.x, layout.action.y);
+    this.touchTerminal?.setPosition(layout.terminal.x, layout.terminal.y);
   }
 
   private onTouchMove?: (vector: Point) => void;

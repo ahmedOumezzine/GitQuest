@@ -22,6 +22,18 @@ export interface LayoutRect {
   height: number;
 }
 
+export interface TouchLayout {
+  joystick: { x: number; y: number };
+  action: { x: number; y: number };
+  terminal: { x: number; y: number };
+}
+
+export function calculateTouchLayout(metrics: Pick<LayoutMetrics, 'width' | 'height' | 'margin'>): TouchLayout {
+  const joystick = { x: metrics.margin + 70, y: metrics.height - metrics.margin - 70 };
+  const action = { x: metrics.width - metrics.margin - 48, y: joystick.y };
+  return { joystick, action, terminal: { x: action.x, y: action.y - 70 } };
+}
+
 export function calculateMenuCenterY(metrics: Pick<LayoutMetrics, 'height' | 'margin' | 'compact' | 'portrait'>, totalHeight: number): number {
   const preferredCenterY = metrics.compact && !metrics.portrait
     ? metrics.height - metrics.margin - totalHeight / 2

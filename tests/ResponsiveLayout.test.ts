@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { calculateLayout, calculateMenuCenterY } from '../src/ui/layout/ResponsiveLayoutManager';
+import { calculateLayout, calculateMenuCenterY, calculateTouchLayout } from '../src/ui/layout/ResponsiveLayoutManager';
 
 test('le layout identifie correctement les modes desktop, compact et portrait', () => {
   const desktop = calculateLayout(1920, 1080);
@@ -31,4 +31,14 @@ test('le menu compacte ses actions en bas en paysage étroit', () => {
   const centerY = calculateMenuCenterY(metrics, 164);
   assert.equal(centerY, 296);
   assert.equal(centerY + 82, metrics.height - metrics.margin);
+});
+
+test('les contrôles tactiles restent dans les zones sûres en portrait et paysage', () => {
+  for (const metrics of [calculateLayout(390, 844), calculateLayout(844, 390)]) {
+    const touch = calculateTouchLayout(metrics);
+    assert.ok(touch.joystick.x - 54 >= metrics.margin);
+    assert.ok(touch.joystick.y + 54 <= metrics.height - metrics.margin);
+    assert.ok(touch.action.x + 22 <= metrics.width - metrics.margin);
+    assert.ok(touch.terminal.y - 22 >= metrics.margin);
+  }
 });
