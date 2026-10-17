@@ -22,6 +22,13 @@ export interface LayoutRect {
   height: number;
 }
 
+export function calculateMenuCenterY(metrics: Pick<LayoutMetrics, 'height' | 'margin' | 'compact' | 'portrait'>, totalHeight: number): number {
+  const preferredCenterY = metrics.compact && !metrics.portrait
+    ? metrics.height - metrics.margin - totalHeight / 2
+    : metrics.height * (metrics.portrait ? 0.68 : 0.62);
+  return Math.min(metrics.height - metrics.margin - totalHeight / 2, preferredCenterY);
+}
+
 export function calculateLayout(width: number, height: number): LayoutMetrics {
   const safeWidth = Math.max(1, width);
   const safeHeight = Math.max(1, height);

@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import type { Locale } from '../models/game';
 import { I18nManager } from '../managers/I18nManager';
 import { PixelButton } from './PixelButton';
-import { ResponsiveLayoutManager, type LayoutMetrics } from './layout/ResponsiveLayoutManager';
+import { calculateMenuCenterY, ResponsiveLayoutManager, type LayoutMetrics } from './layout/ResponsiveLayoutManager';
 import { UITheme } from './theme/UITheme';
 
 export interface MainMenuCallbacks {
@@ -68,7 +68,9 @@ export class MainMenu extends Phaser.GameObjects.Container {
     const gap = metrics.compact ? 10 : 12;
     const buttons = [this.newGameButton, ...(this.continueButton ? [this.continueButton] : []), this.settingsButton];
     const totalHeight = buttons.length * buttonHeight + (buttons.length - 1) * gap;
-    const centerY = Math.min(metrics.height - metrics.margin - totalHeight / 2, metrics.height * (metrics.portrait ? 0.68 : 0.62));
+    // En paysage compact, le logo et le parchemin occupent déjà la zone
+    // centrale : ancrer les actions en bas évite leur chevauchement.
+    const centerY = calculateMenuCenterY(metrics, totalHeight);
     let y = centerY - totalHeight / 2 + buttonHeight / 2;
     buttons.forEach((button) => {
       button.setDimensions(buttonWidth, buttonHeight, fontSize).setPosition(metrics.width / 2, y);

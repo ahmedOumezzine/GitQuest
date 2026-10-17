@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { calculateLayout } from '../src/ui/layout/ResponsiveLayoutManager';
+import { calculateLayout, calculateMenuCenterY } from '../src/ui/layout/ResponsiveLayoutManager';
 
 test('le layout identifie correctement les modes desktop, compact et portrait', () => {
   const desktop = calculateLayout(1920, 1080);
@@ -24,4 +24,11 @@ test('les marges et zones sûres restent dans le viewport', () => {
   assert.equal(metrics.safe.left, 12);
   assert.equal(metrics.safe.right, 12);
   assert.ok(metrics.topBarHeight < metrics.height);
+});
+
+test('le menu compacte ses actions en bas en paysage étroit', () => {
+  const metrics = calculateLayout(844, 390);
+  const centerY = calculateMenuCenterY(metrics, 164);
+  assert.equal(centerY, 296);
+  assert.equal(centerY + 82, metrics.height - metrics.margin);
 });

@@ -71,8 +71,8 @@ export class TitleScene extends Phaser.Scene {
     const logoWidth = Math.min(760, width - margin * 2);
     const logoHeight = logoWidth * 150 / 760;
     this.menuBranding.add(this.add.image(width / 2, Math.max(margin + logoHeight / 2, height * 0.18), 'menu-logo').setDisplaySize(logoWidth, logoHeight).setDepth(4));
-    const subtitleWidth = Math.min(520, width - margin * 2);
-    const subtitleHeight = subtitleWidth * 76 / 520;
+    const subtitleWidth = Math.min(compact && !this.layout.current.portrait ? 460 : 520, width - margin * 2);
+    const subtitleHeight = compact && !this.layout.current.portrait ? 52 : subtitleWidth * 76 / 520;
     const subtitleY = Math.max(margin + logoHeight + subtitleHeight / 2 + 4, height * 0.31);
     this.menuBranding.add(this.add.image(width / 2, subtitleY, 'menu-subtitle').setDisplaySize(subtitleWidth, subtitleHeight).setDepth(4));
     this.backdropSubtitle = this.add.text(width / 2, subtitleY, this.i18n.text('title'), { fontFamily: UITheme.fontFamily, fontSize: compact ? '14px' : '20px', color: '#18233e', align: 'center', wordWrap: { width: subtitleWidth - 80 } }).setOrigin(0.5).setDepth(5);

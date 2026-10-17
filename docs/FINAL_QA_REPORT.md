@@ -13,7 +13,7 @@ Date : 2026-10-17
 
 ## Résultats vérifiables
 
-- `npm test` : **28/28 PASS**.
+- `npm test` : **29/29 PASS**.
 - `npm run typecheck` : **PASS**.
 - `npm run build` : **PASS**.
 - Chrome desktop : menu, paramètres, changement de langue, niveau 1 et absence d’erreur console vérifiés.
@@ -36,12 +36,13 @@ Date : 2026-10-17
 - Console Chrome sur le parcours isolé : **0 erreur / 0 avertissement**.
 - Les textes des écrans Boot, erreur de preload et Victoire sont couverts par test en FR, EN et AR ; le chemin navigateur de ces états d’erreur n’a pas été provoqué artificiellement.
 - La synchronisation `html[lang]` / `html[dir]` et la direction du champ terminal sont implémentées ; le rendu arabe du menu, des paramètres et de l’introduction a été observé dans Chrome desktop.
+- Une capture avec viewport contrôlé confirme le menu et les paramètres à `1280×720`, `844×390` et `390×844`; le chevauchement du menu paysage compact a été corrigé et couvert par un test de layout.
 
 ## Non certifié
 
 - Parcours navigateur complet automatisé : non réalisé sous Playwright/WebDriver ; le parcours complet a toutefois été exécuté manuellement par clavier dans Chrome desktop.
 - Automatisation navigateur de la saisie DOM et de l’historique : non ajoutée au dépôt ; la vérification a été exécutée directement dans Chrome via l’outil d’interface.
-- Viewports mobiles exacts et appareils tactiles physiques.
+- Appareils tactiles physiques et parcours tactile réel ; les trois viewports exacts du menu/paramètres sont désormais vérifiés.
 - FPS et temps de chargement mesurés sur les six niveaux.
 - Comparaison artistique complète des six régions avec les références.
 - Audio réel : aucun asset audio n’est présent, donc aucun faux réglage n’a été activé.

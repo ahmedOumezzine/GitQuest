@@ -289,6 +289,16 @@ Le nouveau décor apporte un ciel de coucher de soleil à nuages volumétriques,
 - La licence de distribution finale des assets générés doit encore être confirmée avant publication commerciale.
 - Les écrans de chargement et d’introduction, le niveau 1, le HUD et les niveaux 2 à 6 n’ont pas été modifiés.
 
+### Mise à jour responsive — validation exacte
+
+Une vérification supplémentaire avec contrôle explicite du viewport a corrigé puis confirmé le menu et les paramètres aux dimensions suivantes :
+
+- `1280×720` : menu desktop lisible, composition et boutons non chevauchés ;
+- `844×390` : menu paysage compact corrigé, boutons ancrés sous le parchemin ;
+- `390×844` : menu et panneau Paramètres portrait lisibles et centrés.
+
+Le placement du groupe d’actions en paysage compact est centralisé dans `calculateMenuCenterY` et couvert par un test unitaire.
+
 ### Validation technique et Chrome
 
 - `npm test` : **19/19 PASS**.
