@@ -24,7 +24,7 @@ La Phase 4 est partiellement implémentée sans modification des règles de `Git
 
 ## Tests
 
-- 26 tests unitaires passent, dont un parcours data-driven des six niveaux, un test de localisation du terminal et un test de l’historique avec espaces.
+- 27 tests unitaires passent, dont un parcours data-driven des six niveaux, un test de localisation du terminal, un test de l’historique avec espaces et une fixture de migration de sauvegarde historique.
 - TypeScript passe.
 - Build Vite passe.
 
@@ -32,4 +32,3 @@ La Phase 4 est partiellement implémentée sans modification des règles de `Git
 
 - Les messages internes de `GitSimulator` restent canoniquement en français ; seule leur présentation est localisée par `I18nManager`, afin de préserver la logique métier.
 - Le test navigateur manuel du terminal et de `git init` est passé ; automatiser ce parcours reste à faire.
-- Ajouter des fixtures de sauvegardes historiques antérieures à la version 1.

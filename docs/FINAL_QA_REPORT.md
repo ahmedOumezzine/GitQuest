@@ -13,7 +13,7 @@ Date : 2026-10-17
 
 ## Résultats vérifiables
 
-- `npm test` : **26/26 PASS**.
+- `npm test` : **27/27 PASS**.
 - `npm run typecheck` : **PASS**.
 - `npm run build` : **PASS**.
 - Chrome desktop : menu, paramètres, changement de langue, niveau 1 et absence d’erreur console vérifiés.

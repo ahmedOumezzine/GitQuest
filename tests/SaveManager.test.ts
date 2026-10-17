@@ -31,3 +31,23 @@ test('SaveManager absorbe une erreur de quota à l’écriture', () => {
   assert.equal(manager.save({ levelId: 'level-01', locale: 'fr', inventory: { items: [] }, xp: { total: 0 }, quests: {}, collectedObjects: {}, git: git.toJSON() }), false);
   assert.equal(manager.lastError?.kind, 'write');
 });
+
+test('SaveManager migre une sauvegarde historique vers la version courante', () => {
+  const values = new Map<string, string>([[SAVE_KEY, JSON.stringify({
+    version: 0,
+    levelId: 'level-03',
+    locale: 'en',
+    inventory: { items: ['pass-key'] },
+    xp: { total: 120 },
+    quests: {},
+    collectedObjects: {},
+  })]]);
+  const storage = { setItem: (key: string, value: string) => values.set(key, value), getItem: (key: string) => values.get(key) ?? null, removeItem: (key: string) => values.delete(key) } as unknown as Storage;
+  const manager = new SaveManager(storage);
+  const loaded = manager.load();
+  assert.equal(loaded?.version, 1);
+  assert.equal(loaded?.levelId, 'level-03');
+  assert.equal(loaded?.locale, 'en');
+  assert.deepEqual(loaded?.inventory.items, ['pass-key']);
+  assert.equal(loaded?.git.initialized, false);
+});
