@@ -8,7 +8,7 @@ import type { GitCommandResult } from '../systems/GitSimulator';
 import { TerminalInputModel } from '../systems/TerminalInputModel';
 import { ResponsiveLayoutManager, type LayoutMetrics } from '../ui/layout/ResponsiveLayoutManager';
 import { UITheme } from '../ui/theme/UITheme';
-import { markQaState } from '../diagnostics/QaMarker';
+import { markQaState, markQaTouchControls } from '../diagnostics/QaMarker';
 
 export class UIScene extends Phaser.Scene {
   private session!: GameSession;
@@ -72,6 +72,9 @@ export class UIScene extends Phaser.Scene {
         [{ label: '◀', x: 68, y: 450, vector: { x: -1, y: 0 } }, { label: '▶', x: 178, y: 450, vector: { x: 1, y: 0 } }, { label: '▲', x: 123, y: 405, vector: { x: 0, y: -1 } }, { label: '▼', x: 123, y: 495, vector: { x: 0, y: 1 } }],
         () => this.world?.events.emit('touch-interact'),
       );
+      markQaTouchControls(true);
+    } else {
+      markQaTouchControls(false);
     }
     this.createTerminal();
     this.createDialoguePanel();

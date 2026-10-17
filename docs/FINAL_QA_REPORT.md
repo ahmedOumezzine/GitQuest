@@ -59,7 +59,7 @@ Date : 2026-10-17
 
 - Parcours navigateur complet automatisé des six niveaux sous Playwright/WebDriver : non réalisé ; le smoke test Chrome/Edge headless versionné couvre le menu, les paramètres, le RTL, Nouvelle partie, l’introduction, le niveau 1, le terminal, la sauvegarde et la reprise. Le parcours complet des six missions reste exécuté manuellement dans Chrome desktop.
 - Automatisation navigateur de la saisie DOM et de l’historique : non ajoutée au dépôt ; la vérification a été exécutée directement dans Chrome via l’outil d’interface.
-- Appareils tactiles physiques, clavier virtuel natif et safe areas système ; l’émulation tactile Chrome et les sept viewports ont été vérifiés, mais ne remplacent pas un appareil réel.
+- Appareils tactiles physiques, clavier virtuel natif et safe areas système ; l’émulation tactile Chrome confirme la visibilité des contrôles et les sept viewports sont vérifiés, mais le geste joystick et l’appareil réel restent non certifiés.
 - Temps de chargement comparables et validation sur appareils tactiles physiques ; les FPS des six cartes sont désormais mesurés dans l’environnement Chrome courant.
 - Comparaison artistique complète des six régions avec les références ; les niveaux 2 à 6 disposent d’une passe stylisée mais pas encore d’une finition pixel-art commerciale complète.
 - Audio réel : aucun asset audio n’est présent, donc aucun faux réglage n’a été activé.

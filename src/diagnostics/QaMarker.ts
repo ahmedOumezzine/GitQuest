@@ -10,3 +10,9 @@ export function markQaLevel(levelId: string): void {
   if (!new URLSearchParams(window.location.search).has('qa')) return;
   document.documentElement.dataset.gitquestLevel = levelId;
 }
+
+export function markQaTouchControls(visible: boolean): void {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+  if (!new URLSearchParams(window.location.search).has('qa')) return;
+  document.documentElement.dataset.gitquestTouchControls = visible ? 'visible' : 'hidden';
+}

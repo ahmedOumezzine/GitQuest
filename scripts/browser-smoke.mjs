@@ -228,7 +228,10 @@ try {
   await cdp.send('Log.enable');
   await cdp.send('Page.enable');
   await cdp.send('Emulation.setDeviceMetricsOverride', { width: viewportWidth, height: viewportHeight, deviceScaleFactor: 1, mobile: false });
-  if (emulateTouch) await cdp.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
+  if (emulateTouch) {
+    await cdp.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
+    await cdp.send('Emulation.setEmitTouchEventsForMouse', { enabled: true, configuration: 'mobile' });
+  }
   await cdp.send('Storage.clearDataForOrigin', { origin: `http://127.0.0.1:${appPort}`, storageTypes: 'all' });
   await cdp.send('Page.reload', { ignoreCache: true });
   await waitForState(cdp, requestedLevel ? 'world' : requestedScene === 'victory' ? 'victory' : 'title');
@@ -247,6 +250,15 @@ try {
     }
     if (runtime.level !== requestedLevel) throw new Error(`Niveau QA attendu « ${requestedLevel} », obtenu « ${runtime.level} »`);
     if (!runtime.fps) throw new Error(`Aucune mesure FPS pour ${requestedLevel}.`);
+    if (emulateTouch) {
+      const touchStarted = Date.now();
+      let touchControls = await cdp.evaluate('document.documentElement.dataset.gitquestTouchControls ?? ""');
+      while (touchControls !== 'visible' && Date.now() - touchStarted < 3000) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        touchControls = await cdp.evaluate('document.documentElement.dataset.gitquestTouchControls ?? ""');
+      }
+      if (touchControls !== 'visible') throw new Error('Les contrôles tactiles ne sont pas visibles en émulation tactile.');
+    }
     if (consoleErrors.length) throw new Error(`Erreurs navigateur : ${consoleErrors.join(' | ')}`);
     console.log(`QA navigateur PASS: ${requestedLevel}, niveau rendu et FPS ${runtime.fps}.`);
   } else if (requestedScene === 'victory') {

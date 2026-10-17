@@ -26,7 +26,7 @@ Le parcours tactile réel et l’affichage des contrôles sur appareils physique
 - 768×1024
 - 1024×768
 
-Chaque exécution a terminé sans erreur console. Une exécution supplémentaire à `390×844` avec `GITQUEST_QA_TOUCH=1` a également réussi sous émulation tactile Chrome. Cette émulation ne constitue pas un test d’écran tactile physique.
+Chaque exécution a terminé sans erreur console. Une exécution supplémentaire à `390×844` avec `GITQUEST_QA_TOUCH=1` a également réussi sous émulation tactile Chrome et a confirmé la visibilité des contrôles. Le geste joystick lui-même n’est pas déclaré automatisé : le protocole tactile CDP n’a pas produit un déplacement Phaser suffisamment déterministe dans cet environnement. Cette émulation ne constitue pas un test d’écran tactile physique.
 
 Le HUD du niveau 1 a été exercé dans ces mêmes parcours ; le titre, l’objectif, l’XP, les langues, le journal, le terminal et l’aide de contrôle sont restés accessibles sans erreur.
 
