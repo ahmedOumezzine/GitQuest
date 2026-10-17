@@ -8,7 +8,7 @@ import type { GitCommandResult } from '../systems/GitSimulator';
 import { TerminalInputModel } from '../systems/TerminalInputModel';
 import { ResponsiveLayoutManager, type LayoutMetrics } from '../ui/layout/ResponsiveLayoutManager';
 import { UITheme } from '../ui/theme/UITheme';
-import { markQaQuestStep, markQaState, markQaTouchControls } from '../diagnostics/QaMarker';
+import { markQaDialogue, markQaQuestStep, markQaState, markQaTouchControls } from '../diagnostics/QaMarker';
 
 export class UIScene extends Phaser.Scene {
   private session!: GameSession;
@@ -223,9 +223,9 @@ export class UIScene extends Phaser.Scene {
     this.dialogueText = this.add.text(120, 24, '', { fontFamily: UITheme.fontFamily, fontSize: '15px', color: UITheme.colors.text, wordWrap: { width: 545 }, lineSpacing: 7 });
     this.dialogueClose = this.add.text(680, 102, 'E / Enter', { fontFamily: UITheme.fontFamily, fontSize: '11px', color: UITheme.colors.accent }).setOrigin(1, 0);
     this.dialoguePanel.add([this.dialogueBackground, this.add.image(62, 70, 'midou').setDisplaySize(78, 78), this.dialogueText, this.dialogueClose]);
-    this.input.keyboard!.on('keydown-ENTER', () => { if (this.dialoguePanel.visible) this.dialoguePanel.setVisible(false); });
-    this.input.keyboard!.on('keydown-E', () => { if (this.dialoguePanel.visible) this.dialoguePanel.setVisible(false); });
-    this.dialoguePanel.setInteractive(new Phaser.Geom.Rectangle(0, 0, 720, 140), Phaser.Geom.Rectangle.Contains).on('pointerdown', () => this.dialoguePanel.setVisible(false));
+    this.input.keyboard!.on('keydown-ENTER', () => { if (this.dialoguePanel.visible) this.hideDialogue(); });
+    this.input.keyboard!.on('keydown-E', () => { if (this.dialoguePanel.visible) this.hideDialogue(); });
+    this.dialoguePanel.setInteractive(new Phaser.Geom.Rectangle(0, 0, 720, 140), Phaser.Geom.Rectangle.Contains).on('pointerdown', () => this.hideDialogue());
   }
 
   private runCommand(): void {
@@ -270,6 +270,12 @@ export class UIScene extends Phaser.Scene {
   private showDialogue(text: string): void {
     this.dialogueText.setText(text);
     this.dialoguePanel.setVisible(true);
+    markQaDialogue(true);
+  }
+
+  private hideDialogue(): void {
+    this.dialoguePanel.setVisible(false);
+    markQaDialogue(false);
   }
 
   private showToast(text: string, duration = 2600): void { this.toast.setText(text).setVisible(true); this.time.delayedCall(duration, () => this.toast.setVisible(false)); }

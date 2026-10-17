@@ -50,10 +50,12 @@ npm run qa:browser
 Avec le démarrage normal, vérifier au minimum :
 
 - Nouvelle partie → confirmation → chargement → introduction → Passer → niveau 1 ;
-- interaction réelle Midou → cristal et XP → terminal → `git init` → coffre → clé → porte → niveau 2 ;
+- interaction réelle Midou → cristal et XP → terminal → commandes des six missions → coffres → clés → portes → Victoire ;
 - Paramètres → FR/EN/AR → Retour ;
 - arabe : `html[lang]="ar"`, `html[dir]="rtl"` et champ terminal RTL ;
 - reprise après actualisation avec Continuer.
+
+Le smoke test par défaut exécute ce parcours jusqu’à Victoire ; la reprise est vérifiée après le niveau 1 avant la continuation des niveaux suivants.
 
 Les viewports déjà observés avec contrôle explicite sont `1280×720`, `844×390` et `390×844` pour le menu, les paramètres, la confirmation et l’introduction. La vérification tactile physique reste hors de ce runbook automatisé.
 
@@ -82,6 +84,8 @@ Le script `scripts/browser-smoke.mjs` démarre un serveur Vite isolé sur le por
 - l’interaction Midou, le cristal, l’XP, le terminal, `git init`, le coffre, la clé et la porte vers le niveau 2 ;
 - une actualisation réelle, puis le bouton Continuer et la reprise du niveau 2 sauvegardé ;
 - l’absence d’exception JavaScript ou d’erreur console applicative.
+
+Le parcours par défaut va désormais jusqu’à l’écran Victoire après les six missions. Les commandes et détours de déplacement sont pilotés par les données de test du runner, tandis que les règles métier restent celles du jeu.
 
 Le test ne touche pas le profil Chrome principal. Pour un chemin non standard, définir `GITQUEST_CHROME`. Le viewport peut être contrôlé avec `GITQUEST_QA_WIDTH` et `GITQUEST_QA_HEIGHT`, par exemple :
 

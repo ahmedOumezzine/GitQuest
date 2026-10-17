@@ -13,6 +13,7 @@ Date : 2026-10-17
 - Le point d’entrée charge désormais le runtime Phaser de façon asynchrone ; le chunk initial passe à environ 2,2 kB, avec un chunk applicatif de 73 kB et Phaser isolé dans un chunk vendor d’environ 1,21 MB.
 - Le parcours navigateur réel a été prolongé jusqu’à l’écran Victoire : les six niveaux ont été parcourus dans Chrome desktop avec les commandes propres à chaque mission, les coffres, les clés, les portes et l’XP observés.
 - Le smoke test Chrome versionné automatise maintenant le parcours métier du niveau 1 : Midou, cristal, XP, terminal `git init`, coffre, clé, porte, chargement du niveau 2, actualisation et reprise sauvegardée.
+- Le même smoke test automatise désormais les six missions jusqu’à Victoire : `git init`, `git add .`, `git commit -m "archive"`, `git push`, `git pull`, `git branch feature`, `git switch feature` et `git merge main`, avec validation des coffres, clés, portes, XP et sauvegarde finale.
 - Un compteur optionnel `?perf=1` publie une mesure DOM lisible sans modifier le gameplay. Sur le niveau 1 à `1280×720`, Chrome a mesuré `143,99 FPS`, `6,95 ms/frame`, soit `144 frames` sur `1000 ms`.
 - Les tests `RuntimeMetrics.test.ts` vérifient le calcul déterministe du FPS et la résolution sûre de la route QA ; la suite globale compte 42 tests.
 - La route QA `?qa=benchmark&qaLevel=level-XX&perf=1` permet de mesurer chaque carte sans modifier la sauvegarde ni sa progression :
@@ -31,7 +32,7 @@ Les six mesures ont été obtenues dans Chrome à `1280×720`; le niveau 6 a aus
 
 ## Mesures et limites
 
-L’instrumentation est activée uniquement avec `?perf=1` et publie ses valeurs dans `html[data-gitquest-fps]`, `data-gitquest-frame-time-ms`, `data-gitquest-sample-frames` et `data-gitquest-sample-duration-ms`. Ces FPS sont des mesures de rendu sur l’environnement Chrome courant, pas une garantie pour tous les appareils. Les niveaux 2 à 6 restent fonctionnels via leur rendu générique, mais ne disposent pas encore d’une finition artistique équivalente au niveau 1. Le parcours complet a été vérifié manuellement dans Chrome desktop, pas sous un runner navigateur automatisé.
+L’instrumentation est activée uniquement avec `?perf=1` et publie ses valeurs dans `html[data-gitquest-fps]`, `data-gitquest-frame-time-ms`, `data-gitquest-sample-frames` et `data-gitquest-sample-duration-ms`. Ces FPS sont des mesures de rendu sur l’environnement Chrome courant, pas une garantie pour tous les appareils. Les niveaux 2 à 6 restent fonctionnels via leur rendu générique, mais ne disposent pas encore d’une finition artistique équivalente au niveau 1. Le parcours métier complet est désormais couvert par le smoke test Chrome DevTools versionné ; la validation visuelle détaillée et les appareils réels restent manuels.
 
 Le build passe. L’avertissement Vite restant concerne uniquement le chunk vendor Phaser (environ 1,21 MB minifié, 332 kB gzip) ; le code GitQuest et son point d’entrée sont désormais découpés.
 

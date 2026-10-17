@@ -16,6 +16,14 @@ const appUrl = requestedLevel
     ? `http://127.0.0.1:${appPort}/?qa=victory`
   : `http://127.0.0.1:${appPort}/?qa=browser`;
 
+const legacyLevels = [
+  { id: 'level-02', next: 'level-03', minimumXp: 120, toMentor: [{ key: 'ArrowRight', ms: 250 }, { key: 'ArrowUp', ms: 620 }], toCrystal: [{ key: 'ArrowDown', ms: 1600 }], commands: [{ operation: 'add', text: 'git add .' }], toChest: [{ key: 'ArrowUp', ms: 750 }, { key: 'ArrowRight', ms: 4500 }, { key: 'ArrowUp', ms: 350 }], toGate: [{ key: 'ArrowDown', ms: 220 }, { key: 'ArrowRight', ms: 1000 }] },
+  { id: 'level-03', next: 'level-04', minimumXp: 180, toMentor: [{ key: 'ArrowRight', ms: 300 }, { key: 'ArrowUp', ms: 620 }], toCrystal: [{ key: 'ArrowDown', ms: 1400 }], commands: [{ operation: 'commit', text: 'git commit -m "archive"' }], toChest: [{ key: 'ArrowDown', ms: 600 }, { key: 'ArrowRight', ms: 4000 }, { key: 'ArrowUp', ms: 2100 }, { key: 'ArrowRight', ms: 450 }], toGate: [{ key: 'ArrowDown', ms: 700 }, { key: 'ArrowRight', ms: 1000 }] },
+  { id: 'level-04', next: 'level-05', minimumXp: 240, toMentor: [{ key: 'ArrowRight', ms: 275 }, { key: 'ArrowUp', ms: 550 }], toCrystal: [{ key: 'ArrowDown', ms: 1400 }], commands: [{ operation: 'push', text: 'git push' }, { operation: 'pull', text: 'git pull' }], toChest: [{ key: 'ArrowUp', ms: 450 }, { key: 'ArrowRight', ms: 4200 }], toGate: [{ key: 'ArrowUp', ms: 450 }, { key: 'ArrowRight', ms: 1100 }] },
+  { id: 'level-05', next: 'level-06', minimumXp: 300, toMentor: [{ key: 'ArrowRight', ms: 275 }, { key: 'ArrowUp', ms: 620 }], toCrystal: [{ key: 'ArrowDown', ms: 1550 }], commands: [{ operation: 'branch', text: 'git branch feature' }, { operation: 'switch', text: 'git switch feature' }], toChest: [{ key: 'ArrowUp', ms: 650 }, { key: 'ArrowRight', ms: 4100 }, { key: 'ArrowUp', ms: 830 }], toGate: [{ key: 'ArrowDown', ms: 420 }, { key: 'ArrowRight', ms: 1250 }, { key: 'ArrowDown', ms: 140 }] },
+  { id: 'level-06', minimumXp: 360, toMentor: [{ key: 'ArrowRight', ms: 275 }, { key: 'ArrowUp', ms: 620 }], toCrystal: [{ key: 'ArrowDown', ms: 1450 }], commands: [{ operation: 'merge', text: 'git merge main' }], toChest: [{ key: 'ArrowUp', ms: 2150 }, { key: 'ArrowRight', ms: 5550 }, { key: 'ArrowDown', ms: 1220 }, { key: 'ArrowLeft', ms: 900 }], toGate: [{ key: 'ArrowRight', ms: 760 }, { key: 'ArrowDown', ms: 100 }] },
+];
+
 function findChrome() {
   const candidates = [
     process.env.GITQUEST_CHROME,
@@ -130,6 +138,60 @@ async function waitForQuestStep(cdp, expected, timeoutMs = 5000) {
   }
   const step = await cdp.evaluate('document.documentElement.dataset.gitquestQuestStep ?? ""');
   throw new Error(`Étape de quête attendue « ${expected} », obtenue « ${step} »`);
+}
+
+async function waitForLevel(cdp, expected, timeoutMs = 6000) {
+  const started = Date.now();
+  while (Date.now() - started < timeoutMs) {
+    const level = await cdp.evaluate('document.documentElement.dataset.gitquestLevel ?? ""');
+    if (level === expected) return;
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  const level = await cdp.evaluate('document.documentElement.dataset.gitquestLevel ?? ""');
+  throw new Error(`Niveau attendu « ${expected} », obtenu « ${level} »`);
+}
+
+async function moveAlong(cdp, segments) {
+  for (const segment of segments) await holdKey(cdp, segment.key, segment.ms);
+}
+
+async function runTerminalCommands(cdp, commands) {
+  await key(cdp, 't');
+  await waitForState(cdp, 'terminal');
+  await new Promise((resolve) => setTimeout(resolve, 150));
+  for (const [index, command] of commands.entries()) {
+    await cdp.send('Input.insertText', { text: command.text });
+    await key(cdp, 'Enter');
+    const nextStep = commands[index + 1] ? 'run-' + commands[index + 1].operation : 'collect-key';
+    await waitForQuestStep(cdp, nextStep);
+  }
+  await key(cdp, 'Escape');
+  await waitForState(cdp, 'world');
+}
+
+async function runLegacyLevel(cdp, config) {
+  await waitForLevel(cdp, config.id);
+  await waitForQuestStep(cdp, 'talk-midou');
+  await moveAlong(cdp, config.toMentor);
+  await key(cdp, 'e');
+  await waitForQuestStep(cdp, 'run-' + config.commands[0].operation);
+  for (let attempt = 0; attempt < 3 && await cdp.evaluate('document.documentElement.dataset.gitquestDialogue === "visible"'); attempt += 1) {
+    await key(cdp, 'e');
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  await moveAlong(cdp, config.toCrystal);
+  await key(cdp, 'e');
+  await runTerminalCommands(cdp, config.commands);
+  await moveAlong(cdp, config.toChest);
+  if (process.env.GITQUEST_QA_DEBUG === '1') console.log(`${config.id} before chest: ${await cdp.evaluate('document.documentElement.dataset.gitquestPlayerX + "," + document.documentElement.dataset.gitquestPlayerY')}`);
+  await key(cdp, 'e');
+  await waitForQuestStep(cdp, 'open-exit');
+  const save = await cdp.evaluate('JSON.parse(localStorage.getItem("gitquest-save") ?? "null")');
+  if (!save?.inventory?.items?.includes('pass-key') || save.xp?.total < config.minimumXp) throw new Error(`Récompense absente pour ${config.id}.`);
+  await moveAlong(cdp, config.toGate);
+  await key(cdp, 'e');
+  if (config.next) await waitForLevel(cdp, config.next);
+  else await waitForState(cdp, 'victory');
 }
 
 async function click(cdp, x, y) {
@@ -350,8 +412,11 @@ try {
   if (!resumed || resumed.version !== 1 || resumed.levelId !== 'level-02' || !resumed.git?.initialized || resumed.xp?.total < 60) {
     throw new Error('La reprise après actualisation n’a pas restauré la partie sauvegardée.');
   }
+  for (const level of legacyLevels) await runLegacyLevel(cdp, level);
   if (consoleErrors.length) throw new Error(`Erreurs navigateur : ${consoleErrors.join(' | ')}`);
-  console.log('QA navigateur PASS: menu, paramètres, RTL, Midou, cristal, git init, coffre, clé, porte, niveau 2, sauvegarde et reprise après actualisation.');
+  const finalSave = await cdp.evaluate('JSON.parse(localStorage.getItem("gitquest-save") ?? "null")');
+  if (!finalSave || finalSave.levelId !== 'level-06' || finalSave.xp?.total < 360) throw new Error('La progression complète des six niveaux n’est pas persistée.');
+  console.log('QA navigateur PASS: menu, paramètres, RTL, niveaux 1 à 6, commandes Git, récompenses, portes, victoire, sauvegarde et reprise.');
   }
 } finally {
   cdp?.socket.close();

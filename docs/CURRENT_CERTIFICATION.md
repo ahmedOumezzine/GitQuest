@@ -28,7 +28,7 @@ Le build conserve un avertissement connu sur le chunk Phaser vendor (`1 208 kB` 
 | 3 D — niveau 1/HUD | Fonctionnelle | TiledLayer, collisions eau, spawns sûrs, HUD, Midou, terminal, coffre, clé, porte et sauvegarde vérifiés ; fonds raster dédiés ajoutés aux niveaux 2–6 | Les cartes 2–6 n’ont pas encore des tilesets 32×32 et une finition d’objets aussi complète que le niveau 1 |
 | 4 — interaction/i18n/sauvegarde | Partiellement certifiée | Terminal DOM avec espaces/historique, messages localisés, RTL, sauvegarde versionnée et migration testées ; saisie `git init` exercée par smoke test Chrome | Audio absent |
 | 5 — tactile/responsive | Partiellement certifiée | Joystick, actions tactiles, nettoyage des gestes, zones sûres et viewports UI vérifiés | Aucun appareil tactile physique testé |
-| 6 — performance/stabilisation | Partiellement certifiée | Mesure FPS des six niveaux via route QA dédiée, découpage applicatif, erreur de chargement contrôlée | Bundle Phaser au-dessus du seuil, matrice release complète non exécutée |
+| 6 — performance/stabilisation | Partiellement certifiée | Mesure FPS des six niveaux via route QA dédiée, smoke test Chrome des six missions jusqu’à Victoire, découpage applicatif, erreurs de chargement contrôlées | Bundle Phaser au-dessus du seuil, matrice release complète non exécutée |
 
 ## Intégration Tiled ajoutée dans la dernière passe
 
@@ -61,7 +61,7 @@ Cette intégration ne modifie ni les règles Git, ni l’ordre des quêtes, ni l
 - Le contrat de touches du monde couvre `E` et `Entrée` pour interagir, ainsi que `T` pour le terminal ; il est testé dans `tests/InputBindings.test.ts`.
 - `tests/Extensibility.test.ts` charge un niveau 7 et une carte Tiled synthétiques uniquement par données, puis valide sa quête sans modifier les scènes Phaser.
 - `tests/ManifestConsistency.test.ts` vérifie que les six définitions actuelles sont exactement celles du manifest et que chaque carte référencée existe.
-- `npm run qa:browser` exécute un smoke test Chrome/Edge headless versionné via `scripts/browser-smoke.mjs` ; il couvre le menu, les paramètres, le RTL, Nouvelle partie, l’introduction, Midou, le cristal, l’XP, le terminal, `git init`, le coffre, la clé, la porte, le chargement du niveau 2 et la reprise après actualisation. `GITQUEST_QA_WIDTH`, `GITQUEST_QA_HEIGHT` et `GITQUEST_QA_TOUCH=1` permettent la matrice responsive et l’émulation tactile.
+- `npm run qa:browser` exécute un smoke test Chrome/Edge headless versionné via `scripts/browser-smoke.mjs` ; il couvre le menu, les paramètres, le RTL, Nouvelle partie, l’introduction, les six missions, les commandes Git, les coffres, les clés, les portes, l’écran Victoire et la reprise après actualisation. `GITQUEST_QA_WIDTH`, `GITQUEST_QA_HEIGHT` et `GITQUEST_QA_TOUCH=1` permettent la matrice responsive et l’émulation tactile.
 
 Recheck headless direct des cartes legacy le 17 octobre 2026, avec `npm run qa:browser` et `GITQUEST_QA_LEVEL=level-XX` :
 

@@ -8,7 +8,7 @@ import { SceneManager } from '../phaser/SceneManager';
 import { InputManager } from '../phaser/InputManager';
 import { RuntimeMetrics } from '../diagnostics/RuntimeMetrics';
 import { getLegacyWorldStyle } from '../world/LegacyWorldStyle';
-import { markQaLevel, markQaState } from '../diagnostics/QaMarker';
+import { markQaLevel, markQaPlayerPosition, markQaState } from '../diagnostics/QaMarker';
 
 export class WorldScene extends Phaser.Scene {
   private session!: GameSession;
@@ -270,6 +270,7 @@ export class WorldScene extends Phaser.Scene {
     }
     else this.player.setFrame(0);
     this.nearby = this.findNearby();
+    markQaPlayerPosition(this.player.x, this.player.y);
     this.playerAccent?.setPosition(this.player.x, this.player.y);
     this.mentorAccent?.setPosition(this.mentor.x, this.mentor.y);
     if (this.interactionHint) {
