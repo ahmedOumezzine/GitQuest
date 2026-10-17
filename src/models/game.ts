@@ -76,5 +76,6 @@ export interface TiledMapData {
   tileHeight: number;
   ground: number[];
   decorations: Array<{ id: number; name: string; type: string; x: number; y: number; width: number; height: number }>;
+  objects: Array<{ id: number; name: string; type: string; x: number; y: number; width: number; height: number }>;
   colliders: Rectangle[];
 }

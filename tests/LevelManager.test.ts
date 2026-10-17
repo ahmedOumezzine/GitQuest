@@ -11,6 +11,7 @@ test('TiledMapAdapter transforme la couche colliders en rectangles', () => {
     layers: [{ name: 'colliders', type: 'objectgroup', objects: [{ id: 1, name: 'wall', type: 'wall', x: 64, y: 96, width: 32, height: 64 }] }],
   });
   assert.deepEqual(map.colliders, [{ x: 64, y: 96, width: 32, height: 64 }]);
+  assert.deepEqual(map.objects, []);
 });
 
 test('la plage conserve ses couches Tiled et ses spawns hors de l’eau', async () => {
@@ -21,9 +22,19 @@ test('la plage conserve ses couches Tiled et ses spawns hors de l’eau', async 
   assert.equal(data.ground.length, map.width * map.height);
   assert.ok(data.decorations.some((item) => item.type === 'shrine'));
   assert.ok(data.colliders.length >= 4);
+  assert.equal(data.objects.length, 3);
   assert.notEqual(tileAt(level.playerSpawn), 3);
   assert.notEqual(tileAt(level.mentor), 3);
   assert.ok(data.ground.includes(3));
+});
+
+test('TiledMapAdapter expose la couche Objects sans la mélanger aux décorations', () => {
+  const data = TiledMapAdapter.fromJson({ width: 2, height: 2, tilewidth: 32, tileheight: 32, layers: [
+    { name: 'Decorations', type: 'objectgroup', objects: [{ id: 1, name: 'palm', type: 'palm', x: 0, y: 0, width: 32, height: 32 }] },
+    { name: 'Objects', type: 'objectgroup', objects: [{ id: 2, name: 'spawn', type: 'spawn', x: 32, y: 32, width: 0, height: 0 }] },
+  ] });
+  assert.equal(data.decorations[0].type, 'palm');
+  assert.equal(data.objects[0].type, 'spawn');
 });
 
 test('LevelManager charge un niveau via un fetch injecté', async () => {

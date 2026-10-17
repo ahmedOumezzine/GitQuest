@@ -2,7 +2,7 @@ import type { LevelDefinition, Locale, TouchControlsMode } from '../models/game'
 import { InventoryManager } from '../managers/InventoryManager';
 import { XPManager } from '../managers/XPManager';
 import { QuestManager } from '../managers/QuestManager';
-import { SaveManager } from '../managers/SaveManager';
+import { SaveManager, type SaveError } from '../managers/SaveManager';
 import { GitSimulator } from '../systems/GitSimulator';
 
 export class GameSession {
@@ -14,6 +14,7 @@ export class GameSession {
   public levelId = 'level-01';
   public readonly collectedObjects: Record<string, string[]> = {};
   public hadExistingSave = false;
+  public saveError: SaveError | null = null;
   private readonly pendingQuestStates: Record<string, ReturnType<QuestManager['toJSON']>> = {};
   private readonly quests = new Map<string, QuestManager>();
 
@@ -32,6 +33,7 @@ export class GameSession {
 
   public load(): void {
     const save = this.saveManager.load();
+    this.saveError = this.saveManager.lastError;
     if (!save) return;
     this.hadExistingSave = true;
     this.levelId = save.levelId;
@@ -66,6 +68,7 @@ export class GameSession {
   public save(): void {
     const quests: Record<string, ReturnType<QuestManager['toJSON']>> = {};
     for (const [id, quest] of this.quests) quests[id] = quest.toJSON();
-    this.saveManager.save({ levelId: this.levelId, locale: this.locale, touchControlsMode: this.touchControlsMode, inventory: this.inventory.toJSON(), xp: this.xp.toJSON(), quests, collectedObjects: this.collectedObjects, git: this.git.toJSON() });
+    const saved = this.saveManager.save({ levelId: this.levelId, locale: this.locale, touchControlsMode: this.touchControlsMode, inventory: this.inventory.toJSON(), xp: this.xp.toJSON(), quests, collectedObjects: this.collectedObjects, git: this.git.toJSON() });
+    this.saveError = saved ? null : this.saveManager.lastError;
   }
 }

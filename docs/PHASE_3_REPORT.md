@@ -304,3 +304,13 @@ La capture Chrome disponible pour cette session était en environnement desktop.
 La distance visuelle principale est réduite : le menu possède désormais des nuages volumétriques, un coucher de soleil nuancé, un océan texturé avec reflets et écume, une plage détaillée, des reliefs, une végétation abondante et une profondeur lumineuse. Le logo, la hiérarchie des boutons et le panneau Paramètres restent séparés du décor et interactifs.
 
 Il subsiste une différence avec la référence : le joueur et Midou utilisent encore les sprites locaux 32×32 agrandis, et non deux illustrations de menu spécialement dessinées avec des poses et expressions équivalentes à la référence. Une passe artistique dédiée aux personnages serait nécessaire pour une correspondance encore plus proche.
+
+### Étapes C et D réalisées partiellement
+
+- L’écran de chargement utilise maintenant le décor tropical raster local, une composition assombrie et une barre alimentée par la progression réelle du loader.
+- L’introduction utilise le même décor, un cadre pixel art local, Midou, les textes FR/EN/AR, les boutons Commencer et Passer, et ne valide aucune quête.
+- Le niveau 1 conserve ses cartes, collisions, spawns, objets, sanctuaire, clé, porte et progression Git.
+- Le sol de la plage est rendu par un `TilemapLayer` Phaser pour éviter un GameObject par tuile.
+- Les erreurs de chargement de carte sont responsive et localisées via l’i18n.
+
+Ces améliorations ne constituent pas encore une certification graphique complète des six niveaux ni une validation mobile exacte.

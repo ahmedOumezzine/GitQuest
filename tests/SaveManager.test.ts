@@ -14,3 +14,20 @@ test('SaveManager versionne et recharge la progression', () => {
   assert.equal(loaded?.version, 1);
   assert.equal(loaded?.levelId, 'level-02');
 });
+
+test('SaveManager ignore une sauvegarde corrompue sans supprimer la donnée brute', () => {
+  const values = new Map<string, string>([[SAVE_KEY, '{not-json']]);
+  const storage = { setItem: (key: string, value: string) => values.set(key, value), getItem: (key: string) => values.get(key) ?? null, removeItem: (key: string) => values.delete(key) } as unknown as Storage;
+  const manager = new SaveManager(storage);
+  assert.equal(manager.load(), null);
+  assert.equal(manager.lastError?.kind, 'corrupt');
+  assert.equal(values.get(SAVE_KEY), '{not-json');
+});
+
+test('SaveManager absorbe une erreur de quota à l’écriture', () => {
+  const storage = { setItem: () => { throw new Error('quota'); }, getItem: () => null, removeItem: () => undefined } as unknown as Storage;
+  const manager = new SaveManager(storage);
+  const git = new GitSimulator();
+  assert.equal(manager.save({ levelId: 'level-01', locale: 'fr', inventory: { items: [] }, xp: { total: 0 }, quests: {}, collectedObjects: {}, git: git.toJSON() }), false);
+  assert.equal(manager.lastError?.kind, 'write');
+});

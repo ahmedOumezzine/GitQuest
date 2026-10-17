@@ -13,6 +13,7 @@ export class NewGameScene extends Phaser.Scene {
   private level!: LevelDefinition;
   private progressFill?: Phaser.GameObjects.Rectangle;
   private progressLabel?: Phaser.GameObjects.Text;
+  private progressWidth = 1;
   private loadError: string | null = null;
   private transitioning = false;
   private loadingStartedAt = 0;
@@ -62,23 +63,23 @@ export class NewGameScene extends Phaser.Scene {
   private drawLoadingScreen(): void {
     const { width, height, margin, compact } = this.layout.current;
     this.cameras.main.setBackgroundColor('#142944');
-    const graphics = this.add.graphics();
-    graphics.fillStyle(0x1a3152, 1).fillRect(0, 0, width, height * 0.39);
-    graphics.fillStyle(0x6d6076, 1).fillRect(0, height * 0.39, width, height * 0.06);
-    graphics.fillStyle(0x1c3e5d, 1).fillRect(0, height * 0.45, width, height * 0.55);
-    graphics.fillStyle(0x27718a, 1).fillRect(0, height * 0.72, width, height * 0.28);
-    for (let x = 0; x < width; x += 64) graphics.fillStyle(0x8bd1c7, 0.55).fillRect(x + 12, height * 0.8 + (x % 3) * 12, 26, 3);
-    this.add.image(width / 2, height * 0.61, 'midou').setDisplaySize(compact ? 92 : 128, compact ? 92 : 128).setAlpha(0.9);
+    const scale = Math.max(width / 1672, height / 941);
+    this.add.image(width / 2, height / 2, 'menu-background-v2').setScale(scale).setAlpha(0.62);
+    this.add.rectangle(width / 2, height / 2, width, height, 0x10172b, 0.46);
+    this.add.image(width / 2, height * 0.55, 'midou').setDisplaySize(compact ? 92 : 128, compact ? 92 : 128).setAlpha(0.95);
+    this.add.image(width / 2, height * 0.32, 'menu-panel').setDisplaySize(Math.min(640, width - margin * 2), compact ? 190 : 230);
     this.add.text(width / 2, height * 0.16, 'GITQUEST', { fontFamily: UITheme.fontFamily, fontSize: compact ? '32px' : '48px', color: '#f7d56a', stroke: '#10172b', strokeThickness: compact ? 5 : 7 }).setOrigin(0.5);
-    this.add.text(width / 2, height * 0.29, this.i18n.text('loadingTitle'), { fontFamily: UITheme.fontFamily, fontSize: compact ? '15px' : '20px', color: '#fff6df', align: 'center', wordWrap: { width: width - margin * 2 } }).setOrigin(0.5);
-    const progressWidth = Math.min(540, width - margin * 2);
-    this.add.rectangle((width - progressWidth) / 2, height - margin - 52, progressWidth, 16, 0x273e68, 1).setOrigin(0).setStrokeStyle(2, 0x10172b);
-    this.progressFill = this.add.rectangle((width - progressWidth) / 2 + 2, height - margin - 50, 1, 12, 0xf7c84b, 1).setOrigin(0);
-    this.progressLabel = this.add.text(width / 2, height - margin - 20, this.i18n.text('loadingMap'), { fontFamily: UITheme.fontFamily, fontSize: compact ? '11px' : '13px', color: '#fff6df', align: 'center', wordWrap: { width: width - margin * 2 } }).setOrigin(0.5);
+    this.add.text(width / 2, height * 0.31, this.i18n.text('loadingTitle'), { fontFamily: UITheme.fontFamily, fontSize: compact ? '15px' : '20px', color: '#fff6df', align: 'center', wordWrap: { width: width - margin * 2 } }).setOrigin(0.5);
+    this.progressWidth = Math.min(540, width - margin * 2);
+    const progressX = (width - this.progressWidth) / 2;
+    const progressY = height * 0.41;
+    this.add.rectangle(progressX, progressY, this.progressWidth, 16, 0x273e68, 1).setOrigin(0).setStrokeStyle(2, 0x10172b);
+    this.progressFill = this.add.rectangle(progressX + 2, progressY + 2, 1, 12, 0xf7c84b, 1).setOrigin(0);
+    this.progressLabel = this.add.text(width / 2, progressY + 34, this.i18n.text('loadingMap'), { fontFamily: UITheme.fontFamily, fontSize: compact ? '11px' : '13px', color: '#fff6df', align: 'center', wordWrap: { width: width - margin * 2 } }).setOrigin(0.5);
   }
 
   private updateProgress(value: number): void {
-    this.progressFill?.setDisplaySize(Math.max(1, 536 * value), 12);
+    this.progressFill?.setDisplaySize(Math.max(1, (this.progressWidth - 4) * value), 12);
     this.progressLabel?.setText(this.i18n.text('loadingMap') + ' ' + Math.round(value * 100) + '%');
   }
 
@@ -87,12 +88,9 @@ export class NewGameScene extends Phaser.Scene {
     this.children.removeAll(true);
     const { width, height, margin, compact, portrait } = this.layout.current;
     this.cameras.main.setBackgroundColor('#142944');
-    const graphics = this.add.graphics();
-    graphics.fillStyle(0x1a3152, 1).fillRect(0, 0, width, height * 0.43);
-    graphics.fillStyle(0x6d6076, 1).fillRect(0, height * 0.43, width, height * 0.05);
-    graphics.fillStyle(0x27718a, 1).fillRect(0, height * 0.48, width, height * 0.52);
-    graphics.fillStyle(0xf9cf78, 0.9).fillCircle(width * 0.8, height * 0.53, Math.min(32, width * 0.07));
-    for (let x = 0; x < width; x += 64) graphics.fillStyle(0x8bd1c7, 0.5).fillRect(x + 8, height * 0.75 + (x % 3) * 12, 30, 3);
+    const scale = Math.max(width / 1672, height / 941);
+    this.add.image(width / 2, height / 2, 'menu-background-v2').setScale(scale).setAlpha(0.84);
+    this.add.rectangle(width / 2, height / 2, width, height, 0x10172b, 0.35);
     if (!portrait) {
       this.add.image(width * 0.13, height * 0.65, 'palm').setDisplaySize(110, 165).setFlipX(true).setAlpha(0.9);
       this.add.image(width * 0.86, height * 0.65, 'lighthouse').setDisplaySize(50, 88).setAlpha(0.9);
@@ -100,7 +98,7 @@ export class NewGameScene extends Phaser.Scene {
     const panelWidth = Math.min(670, width - margin * 2);
     const panelHeight = Math.min(430, height - margin * 2);
     const panelY = height / 2 + (compact ? 8 : 16);
-    this.add.rectangle(width / 2, panelY, panelWidth, panelHeight, 0x10172b, 0.94).setStrokeStyle(4, 0xf7d56a);
+    this.add.image(width / 2, panelY, 'menu-panel').setDisplaySize(panelWidth, panelHeight).setAlpha(0.98);
     if (!portrait) this.add.image(width * 0.3, panelY + 60, 'midou').setDisplaySize(100, 100).setDepth(2);
     this.add.text(width / 2, Math.max(margin + 18, panelY - panelHeight / 2 + 38), this.i18n.text('introTitle'), { fontFamily: UITheme.fontFamily, fontSize: compact ? '19px' : '26px', color: '#f7d56a', stroke: '#10172b', strokeThickness: 5, align: 'center', wordWrap: { width: panelWidth - 36 } }).setOrigin(0.5).setDepth(2);
     const narrative = [this.i18n.text('introLine1'), this.i18n.text('introLine2'), this.i18n.text('introLine3')].join('\n\n');
@@ -132,10 +130,11 @@ export class NewGameScene extends Phaser.Scene {
 
   private showLoadError(message: string): void {
     this.children.removeAll(true);
-    this.add.rectangle(480, 270, 720, 250, 0x10172b, 0.98).setStrokeStyle(3, 0xd96565);
-    this.add.text(480, 195, 'GitQuest', { fontFamily: 'monospace', fontSize: '28px', color: '#f7d56a' }).setOrigin(0.5);
-    this.add.text(480, 255, message, { fontFamily: 'monospace', fontSize: '15px', color: '#ffb0b0', align: 'center', wordWrap: { width: 620 } }).setOrigin(0.5);
-    const retry = new PixelButton(this, this.i18n.text('retry'), { width: 180, height: 46, fontSize: '16px' }).setPosition(480, 345);
+    const { width, height, margin } = this.layout.current;
+    this.add.rectangle(width / 2, height / 2, Math.min(720, width - margin * 2), Math.min(250, height - margin * 2), 0x10172b, 0.98).setStrokeStyle(3, 0xd96565);
+    this.add.text(width / 2, height / 2 - 75, 'GitQuest', { fontFamily: 'monospace', fontSize: '28px', color: '#f7d56a' }).setOrigin(0.5);
+    this.add.text(width / 2, height / 2 - 15, message, { fontFamily: 'monospace', fontSize: '15px', color: '#ffb0b0', align: 'center', wordWrap: { width: Math.min(620, width - margin * 2) } }).setOrigin(0.5);
+    const retry = new PixelButton(this, this.i18n.text('retry'), { width: 180, height: 46, fontSize: '16px' }).setPosition(width / 2, height / 2 + 75);
     retry.onPress(() => this.scene.restart());
   }
 }

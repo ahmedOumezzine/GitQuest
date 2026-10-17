@@ -36,8 +36,15 @@ export class UIScene extends Phaser.Scene {
   private terminalBackground!: Phaser.GameObjects.Rectangle;
   private terminalTitle!: Phaser.GameObjects.Text;
   private terminalPrompt!: Phaser.GameObjects.Text;
+  private terminalHint!: Phaser.GameObjects.Text;
   private terminalClose!: Phaser.GameObjects.Text;
+  private dialoguePanel!: Phaser.GameObjects.Container;
+  private dialogueBackground!: Phaser.GameObjects.Rectangle;
+  private dialogueText!: Phaser.GameObjects.Text;
+  private dialogueClose!: Phaser.GameObjects.Text;
   private touchInput?: InputManager;
+  private commandHistory: string[] = [];
+  private historyIndex = -1;
 
   public constructor() { super('UIScene'); }
 
@@ -66,10 +73,11 @@ export class UIScene extends Phaser.Scene {
       );
     }
     this.createTerminal();
+    this.createDialoguePanel();
     this.layout.onResize((metrics) => this.applyLayout(metrics));
     EventBus.on('level-ready', ({ level }: { level: LevelDefinition }) => { this.level = level; this.world = this.scene.get('WorldScene') as import('./WorldScene').WorldScene; this.refresh(); });
     EventBus.on('nearby', (item: Phaser.GameObjects.GameObject | null) => this.prompt.setText(item ? this.i18n.text('interact') + ' · E' : this.i18n.text('controls')));
-    EventBus.on('dialogue', ({ text }: { text: string }) => this.showToast(text, 5000));
+    EventBus.on('dialogue', ({ text }: { text: string }) => this.showDialogue(text));
     EventBus.on('toast', (text: string) => this.showToast(text));
     EventBus.on('terminal-open', () => {
       this.terminal.setVisible(true);
@@ -113,6 +121,8 @@ export class UIScene extends Phaser.Scene {
     this.terminal.add(this.output);
     this.terminalPrompt = this.add.text(30, 280, '> ', { fontFamily: UITheme.fontFamily, fontSize: '17px', color: '#f7d56a' });
     this.terminal.add(this.terminalPrompt);
+    this.terminalHint = this.add.text(30, 308, '', { fontFamily: UITheme.fontFamily, fontSize: '11px', color: '#cbd5e1' });
+    this.terminal.add(this.terminalHint);
     this.inputField = this.add.text(55, 280, '', { fontFamily: UITheme.fontFamily, fontSize: '17px', color: '#fff6df', backgroundColor: '#18233e', padding: { x: 5, y: 3 } });
     this.terminal.add(this.inputField);
     this.terminalClose = this.add.text(675, 18, '×', { fontFamily: UITheme.fontFamily, fontSize: '22px', color: '#fff6df', padding: { x: 10, y: 10 } }).setOrigin(0.5).setInteractive();
@@ -120,29 +130,69 @@ export class UIScene extends Phaser.Scene {
     this.terminal.add(this.terminalClose);
     this.input.keyboard!.on('keydown', (event: KeyboardEvent) => {
       if (!this.terminal.visible) return;
+      if (event.key === 'Escape') { this.terminal.setVisible(false); EventBus.emit('terminal-close'); return; }
       if (this.skipTerminalShortcutKey && event.key.toLowerCase() === 't') {
         this.skipTerminalShortcutKey = false;
         return;
       }
       if (event.key === 'Enter') this.runCommand();
+      else if (event.key === 'ArrowUp') this.selectHistory(-1);
+      else if (event.key === 'ArrowDown') this.selectHistory(1);
       else if (event.key === 'Backspace') this.inputValue = this.inputValue.slice(0, -1);
       else if (event.key.length === 1) this.inputValue += event.key;
       this.inputField.setText(this.inputValue);
     });
   }
 
+  private createDialoguePanel(): void {
+    this.dialoguePanel = this.add.container(0, 0).setDepth(60).setVisible(false);
+    this.dialogueBackground = this.add.rectangle(0, 0, 720, 140, UITheme.colors.panel, 0.98).setOrigin(0).setStrokeStyle(3, UITheme.colors.borderAccent);
+    this.dialogueText = this.add.text(120, 24, '', { fontFamily: UITheme.fontFamily, fontSize: '15px', color: UITheme.colors.text, wordWrap: { width: 545 }, lineSpacing: 7 });
+    this.dialogueClose = this.add.text(680, 102, 'E / Enter', { fontFamily: UITheme.fontFamily, fontSize: '11px', color: UITheme.colors.accent }).setOrigin(1, 0);
+    this.dialoguePanel.add([this.dialogueBackground, this.add.image(62, 70, 'midou').setDisplaySize(78, 78), this.dialogueText, this.dialogueClose]);
+    this.input.keyboard!.on('keydown-ENTER', () => { if (this.dialoguePanel.visible) this.dialoguePanel.setVisible(false); });
+    this.input.keyboard!.on('keydown-E', () => { if (this.dialoguePanel.visible) this.dialoguePanel.setVisible(false); });
+    this.dialoguePanel.setInteractive(new Phaser.Geom.Rectangle(0, 0, 720, 140), Phaser.Geom.Rectangle.Contains).on('pointerdown', () => this.dialoguePanel.setVisible(false));
+  }
+
   private runCommand(): void {
-    const result: GitCommandResult = this.session.git.execute(this.inputValue);
+    const entered = this.inputValue.trim();
+    if (!entered) return;
+    if (entered === 'git help' || entered === 'help') {
+      this.output.setText((this.output.text + '\n$ ' + entered + '\n' + this.i18n.text('terminalHelp')).slice(-1700));
+      this.inputValue = '';
+      this.historyIndex = -1;
+      this.inputField.setText('');
+      return;
+    }
+    this.commandHistory = [...this.commandHistory.filter((item) => item !== entered), entered].slice(-20);
+    this.historyIndex = -1;
+    const result: GitCommandResult = this.session.git.execute(entered);
     const quest = this.world?.activeQuest;
     if (quest && result.operation) {
       const accepted = quest.acceptGit(result, result.operation);
       if (accepted) this.session.save();
       this.refresh();
     }
-    this.output.setText((this.output.text + '\n' + (result.ok ? '$ ' : '! ') + this.inputValue + '\n' + result.message).slice(-1700));
+    this.output.setText((this.output.text + '\n' + (result.ok ? '$ ' : '! ') + entered + '\n' + result.message).slice(-1700));
     this.inputValue = '';
     this.inputField.setText('');
     this.session.save();
+  }
+
+  private selectHistory(direction: -1 | 1): void {
+    if (!this.commandHistory.length) {
+      this.showToast(this.i18n.text('terminalHistoryEmpty'));
+      return;
+    }
+    this.historyIndex = Math.max(-1, Math.min(this.commandHistory.length - 1, this.historyIndex + direction));
+    this.inputValue = this.historyIndex < 0 ? '' : this.commandHistory[this.commandHistory.length - 1 - this.historyIndex];
+    this.inputField.setText(this.inputValue);
+  }
+
+  private showDialogue(text: string): void {
+    this.dialogueText.setText(text);
+    this.dialoguePanel.setVisible(true);
   }
 
   private showToast(text: string, duration = 2600): void { this.toast.setText(text).setVisible(true); this.time.delayedCall(duration, () => this.toast.setVisible(false)); }
@@ -167,6 +217,7 @@ export class UIScene extends Phaser.Scene {
     journalTitle?.setText(this.i18n.text('journal'));
     const terminalTitle = this.terminal?.getByName('terminal-title') as Phaser.GameObjects.Text | undefined;
     terminalTitle?.setText(this.i18n.text('terminalTitle'));
+    this.terminalHint?.setText(this.i18n.text('terminalHelp'));
     if (this.output && !this.output.text.includes('\n$ ') && !this.output.text.includes('\n! ')) this.output.setText(this.i18n.text('terminalWelcome') + '\n');
     // Phaser positionne sa surface en coordonnées LTR ; l’alignement RTL est
     // appliqué aux textes ci-dessus sans laisser le navigateur inverser le canvas.
@@ -219,6 +270,15 @@ export class UIScene extends Phaser.Scene {
     this.output?.setPosition(30, 52).setWordWrapWidth(Math.max(150, terminalWidth - 60));
     this.terminalPrompt?.setPosition(30, terminalHeight - 50);
     this.inputField?.setPosition(55, terminalHeight - 50);
+    this.terminalHint?.setPosition(30, terminalHeight - 22).setWordWrapWidth(Math.max(150, terminalWidth - 60));
     this.touchInput?.layoutTouch(metrics);
+    const dialogueWidth = Math.min(760, metrics.width - margin * 2);
+    const dialogueHeight = metrics.compact ? 122 : 140;
+    const dialogueX = (metrics.width - dialogueWidth) / 2;
+    const dialogueY = metrics.height - margin - dialogueHeight - 34;
+    this.dialoguePanel?.setPosition(dialogueX, dialogueY);
+    this.dialogueBackground?.setSize(dialogueWidth, dialogueHeight);
+    this.dialogueText?.setPosition(rtl ? dialogueWidth - 120 : 120, 20).setWordWrapWidth(Math.max(160, dialogueWidth - 145)).setStyle({ align: rtl ? 'right' : 'left' });
+    this.dialogueClose?.setPosition(dialogueWidth - 18, dialogueHeight - 28);
   }
 }

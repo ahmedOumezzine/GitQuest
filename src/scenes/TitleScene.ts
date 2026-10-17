@@ -74,6 +74,9 @@ export class TitleScene extends Phaser.Scene {
     this.backdrop.add(this.add.image(width / 2, subtitleY, 'menu-subtitle').setDisplaySize(subtitleWidth, subtitleHeight).setDepth(4));
     this.backdropSubtitle = this.add.text(width / 2, subtitleY, this.i18n.text('title'), { fontFamily: UITheme.fontFamily, fontSize: compact ? '14px' : '20px', color: '#18233e', align: 'center', wordWrap: { width: subtitleWidth - 80 } }).setOrigin(0.5).setDepth(5);
     this.backdrop.add(this.backdropSubtitle);
+    if (this.session.saveError) {
+      this.backdrop.add(this.add.text(width / 2, height - margin - 10, this.i18n.text('saveError'), { fontFamily: UITheme.fontFamily, fontSize: compact ? '10px' : '12px', color: '#ffd0a8', align: 'center', wordWrap: { width: width - margin * 2 } }).setOrigin(0.5).setDepth(5));
+    }
   }
 
   private addMenuCharacter(key: string, x: number, y: number, size: number): void {

@@ -64,10 +64,14 @@ export class WorldScene extends Phaser.Scene {
   }
 
   private showLoadError(error: unknown): void {
-    this.add.rectangle(480, 270, 720, 240, 0x10172b, 0.98).setDepth(80).setStrokeStyle(3, 0xd96565);
-    this.add.text(480, 205, 'Carte impossible à charger', { fontFamily: 'monospace', fontSize: '24px', color: '#ff9b9b' }).setOrigin(0.5).setDepth(81);
-    this.add.text(480, 275, error instanceof Error ? error.message : String(error), { fontFamily: 'monospace', fontSize: '15px', color: '#fff6df', align: 'center', wordWrap: { width: 620 } }).setOrigin(0.5).setDepth(81);
-    const retry = this.add.text(480, 340, 'Réessayer', { fontFamily: 'monospace', fontSize: '20px', color: '#18233e', backgroundColor: '#f7d56a', padding: { x: 20, y: 8 } }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setDepth(81);
+    const i18n = new I18nManager(this.session.locale);
+    const width = this.scale.width;
+    const height = this.scale.height;
+    const margin = 24;
+    this.add.rectangle(width / 2, height / 2, Math.min(720, width - margin * 2), 240, 0x10172b, 0.98).setDepth(80).setStrokeStyle(3, 0xd96565);
+    this.add.text(width / 2, height / 2 - 65, i18n.text('mapLoadError'), { fontFamily: 'monospace', fontSize: '24px', color: '#ff9b9b' }).setOrigin(0.5).setDepth(81);
+    this.add.text(width / 2, height / 2 + 5, error instanceof Error ? error.message : String(error), { fontFamily: 'monospace', fontSize: '15px', color: '#fff6df', align: 'center', wordWrap: { width: Math.min(620, width - margin * 2) } }).setOrigin(0.5).setDepth(81);
+    const retry = this.add.text(width / 2, height / 2 + 70, i18n.text('retry'), { fontFamily: 'monospace', fontSize: '20px', color: '#18233e', backgroundColor: '#f7d56a', padding: { x: 20, y: 8 } }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setDepth(81);
     retry.on('pointerdown', () => this.scene.restart({ levelId: this.level.id }));
   }
 
@@ -97,12 +101,11 @@ export class WorldScene extends Phaser.Scene {
     const worldWidth = this.map.width * this.map.tileWidth;
     const worldHeight = this.map.height * this.map.tileHeight;
     this.cameras.main.setBackgroundColor('#27718a').setBounds(0, 0, worldWidth, worldHeight).setZoom(1.15).setRoundPixels(true);
-    this.map.ground.forEach((tile, index) => {
-      if (!tile) return;
-      const x = (index % this.map.width) * this.map.tileWidth + this.map.tileWidth / 2;
-      const y = Math.floor(index / this.map.width) * this.map.tileHeight + this.map.tileHeight / 2;
-      this.add.image(x, y, 'beach-tileset', tile - 1).setDepth(0);
-    });
+    const rows: number[][] = [];
+    for (let row = 0; row < this.map.height; row += 1) rows.push(this.map.ground.slice(row * this.map.width, (row + 1) * this.map.width));
+    const tilemap = this.make.tilemap({ data: rows, tileWidth: this.map.tileWidth, tileHeight: this.map.tileHeight });
+    const tileset = tilemap.addTilesetImage('beach-tileset', 'beach-tileset', this.map.tileWidth, this.map.tileHeight, 0, 0);
+    if (tileset) tilemap.createLayer(0, tileset, 0, 0)?.setDepth(0);
     this.map.decorations.forEach((definition) => {
       const key = ['palm', 'rock', 'grass', 'ruin', 'shrine', 'shrine-glow', 'wave', 'flower', 'shell'].includes(definition.type) ? definition.type : undefined;
       if (!key) return;

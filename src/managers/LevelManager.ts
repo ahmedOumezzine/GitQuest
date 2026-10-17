@@ -61,6 +61,7 @@ export class TiledMapAdapter {
     const colliderLayer = map.layers.find((layer) => layer.type === 'objectgroup' && ['collisions', 'colliders'].includes(layer.name.toLowerCase()));
     const groundLayer = map.layers.find((layer) => layer.type === 'tilelayer' && layer.name.toLowerCase() === 'ground');
     const decorationLayer = map.layers.find((layer) => layer.type === 'objectgroup' && layer.name.toLowerCase() === 'decorations');
+    const objectLayer = map.layers.find((layer) => layer.type === 'objectgroup' && layer.name.toLowerCase() === 'objects');
     return {
       width: map.width,
       height: map.height,
@@ -68,6 +69,7 @@ export class TiledMapAdapter {
       tileHeight: map.tileheight,
       ground: groundLayer?.data ?? [],
       decorations: decorationLayer?.objects ?? [],
+      objects: objectLayer?.objects ?? [],
       colliders: (colliderLayer?.objects ?? []).map((object) => ({
         x: object.x, y: object.y, width: object.width, height: object.height,
       })),
