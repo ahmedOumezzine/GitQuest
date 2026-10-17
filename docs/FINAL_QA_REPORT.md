@@ -13,7 +13,7 @@ Date : 2026-10-17
 
 ## Résultats vérifiables
 
-- `npm test` : **27/27 PASS**.
+- `npm test` : **28/28 PASS**.
 - `npm run typecheck` : **PASS**.
 - `npm run build` : **PASS**.
 - Chrome desktop : menu, paramètres, changement de langue, niveau 1 et absence d’erreur console vérifiés.
@@ -34,6 +34,7 @@ Date : 2026-10-17
 - Console Chrome sur ce parcours complet : aucune erreur ni avertissement applicatif ; seuls les messages normaux de connexion Vite et de démarrage Phaser sont présents.
 - Terminal accessible vérifié dans Chrome après la dernière correction : champ HTML exposé comme text field, `git init` saisi avec espace, commande collée, et `ArrowUp` rappelant effectivement la commande précédente ; console sans erreur applicative.
 - Console Chrome sur le parcours isolé : **0 erreur / 0 avertissement**.
+- Les textes des écrans Boot, erreur de preload et Victoire sont couverts par test en FR, EN et AR ; le chemin navigateur de ces états d’erreur n’a pas été provoqué artificiellement.
 
 ## Non certifié
 
@@ -57,6 +58,9 @@ Date : 2026-10-17
 - `src/managers/SaveManager.ts`
 - `src/core/GameSession.ts`
 - `src/managers/I18nManager.ts`
+- `src/scenes/BootScene.ts`
+- `src/scenes/PreloadScene.ts`
+- `src/scenes/VictoryScene.ts`
 - `src/models/game.ts`
 - tests de sauvegarde, Tiled et régression
 - rapports Phase 3 à 6

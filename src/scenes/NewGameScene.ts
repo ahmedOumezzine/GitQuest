@@ -32,11 +32,11 @@ export class NewGameScene extends Phaser.Scene {
 
   public preload(): void {
     this.loadingStartedAt = performance.now();
-    this.game.canvas?.setAttribute('dir', 'ltr');
+    this.game.canvas?.setAttribute('dir', this.i18n.direction);
     this.drawLoadingScreen();
     this.load.on('progress', (value: number) => this.updateProgress(value));
     this.load.on('loaderror', (file: Phaser.Loader.File) => {
-      this.loadError = 'Asset introuvable : ' + file.key + ' (' + file.url + ')';
+      this.loadError = this.i18n.text('assetMissing') + ' : ' + file.key + ' (' + file.url + ')';
     });
     this.load.json('new-game-level-map', this.level.map.path);
     this.load.json('new-game-level-definition', '/data/levels/level-01.json');
@@ -51,7 +51,7 @@ export class NewGameScene extends Phaser.Scene {
     const map = this.cache.json.get('new-game-level-map') as TiledMapJson;
     const definition = this.cache.json.get('new-game-level-definition') as LevelDefinition;
     if (definition?.id !== this.level.id || !map?.layers) {
-      this.showLoadError('Les données du niveau 1 sont incomplètes.');
+      this.showLoadError(this.i18n.text('mapLoadError'));
       return;
     }
     levelManager.primeMap(this.level, map);

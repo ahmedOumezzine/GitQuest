@@ -1,11 +1,18 @@
 import Phaser from 'phaser';
+import { I18nManager } from '../managers/I18nManager';
+
+type SessionLike = { locale?: import('../models/game').Locale };
 
 export class PreloadScene extends Phaser.Scene {
   private loadError: string | null = null;
+  private i18n = new I18nManager();
   public constructor() { super('PreloadScene'); }
 
   public preload(): void {
-    this.load.on('loaderror', (file: Phaser.Loader.File) => { this.loadError = 'Asset introuvable : ' + file.key + ' (' + file.url + ')'; });
+    const session = this.registry.get('session') as SessionLike | undefined;
+    this.i18n = new I18nManager(session?.locale ?? 'fr');
+    this.game.canvas?.setAttribute('dir', this.i18n.direction);
+    this.load.on('loaderror', (file: Phaser.Loader.File) => { this.loadError = this.i18n.text('assetMissing') + ' : ' + file.key + ' (' + file.url + ')'; });
     const base = '/assets/sprites/';
     const ui = '/assets/ui/';
     ['menu-background', 'menu-logo', 'menu-subtitle', 'menu-button-gold', 'menu-button-navy', 'menu-panel'].forEach((name) => this.load.image(name, ui + name + '.svg'));
@@ -37,9 +44,9 @@ export class PreloadScene extends Phaser.Scene {
   private showLoadError(message: string): void {
     this.children.removeAll(true);
     this.add.rectangle(480, 270, 720, 250, 0x10172b, 0.98).setStrokeStyle(3, 0xd96565);
-    this.add.text(480, 200, 'Asset manquant', { fontFamily: 'monospace', fontSize: '26px', color: '#ff9b9b' }).setOrigin(0.5);
+    this.add.text(480, 200, this.i18n.text('assetMissing'), { fontFamily: 'monospace', fontSize: '26px', color: '#ff9b9b' }).setOrigin(0.5);
     this.add.text(480, 270, message, { fontFamily: 'monospace', fontSize: '15px', color: '#fff6df', align: 'center', wordWrap: { width: 620 } }).setOrigin(0.5);
-    const retry = this.add.text(480, 340, 'Réessayer', { fontFamily: 'monospace', fontSize: '20px', color: '#18233e', backgroundColor: '#f7d56a', padding: { x: 20, y: 8 } }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+    const retry = this.add.text(480, 340, this.i18n.text('retry'), { fontFamily: 'monospace', fontSize: '20px', color: '#18233e', backgroundColor: '#f7d56a', padding: { x: 20, y: 8 } }).setOrigin(0.5).setInteractive({ useHandCursor: true });
     retry.on('pointerdown', () => this.scene.restart());
   }
 }

@@ -27,6 +27,15 @@ test('le parcours Nouvelle partie est traduit dans les trois langues', () => {
   assert.equal(new I18nManager('ar').direction, 'rtl');
 });
 
+test('les écrans de démarrage et de victoire sont traduits dans les trois langues', () => {
+  for (const locale of ['fr', 'en', 'ar'] as const) {
+    const i18n = new I18nManager(locale);
+    for (const key of ['bootLoading', 'bootLoadError', 'assetMissing', 'victoryTitle', 'victoryMessage', 'totalXp', 'replay']) {
+      assert.ok(i18n.text(key).length > 0, `${locale}.${key} doit être traduit`);
+    }
+  }
+});
+
 test('les messages visibles du terminal suivent la langue active', () => {
   assert.equal(new I18nManager('en').gitMessage('Dépôt Git initialisé.'), 'Git repository initialized.');
   assert.equal(new I18nManager('ar').gitMessage('Dépôt Git initialisé.'), 'تم تهيئة مستودع Git.');

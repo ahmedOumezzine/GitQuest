@@ -21,10 +21,11 @@ La Phase 4 est partiellement implémentée sans modification des règles de `Git
 - Compatibilité de migration existante conservée.
 - Le terminal utilise désormais un champ HTML réel, positionné au-dessus de la surface Phaser, avec libellé accessible, collage, sélection native et saisie IME ; le rendu Phaser reste un fallback hors navigateur.
 - L’historique du terminal est isolé dans `TerminalInputModel`, limité à vingt commandes et corrigé pour que la première navigation avec `ArrowUp` rappelle bien la dernière commande.
+- Les écrans de démarrage, d’erreur de chargement des assets et de victoire utilisent désormais la locale active en FR, EN et AR ; la direction RTL est appliquée à la surface Phaser.
 
 ## Tests
 
-- 27 tests unitaires passent, dont un parcours data-driven des six niveaux, un test de localisation du terminal, un test de l’historique avec espaces et une fixture de migration de sauvegarde historique.
+- 28 tests unitaires passent, dont un parcours data-driven des six niveaux, un test de localisation du terminal, un test de l’historique avec espaces, une fixture de migration de sauvegarde historique et la couverture des écrans de démarrage/victoire dans les trois langues.
 - TypeScript passe.
 - Build Vite passe.
 
