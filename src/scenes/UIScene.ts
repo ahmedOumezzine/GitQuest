@@ -157,6 +157,7 @@ export class UIScene extends Phaser.Scene {
     input.autocomplete = 'off';
     input.spellcheck = false;
     input.setAttribute('aria-label', this.i18n.text('terminalHelp'));
+    input.setAttribute('dir', this.i18n.direction);
     input.style.display = 'none';
     input.addEventListener('input', () => {
       this.terminalInputModel.setValue(input.value);
@@ -288,11 +289,14 @@ export class UIScene extends Phaser.Scene {
     const terminalTitle = this.terminal?.getByName('terminal-title') as Phaser.GameObjects.Text | undefined;
     terminalTitle?.setText(this.i18n.text('terminalTitle'));
     this.terminalHint?.setText(this.i18n.text('terminalHelp'));
-    if (this.terminalInput) this.terminalInput.setAttribute('aria-label', this.i18n.text('terminalHelp'));
+    if (this.terminalInput) {
+      this.terminalInput.setAttribute('aria-label', this.i18n.text('terminalHelp'));
+      this.terminalInput.setAttribute('dir', this.i18n.direction);
+    }
     if (this.output && !this.output.text.includes('\n$ ') && !this.output.text.includes('\n! ')) this.output.setText(this.i18n.text('terminalWelcome') + '\n');
     // Phaser conserve ses coordonnées de scène, mais la surface doit exposer
     // la direction active aux lecteurs et aux outils d’intégration.
-    this.game.canvas?.setAttribute('dir', this.i18n.direction);
+    this.i18n.applyDirection(this.game.canvas);
     this.applyLayout(this.layout.current);
   }
 

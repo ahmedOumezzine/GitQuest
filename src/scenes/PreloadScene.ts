@@ -11,7 +11,7 @@ export class PreloadScene extends Phaser.Scene {
   public preload(): void {
     const session = this.registry.get('session') as SessionLike | undefined;
     this.i18n = new I18nManager(session?.locale ?? 'fr');
-    this.game.canvas?.setAttribute('dir', this.i18n.direction);
+    this.i18n.applyDirection(this.game.canvas);
     this.load.on('loaderror', (file: Phaser.Loader.File) => { this.loadError = this.i18n.text('assetMissing') + ' : ' + file.key + ' (' + file.url + ')'; });
     const base = '/assets/sprites/';
     const ui = '/assets/ui/';

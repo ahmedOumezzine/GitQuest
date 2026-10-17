@@ -8,7 +8,7 @@ export class VictoryScene extends Phaser.Scene {
   public create(): void {
     const session = this.registry.get('session') as GameSession;
     const i18n = new I18nManager(session.locale);
-    this.game.canvas?.setAttribute('dir', i18n.direction);
+    i18n.applyDirection(this.game.canvas);
     this.cameras.main.setBackgroundColor('#241b3d');
     this.add.text(480, 120, i18n.text('victoryTitle'), { fontFamily: 'monospace', fontSize: '48px', color: '#f7d56a', stroke: '#10172b', strokeThickness: 7, align: 'center' }).setOrigin(0.5);
     this.add.image(480, 245, 'player').setScale(4);

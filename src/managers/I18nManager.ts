@@ -11,6 +11,13 @@ export class I18nManager {
   public text(key: string): string { return TRANSLATIONS[this.locale][key] ?? TRANSLATIONS.fr[key] ?? key; }
   public localized(value: LocalizedText): string { return value[this.locale] ?? value.fr; }
   public get direction(): 'ltr' | 'rtl' { return this.locale === 'ar' ? 'rtl' : 'ltr'; }
+  public applyDirection(surface?: HTMLElement): void {
+    if (typeof document !== 'undefined') {
+      document.documentElement.lang = this.locale;
+      document.documentElement.dir = this.direction;
+    }
+    surface?.setAttribute('dir', this.direction);
+  }
   public stepLabel(id: string): string { return this.text({ 'talk-midou': 'stepTalk', 'run-init': 'stepInit', 'collect-key': 'stepKey', 'open-exit': 'stepExit' }[id] ?? id); }
 
   public gitMessage(message: string): string {

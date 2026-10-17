@@ -35,6 +35,7 @@ Date : 2026-10-17
 - Terminal accessible vérifié dans Chrome après la dernière correction : champ HTML exposé comme text field, `git init` saisi avec espace, commande collée, et `ArrowUp` rappelant effectivement la commande précédente ; console sans erreur applicative.
 - Console Chrome sur le parcours isolé : **0 erreur / 0 avertissement**.
 - Les textes des écrans Boot, erreur de preload et Victoire sont couverts par test en FR, EN et AR ; le chemin navigateur de ces états d’erreur n’a pas été provoqué artificiellement.
+- La synchronisation `html[lang]` / `html[dir]` et la direction du champ terminal sont implémentées ; le rendu arabe du menu, des paramètres et de l’introduction a été observé dans Chrome desktop.
 
 ## Non certifié
 

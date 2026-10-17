@@ -292,7 +292,7 @@ export class WorldScene extends Phaser.Scene {
   private closeTerminal(): void { this.terminalOpen = false; }
   private refreshLocalizedScene(): void {
     const i18n = new I18nManager(this.session.locale);
-    this.game.canvas?.setAttribute('dir', i18n.direction);
+    i18n.applyDirection(this.game.canvas);
     this.shrineLabels.forEach((label) => label.setText(i18n.text('shrine')));
   }
 

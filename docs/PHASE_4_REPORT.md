@@ -22,6 +22,7 @@ La Phase 4 est partiellement implémentée sans modification des règles de `Git
 - Le terminal utilise désormais un champ HTML réel, positionné au-dessus de la surface Phaser, avec libellé accessible, collage, sélection native et saisie IME ; le rendu Phaser reste un fallback hors navigateur.
 - L’historique du terminal est isolé dans `TerminalInputModel`, limité à vingt commandes et corrigé pour que la première navigation avec `ArrowUp` rappelle bien la dernière commande.
 - Les écrans de démarrage, d’erreur de chargement des assets et de victoire utilisent désormais la locale active en FR, EN et AR ; la direction RTL est appliquée à la surface Phaser.
+- La locale active synchronise aussi `html[lang]`, `html[dir]` et le champ HTML natif du terminal ; les lecteurs et les contrôles DOM reçoivent donc la même direction RTL que Phaser.
 
 ## Tests
 

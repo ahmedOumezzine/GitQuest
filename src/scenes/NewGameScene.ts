@@ -32,7 +32,7 @@ export class NewGameScene extends Phaser.Scene {
 
   public preload(): void {
     this.loadingStartedAt = performance.now();
-    this.game.canvas?.setAttribute('dir', this.i18n.direction);
+    this.i18n.applyDirection(this.game.canvas);
     this.drawLoadingScreen();
     this.load.on('progress', (value: number) => this.updateProgress(value));
     this.load.on('loaderror', (file: Phaser.Loader.File) => {

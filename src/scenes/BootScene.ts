@@ -10,7 +10,7 @@ export class BootScene extends Phaser.Scene {
   public create(): void {
     const locale = new SaveManager().load()?.locale ?? 'fr';
     const i18n = new I18nManager(locale);
-    this.game.canvas?.setAttribute('dir', i18n.direction);
+    i18n.applyDirection(this.game.canvas);
     this.add.text(480, 270, i18n.text('bootLoading'), { fontFamily: 'monospace', fontSize: '24px', color: '#f7d56a' }).setOrigin(0.5);
     void this.loadGame().catch((error: unknown) => this.showLoadError(error));
   }
@@ -30,7 +30,7 @@ export class BootScene extends Phaser.Scene {
   private showLoadError(error: unknown): void {
     const locale = new SaveManager().load()?.locale ?? 'fr';
     const i18n = new I18nManager(locale);
-    this.game.canvas?.setAttribute('dir', i18n.direction);
+    i18n.applyDirection(this.game.canvas);
     this.children.removeAll(true);
     this.add.rectangle(480, 270, 720, 250, 0x10172b, 0.98).setStrokeStyle(3, 0xd96565);
     this.add.text(480, 190, i18n.text('bootLoadError'), { fontFamily: 'monospace', fontSize: '26px', color: '#ff9b9b' }).setOrigin(0.5);
