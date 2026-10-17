@@ -48,6 +48,7 @@ Date : 2026-10-17
 - Le HUD français du niveau 1 a été observé à `844×390` sans chevauchement visible ; aucune erreur console n’a été relevée.
 - Avec `?perf=1`, le niveau 1 a fourni une mesure Chrome réelle à `1280×720` : **143,99 FPS**, **6,95 ms/frame**, **144 frames/1000 ms**.
 - La route QA `?qa=benchmark&qaLevel=level-XX&perf=1` a mesuré les six cartes à `1280×720` : niveaux 1 à 6 entre **137,99 et 144,02 FPS**, sans erreur ni avertissement console.
+- Recheck Chrome ultérieur des six routes QA : niveaux 1 à 6 entre **133,97 et 142,99 FPS**, avec 0 erreur et 0 avertissement pour chaque route ; la variation confirme le caractère dépendant de l’environnement de cette mesure.
 
 ## Non certifié
 

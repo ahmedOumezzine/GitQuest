@@ -44,3 +44,5 @@ Les paragraphes historiques de ce rapport décrivent l’état intermédiaire de
 - benchmark comparable des niveaux 2 à 6, appareil tactile physique et test navigateur automatisé dans le dépôt : **non réalisés**.
 - les ancres `Objects` des six cartes pilotent désormais les positions du joueur, de Midou et des portes ; un test vérifie leur concordance avec les définitions de niveau.
 - les niveaux 2 à 6 utilisent maintenant un style de rendu distinct et data-driven (palette, chemin, obstacles et props) ; les niveaux 2 et 6 ont été observés dans Chrome sans erreur console.
+
+Recheck Chrome du 17 octobre 2026 à `1280×720` via la route QA : niveaux 1 à 6 mesurés entre `133,97` et `142,99 FPS`, avec `0` erreur et `0` avertissement console pour chaque route. Les écarts avec la série précédente sont liés à la session et à l’environnement de rendu.

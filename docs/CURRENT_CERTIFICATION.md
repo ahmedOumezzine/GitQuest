@@ -59,6 +59,17 @@ Cette intégration ne modifie ni les règles Git, ni l’ordre des quêtes, ni l
 - Le contrat de touches du monde couvre `E` et `Entrée` pour interagir, ainsi que `T` pour le terminal ; il est testé dans `tests/InputBindings.test.ts`.
 - `tests/Extensibility.test.ts` charge un niveau 7 et une carte Tiled synthétiques uniquement par données, puis valide sa quête sans modifier les scènes Phaser.
 
+Recheck Chrome du 17 octobre 2026 via `?qa=benchmark&qaLevel=level-XX&perf=1` à `1280×720` :
+
+| Niveau | FPS | Frames | Erreurs console |
+|---|---:|---:|---:|
+| 1 | 133,97 | 134 | 0 |
+| 2 | 138,00 | 138 | 0 |
+| 3 | 142,99 | 143 | 0 |
+| 4 | 136,99 | 137 | 0 |
+| 5 | 141,00 | 141 | 0 |
+| 6 | 139,99 | 140 | 0 |
+
 Ces vérifications ont été réalisées dans Chrome desktop via l’outil d’interface ; elles ne constituent pas un test sur appareil tactile réel ni un runner navigateur versionné.
 
 ## Conditions de clôture restantes
