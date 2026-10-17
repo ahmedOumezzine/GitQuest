@@ -13,7 +13,7 @@ Date : 2026-10-17
 
 ## Résultats vérifiables
 
-- `npm test` : **22/22 PASS**.
+- `npm test` : **23/23 PASS**.
 - `npm run typecheck` : **PASS**.
 - `npm run build` : **PASS**.
 - Chrome desktop : menu, paramètres, changement de langue, niveau 1 et absence d’erreur console vérifiés.
@@ -22,11 +22,13 @@ Date : 2026-10-17
 - Interaction réelle avec Midou vérifiée : l’objectif passe de « Parler à Midou » à « Exécuter git init ».
 - Terminal réel vérifié : `git init` est accepté et l’objectif passe à « Trouver la clé » ; la saisie clavier caractère par caractère conserve l’espace dans `git init`.
 - Sauvegarde vérifiée : après actualisation, le menu affiche Continuer et ce bouton recharge le niveau 1 avec l’objectif déjà avancé.
+- Parcours niveau 1 complété dans Chrome : coffre ouvert, clé obtenue, XP `50` visible, porte ouverte et transition vers « Forêt des Fichiers » vérifiée.
+- Correctif appliqué dans `WorldScene.interact()` : la cible interactive est recalculée au moment de l’action pour éviter une interaction de porte dépendante d’un tick précédent.
 - Console Chrome sur le parcours isolé : **0 erreur / 0 avertissement**.
 
 ## Non certifié
 
-- Parcours navigateur complet automatisé jusqu’à l’ouverture de la porte et au niveau 2 ; le parcours vérifié s’arrête après `git init`.
+- Parcours navigateur complet automatisé des six niveaux ; le parcours manuel vérifié s’arrête après le chargement du niveau 2.
 - Viewports mobiles exacts et appareils tactiles physiques.
 - FPS et temps de chargement mesurés sur les six niveaux.
 - Comparaison artistique complète des six régions avec les références.

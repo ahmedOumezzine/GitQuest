@@ -20,7 +20,7 @@ La Phase 4 est partiellement implémentée sans modification des règles de `Git
 
 ## Tests
 
-- 22 tests unitaires passent.
+- 23 tests unitaires passent, dont un parcours data-driven des six niveaux.
 - TypeScript passe.
 - Build Vite passe.
 
@@ -28,5 +28,5 @@ La Phase 4 est partiellement implémentée sans modification des règles de `Git
 
 - Localiser les messages internes produits directement par `GitSimulator`.
 - Ajouter un vrai champ de saisie DOM accessible pour IME, sélection et collage.
-- Ajouter un test navigateur du terminal complet.
+- Le test navigateur manuel du terminal et de `git init` est passé ; automatiser ce parcours reste à faire.
 - Ajouter des fixtures de sauvegardes historiques antérieures à la version 1.

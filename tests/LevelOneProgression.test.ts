@@ -16,6 +16,7 @@ test('le niveau 1 progresse de Midou à la porte sans doubler les récompenses',
   const init = session.git.execute('git init');
   assert.equal(quest.acceptGit(init, 'init'), true);
   assert.equal(quest.currentStep?.id, 'collect-key');
+  assert.equal(quest.acceptExit(), false);
 
   assert.equal(session.inventory.add(level.key.itemId), true);
   assert.equal(quest.acceptCollection(level.key.objectId), true);

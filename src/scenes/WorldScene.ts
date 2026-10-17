@@ -230,6 +230,9 @@ export class WorldScene extends Phaser.Scene {
   }
 
   private interact(): void {
+    // Recalculer la cible au moment exact de l’action évite de dépendre d’un
+    // tick précédent lorsque le joueur vient juste d’entrer dans la portée.
+    this.nearby = this.findNearby();
     if (!this.nearby) return;
     if (this.nearby === this.mentor) {
       const step = this.quest.currentStep;
