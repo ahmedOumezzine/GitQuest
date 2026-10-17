@@ -13,7 +13,7 @@ Date : 2026-10-17
 
 ## Résultats vérifiables
 
-- `npm test` : **40/40 PASS**.
+- `npm test` : **41/41 PASS**.
 - `npm run typecheck` : **PASS**.
 - `npm run build` : **PASS**.
 - Chrome desktop : menu, paramètres, changement de langue, niveau 1 et absence d’erreur console vérifiés.
@@ -32,6 +32,7 @@ Date : 2026-10-17
 - Le manifeste d’assets est partagé entre le préchargement et les tests ; tous les fichiers locaux demandés sont vérifiés présents.
 - Les touches d’interaction documentées (`E` et `Entrée`) sont désormais toutes liées au monde ; `T` reste réservé au terminal.
 - Un test d’extensibilité charge un niveau 7 synthétique avec sa carte Tiled et sa quête sans modification des scènes Phaser.
+- Le manifest des six niveaux et l’existence de chaque carte référencée sont vérifiés par test.
 - Les niveaux 2 et 6 ont été vérifiés visuellement après l’ajout de styles legacy distincts ; la console Chrome est restée sans erreur ni avertissement.
 - La surface Phaser expose la direction RTL lorsque l’arabe est sélectionné ; les alignements du HUD suivent déjà cette direction.
 - Vérification Chrome arabe : menu traduit, paramètres centrés, branding du menu masqué derrière le panneau, Retour fonctionnel, console à 0 erreur/0 avertissement.

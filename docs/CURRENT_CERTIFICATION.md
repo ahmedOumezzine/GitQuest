@@ -9,7 +9,7 @@ Ce document décrit l’état courant vérifié dans le dépôt. Les rapports `P
 Commandes exécutées depuis `C:\Users\ahmed\source\repos\GitQuest` :
 
 ```text
-npm test       -> 40/40 PASS
+npm test       -> 41/41 PASS
 npm run typecheck -> PASS
 npm run build  -> PASS
 ```
@@ -58,6 +58,7 @@ Cette intégration ne modifie ni les règles Git, ni l’ordre des quêtes, ni l
 - Le protocole reproductible est consigné dans `docs/CHROME_QA_RUNBOOK.md`.
 - Le contrat de touches du monde couvre `E` et `Entrée` pour interagir, ainsi que `T` pour le terminal ; il est testé dans `tests/InputBindings.test.ts`.
 - `tests/Extensibility.test.ts` charge un niveau 7 et une carte Tiled synthétiques uniquement par données, puis valide sa quête sans modifier les scènes Phaser.
+- `tests/ManifestConsistency.test.ts` vérifie que les six définitions actuelles sont exactement celles du manifest et que chaque carte référencée existe.
 
 Recheck Chrome du 17 octobre 2026 via `?qa=benchmark&qaLevel=level-XX&perf=1` à `1280×720` :
 

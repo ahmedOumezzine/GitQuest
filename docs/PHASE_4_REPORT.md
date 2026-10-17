@@ -26,7 +26,7 @@ La Phase 4 est partiellement implémentée sans modification des règles de `Git
 
 ## Tests
 
-- 40 tests unitaires passent, dont un parcours data-driven des six niveaux, un test de localisation du terminal, un test de l’historique avec espaces, une fixture de migration de sauvegarde historique, la couverture des écrans de démarrage/victoire dans les trois langues, les règles de layout tactile, la mesure runtime, la route QA du manifest, la résolution des ancres Tiled, le rejet des cartes invalides, la vérification du manifeste d’assets, le contrat des touches clavier et l’extensibilité d’un niveau 7.
+- 41 tests unitaires passent, dont un parcours data-driven des six niveaux, un test de localisation du terminal, un test de l’historique avec espaces, une fixture de migration de sauvegarde historique, la couverture des écrans de démarrage/victoire dans les trois langues, les règles de layout tactile, la mesure runtime, la route QA du manifest, la résolution des ancres Tiled, le rejet des cartes invalides, la vérification du manifeste d’assets, le contrat des touches clavier, l’extensibilité d’un niveau 7 et la cohérence du manifest de niveaux.
 - TypeScript passe.
 - Build Vite passe.
 
