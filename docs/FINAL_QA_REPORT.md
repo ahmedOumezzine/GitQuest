@@ -37,6 +37,7 @@ Date : 2026-10-17
 - Les textes des écrans Boot, erreur de preload et Victoire sont couverts par test en FR, EN et AR ; le chemin navigateur de ces états d’erreur n’a pas été provoqué artificiellement.
 - La synchronisation `html[lang]` / `html[dir]` et la direction du champ terminal sont implémentées ; le rendu arabe du menu, des paramètres et de l’introduction a été observé dans Chrome desktop.
 - Une capture avec viewport contrôlé confirme le menu et les paramètres à `1280×720`, `844×390` et `390×844`; le chevauchement du menu paysage compact a été corrigé et couvert par un test de layout.
+- L’écran de confirmation, l’introduction et la transition vers le niveau 1 ont été observés à `844×390`, avec console sans erreur. Dans le runtime arabe, `html[lang]=ar`, `html[dir]=rtl`, le canvas `dir=rtl` et une surface `844×390` ont été constatés.
 
 ## Non certifié
 

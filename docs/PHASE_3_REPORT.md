@@ -299,6 +299,8 @@ Une vérification supplémentaire avec contrôle explicite du viewport a corrig�
 
 Le placement du groupe d’actions en paysage compact est centralisé dans `calculateMenuCenterY` et couvert par un test unitaire.
 
+L’écran de confirmation, le chargement et l’introduction ont également été observés en `844×390` : le panneau de confirmation reste dans la zone sûre, l’introduction conserve ses deux actions visibles et la transition vers le niveau 1 s’effectue sans erreur console.
+
 ### Validation technique et Chrome
 
 - `npm test` : **19/19 PASS**.
