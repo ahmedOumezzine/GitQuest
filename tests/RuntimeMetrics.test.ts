@@ -15,7 +15,8 @@ test('RuntimeMetrics produit une mesure FPS après une seconde d’échantillonn
 
 test('la route QA ne sélectionne qu’un niveau présent dans le manifest', () => {
   const levels = ['level-01', 'level-02', 'level-06'];
-  assert.equal(resolveQaLevelId('?qaLevel=level-02', levels), 'level-02');
-  assert.equal(resolveQaLevelId('?qaLevel=level-07', levels), undefined);
+  assert.equal(resolveQaLevelId('?qa=benchmark&qaLevel=level-02', levels), 'level-02');
+  assert.equal(resolveQaLevelId('?qa=benchmark&qaLevel=level-07', levels), undefined);
+  assert.equal(resolveQaLevelId('?qaLevel=level-02', levels), undefined);
   assert.equal(resolveQaLevelId('', levels), undefined);
 });
