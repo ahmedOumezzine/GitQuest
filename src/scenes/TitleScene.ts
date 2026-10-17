@@ -24,7 +24,7 @@ export class TitleScene extends Phaser.Scene {
     this.session = this.registry.get('session') as GameSession;
     this.i18n = new I18nManager(this.session.locale);
     this.layout = new ResponsiveLayoutManager(this);
-    this.game.canvas?.setAttribute('dir', 'ltr');
+    this.game.canvas?.setAttribute('dir', this.i18n.direction);
     this.cameras.main.setBackgroundColor('#142944');
     this.drawBackdrop();
     this.layout.onResize(() => { if (this.backdrop) this.drawBackdrop(); });
@@ -92,7 +92,7 @@ export class TitleScene extends Phaser.Scene {
   }
 
   private changeLocale(locale: Locale): void { this.session.locale = locale; this.refreshLocale(); this.session.save(); }
-  private refreshLocale(): void { this.i18n.locale = this.session.locale; this.backdropSubtitle.setText(this.i18n.text('title')); this.mainMenu.refresh(this.session.locale); this.settingsPanel.refresh(this.session.locale, this.session.touchControlsMode); this.confirmPanel?.refresh(this.session.locale); }
+  private refreshLocale(): void { this.i18n.locale = this.session.locale; this.game.canvas?.setAttribute('dir', this.i18n.direction); this.backdropSubtitle.setText(this.i18n.text('title')); this.mainMenu.refresh(this.session.locale); this.settingsPanel.refresh(this.session.locale, this.session.touchControlsMode); this.confirmPanel?.refresh(this.session.locale); }
   private showSettings(): void { this.mainMenu.setMenuVisible(false); this.settingsPanel.setVisible(true); }
   private hideSettings(): void { this.settingsPanel.setVisible(false); this.mainMenu.setMenuVisible(true); }
   private requestNewGame(): void {

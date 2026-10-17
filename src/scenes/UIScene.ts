@@ -219,9 +219,9 @@ export class UIScene extends Phaser.Scene {
     terminalTitle?.setText(this.i18n.text('terminalTitle'));
     this.terminalHint?.setText(this.i18n.text('terminalHelp'));
     if (this.output && !this.output.text.includes('\n$ ') && !this.output.text.includes('\n! ')) this.output.setText(this.i18n.text('terminalWelcome') + '\n');
-    // Phaser positionne sa surface en coordonnées LTR ; l’alignement RTL est
-    // appliqué aux textes ci-dessus sans laisser le navigateur inverser le canvas.
-    this.game.canvas?.setAttribute('dir', 'ltr');
+    // Phaser conserve ses coordonnées de scène, mais la surface doit exposer
+    // la direction active aux lecteurs et aux outils d’intégration.
+    this.game.canvas?.setAttribute('dir', this.i18n.direction);
     this.applyLayout(this.layout.current);
   }
 
