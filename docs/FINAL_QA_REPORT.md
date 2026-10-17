@@ -18,10 +18,15 @@ Date : 2026-10-17
 - `npm run build` : **PASS**.
 - Chrome desktop : menu, paramètres, changement de langue, niveau 1 et absence d’erreur console vérifiés.
 - Niveau 1 : carte Tiled, objectif initial, collisions et rendu TilemapLayer observés.
+- Parcours frais dans Chrome sur `http://192.168.115.51:5174/?qa=fresh` : Nouvelle partie → écran de chargement à 100 % → introduction → Passer → niveau 1 vérifié.
+- Interaction réelle avec Midou vérifiée : l’objectif passe de « Parler à Midou » à « Exécuter git init ».
+- Terminal réel vérifié : `git init` est accepté et l’objectif passe à « Trouver la clé » ; la saisie clavier caractère par caractère conserve l’espace dans `git init`.
+- Sauvegarde vérifiée : après actualisation, le menu affiche Continuer et ce bouton recharge le niveau 1 avec l’objectif déjà avancé.
+- Console Chrome sur le parcours isolé : **0 erreur / 0 avertissement**.
 
 ## Non certifié
 
-- Parcours navigateur complet automatisé de Nouvelle partie jusqu’au niveau 2.
+- Parcours navigateur complet automatisé jusqu’à l’ouverture de la porte et au niveau 2 ; le parcours vérifié s’arrête après `git init`.
 - Viewports mobiles exacts et appareils tactiles physiques.
 - FPS et temps de chargement mesurés sur les six niveaux.
 - Comparaison artistique complète des six régions avec les références.
