@@ -65,8 +65,18 @@ export interface TiledMapJson {
     name: string;
     type: string;
     data?: number[];
-    objects?: Array<{ id: number; name: string; type: string; x: number; y: number; width: number; height: number }>;
+    objects?: TiledObject[];
   }>;
+}
+
+export interface TiledObject {
+  id: number;
+  name: string;
+  type: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 }
 
 export interface TiledMapData {
@@ -75,7 +85,7 @@ export interface TiledMapData {
   tileWidth: number;
   tileHeight: number;
   ground: number[];
-  decorations: Array<{ id: number; name: string; type: string; x: number; y: number; width: number; height: number }>;
-  objects: Array<{ id: number; name: string; type: string; x: number; y: number; width: number; height: number }>;
+  decorations: TiledObject[];
+  objects: TiledObject[];
   colliders: Rectangle[];
 }

@@ -3,7 +3,7 @@ import type { LevelDefinition, Point, TiledMapData } from '../models/game';
 import { EventBus } from '../core/EventBus';
 import type { GameSession } from '../core/GameSession';
 import { I18nManager } from '../managers/I18nManager';
-import { LevelManager } from '../managers/LevelManager';
+import { LevelManager, resolveTiledObjectPoint } from '../managers/LevelManager';
 import { SceneManager } from '../phaser/SceneManager';
 import { InputManager } from '../phaser/InputManager';
 import { RuntimeMetrics } from '../diagnostics/RuntimeMetrics';
@@ -141,8 +141,8 @@ export class WorldScene extends Phaser.Scene {
     const isBeach = this.level.id === 'level-01';
     const playerTexture = isBeach ? 'player-4dir' : 'player-sheet';
     const playerSize = isBeach ? 42 : 32;
-    const playerSpawn = this.resolveSafeSpawn(this.level.playerSpawn);
-    const mentorSpawn = this.resolveSafeSpawn(this.level.mentor);
+    const playerSpawn = this.resolveSafeSpawn(resolveTiledObjectPoint(this.map.objects, 'spawn', 'player-spawn', this.level.playerSpawn));
+    const mentorSpawn = this.resolveSafeSpawn(resolveTiledObjectPoint(this.map.objects, 'npc', 'midou', this.level.mentor));
     this.player = this.physics.add.sprite(playerSpawn.x, playerSpawn.y, playerTexture, 0).setDisplaySize(playerSize, playerSize).setDepth(5);
     this.player.setCollideWorldBounds(true);
     if (isBeach) {
@@ -160,12 +160,14 @@ export class WorldScene extends Phaser.Scene {
     if (isBeach) this.addWaterCollisions(obstacles);
     this.physics.add.collider(this.player, obstacles);
     this.objects = this.level.objects.filter((object) => !this.session.hasCollected(this.level.id, object.id)).map((object) => {
-      const sprite = this.physics.add.staticImage(object.position.x, object.position.y, object.kind).setDisplaySize(isBeach ? 42 : 32, isBeach ? 42 : 32).setDepth(3) as Phaser.Physics.Arcade.Image & { objectId?: string; objectKind?: string };
+      const position = resolveTiledObjectPoint(this.map.objects, object.kind, object.id, object.position);
+      const sprite = this.physics.add.staticImage(position.x, position.y, object.kind).setDisplaySize(isBeach ? 42 : 32, isBeach ? 42 : 32).setDepth(3) as Phaser.Physics.Arcade.Image & { objectId?: string; objectKind?: string };
       sprite.objectId = object.id;
       sprite.objectKind = object.kind;
       return sprite;
     });
-    this.gate = this.physics.add.staticImage(this.level.exit.position.x, this.level.exit.position.y, 'gate').setDisplaySize(isBeach ? 52 : 40, isBeach ? 58 : 44).setDepth(3);
+    const gatePosition = resolveTiledObjectPoint(this.map.objects, 'door', 'exit-gate', this.level.exit.position);
+    this.gate = this.physics.add.staticImage(gatePosition.x, gatePosition.y, 'gate').setDisplaySize(isBeach ? 52 : 40, isBeach ? 58 : 44).setDepth(3);
     this.mentor = this.add.sprite(mentorSpawn.x, mentorSpawn.y, isBeach ? 'midou-4dir' : 'midou-sheet', 0).setDisplaySize(isBeach ? 42 : 32, isBeach ? 42 : 32).setDepth(4);
     this.mentor.play(isBeach ? 'midou-idle-down' : 'midou-idle');
     if (isBeach) {

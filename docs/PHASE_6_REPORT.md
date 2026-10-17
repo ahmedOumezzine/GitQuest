@@ -11,7 +11,7 @@ Date : 2026-10-17
 - Le point d’entrée charge désormais le runtime Phaser de façon asynchrone ; le chunk initial passe à environ 2,2 kB, avec un chunk applicatif de 73 kB et Phaser isolé dans un chunk vendor d’environ 1,21 MB.
 - Le parcours navigateur réel a été prolongé jusqu’à l’écran Victoire : les six niveaux ont été parcourus dans Chrome desktop avec les commandes propres à chaque mission, les coffres, les clés, les portes et l’XP observés.
 - Un compteur optionnel `?perf=1` publie une mesure DOM lisible sans modifier le gameplay. Sur le niveau 1 à `1280×720`, Chrome a mesuré `143,99 FPS`, `6,95 ms/frame`, soit `144 frames` sur `1000 ms`.
-- Les tests `RuntimeMetrics.test.ts` vérifient le calcul déterministe du FPS et la résolution sûre de la route QA ; la suite globale compte 32 tests.
+- Les tests `RuntimeMetrics.test.ts` vérifient le calcul déterministe du FPS et la résolution sûre de la route QA ; la suite globale compte 33 tests.
 - La route QA `?qa=benchmark&qaLevel=level-XX&perf=1` permet de mesurer chaque carte sans modifier la sauvegarde ni sa progression :
 
 | Niveau | FPS | Temps/image | Échantillon |
@@ -36,9 +36,10 @@ Le build passe. L’avertissement Vite restant concerne uniquement le chunk vend
 
 Les paragraphes historiques de ce rapport décrivent l’état intermédiaire de la phase. L’état courant est le suivant :
 
-- `npm test` : **31/31 PASS** ;
+- `npm test` : **33/33 PASS** ;
 - `npm run typecheck` : **PASS** ;
 - `npm run build` : **PASS** ;
 - menu, paramètres, confirmation, introduction et HUD niveau 1 vérifiés avec viewport explicite `1280×720`, `844×390` et `390×844` ;
 - benchmark FPS réel obtenu pour le niveau 1 à `1280×720` via `?perf=1` ;
 - benchmark comparable des niveaux 2 à 6, appareil tactile physique et test navigateur automatisé dans le dépôt : **non réalisés**.
+- les ancres `Objects` des six cartes pilotent désormais les positions du joueur, de Midou et des portes ; un test vérifie leur concordance avec les définitions de niveau.

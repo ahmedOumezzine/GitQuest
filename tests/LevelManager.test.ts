@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { LevelManager, TiledMapAdapter } from '../src/managers/LevelManager';
+import { LevelManager, resolveTiledObjectPoint, TiledMapAdapter } from '../src/managers/LevelManager';
 
 test('TiledMapAdapter transforme la couche colliders en rectangles', () => {
   const map = TiledMapAdapter.fromJson({
@@ -48,6 +48,19 @@ test('TiledMapAdapter expose la couche Objects sans la mélanger aux décoration
   ] });
   assert.equal(data.decorations[0].type, 'palm');
   assert.equal(data.objects[0].type, 'spawn');
+});
+
+test('les ancres Tiled pilotent les six spawns sans modifier les coordonnées métier', async () => {
+  const { readFile } = await import('node:fs/promises');
+  for (let index = 1; index <= 6; index += 1) {
+    const suffix = String(index).padStart(2, '0');
+    const map = JSON.parse(await readFile(`public/data/maps/level-${suffix}.json`, 'utf8')) as { layers: Array<{ name: string; objects?: Array<{ id: number; name: string; type: string; x: number; y: number; width: number; height: number }> }> };
+    const level = JSON.parse(await readFile(`public/data/levels/level-${suffix}.json`, 'utf8')) as { playerSpawn: { x: number; y: number }; mentor: { x: number; y: number }; exit: { position: { x: number; y: number } } };
+    const objects = map.layers.find((layer) => layer.name === 'Objects')?.objects ?? [];
+    assert.deepEqual(resolveTiledObjectPoint(objects, 'spawn', 'player-spawn', level.playerSpawn), level.playerSpawn, `player ${suffix}`);
+    assert.deepEqual(resolveTiledObjectPoint(objects, 'npc', 'midou', level.mentor), level.mentor, `mentor ${suffix}`);
+    assert.deepEqual(resolveTiledObjectPoint(objects, 'door', 'exit-gate', level.exit.position), level.exit.position, `gate ${suffix}`);
+  }
 });
 
 test('LevelManager charge un niveau via un fetch injecté', async () => {

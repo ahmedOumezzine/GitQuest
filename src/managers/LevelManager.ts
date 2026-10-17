@@ -1,4 +1,10 @@
-import type { LevelDefinition, TiledMapData, TiledMapJson } from '../models/game';
+import type { LevelDefinition, Point, TiledMapData, TiledMapJson, TiledObject } from '../models/game';
+
+/** Resolve a named Tiled anchor while keeping a data-definition fallback. */
+export function resolveTiledObjectPoint(objects: TiledObject[], type: string, name: string, fallback: Point): Point {
+  const object = objects.find((candidate) => candidate.type.toLowerCase() === type.toLowerCase() && candidate.name.toLowerCase() === name.toLowerCase());
+  return object ? { x: object.x + object.width / 2, y: object.y + object.height / 2 } : fallback;
+}
 
 export class LevelManager {
   private readonly levels = new Map<string, LevelDefinition>();
