@@ -50,7 +50,7 @@ npm run qa:browser
 Avec le démarrage normal, vérifier au minimum :
 
 - Nouvelle partie → confirmation → chargement → introduction → Passer → niveau 1 ;
-- interaction Midou → terminal → `git init` → coffre → clé → porte ;
+- interaction réelle Midou → cristal et XP → terminal → `git init` → coffre → clé → porte → niveau 2 ;
 - Paramètres → FR/EN/AR → Retour ;
 - arabe : `html[lang]="ar"`, `html[dir]="rtl"` et champ terminal RTL ;
 - reprise après actualisation avec Continuer.
@@ -79,8 +79,8 @@ Le script `scripts/browser-smoke.mjs` démarre un serveur Vite isolé sur le por
 - le changement FR → AR et `html[dir]="rtl"` ;
 - Nouvelle partie, le chargement et l’introduction ;
 - Passer vers le niveau 1 ;
-- l’ouverture du terminal, la saisie de `git init` et la sauvegarde `localStorage` version 1 ;
-- une actualisation réelle, puis le bouton Continuer et la reprise du niveau 1 sauvegardé ;
+- l’interaction Midou, le cristal, l’XP, le terminal, `git init`, le coffre, la clé et la porte vers le niveau 2 ;
+- une actualisation réelle, puis le bouton Continuer et la reprise du niveau 2 sauvegardé ;
 - l’absence d’exception JavaScript ou d’erreur console applicative.
 
 Le test ne touche pas le profil Chrome principal. Pour un chemin non standard, définir `GITQUEST_CHROME`. Le viewport peut être contrôlé avec `GITQUEST_QA_WIDTH` et `GITQUEST_QA_HEIGHT`, par exemple :

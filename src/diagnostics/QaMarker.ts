@@ -16,3 +16,9 @@ export function markQaTouchControls(visible: boolean): void {
   if (!new URLSearchParams(window.location.search).has('qa')) return;
   document.documentElement.dataset.gitquestTouchControls = visible ? 'visible' : 'hidden';
 }
+
+export function markQaQuestStep(stepId?: string): void {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+  if (!new URLSearchParams(window.location.search).has('qa')) return;
+  document.documentElement.dataset.gitquestQuestStep = stepId ?? 'complete';
+}

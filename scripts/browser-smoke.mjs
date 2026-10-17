@@ -106,12 +106,30 @@ async function waitForState(cdp, expected, timeoutMs = 12000) {
   throw new Error(`État QA attendu « ${expected} », obtenu « ${state} »`);
 }
 
-const keyCodes = { Escape: ['Escape', 27], Enter: ['Enter', 13], s: ['KeyS', 83], n: ['KeyN', 78], t: ['KeyT', 84] };
+const keyCodes = { Escape: ['Escape', 27], Enter: ['Enter', 13], ArrowLeft: ['ArrowLeft', 37], ArrowRight: ['ArrowRight', 39], ArrowUp: ['ArrowUp', 38], ArrowDown: ['ArrowDown', 40], s: ['KeyS', 83], n: ['KeyN', 78], t: ['KeyT', 84], e: ['KeyE', 69] };
 async function key(cdp, keyValue) {
   const [code, windowsVirtualKeyCode] = keyCodes[keyValue] ?? [`Key${keyValue.toUpperCase()}`, keyValue.toUpperCase().charCodeAt(0)];
   const keyName = keyValue.length === 1 ? keyValue.toUpperCase() : keyValue;
   await cdp.send('Input.dispatchKeyEvent', { type: 'keyDown', key: keyName, code, windowsVirtualKeyCode });
   await cdp.send('Input.dispatchKeyEvent', { type: 'keyUp', key: keyName, code, windowsVirtualKeyCode });
+}
+
+async function holdKey(cdp, keyValue, durationMs) {
+  const [code, windowsVirtualKeyCode] = keyCodes[keyValue] ?? [`Key${keyValue.toUpperCase()}`, keyValue.toUpperCase().charCodeAt(0)];
+  await cdp.send('Input.dispatchKeyEvent', { type: 'keyDown', key: keyValue, code, windowsVirtualKeyCode });
+  await new Promise((resolve) => setTimeout(resolve, durationMs));
+  await cdp.send('Input.dispatchKeyEvent', { type: 'keyUp', key: keyValue, code, windowsVirtualKeyCode });
+}
+
+async function waitForQuestStep(cdp, expected, timeoutMs = 5000) {
+  const started = Date.now();
+  while (Date.now() - started < timeoutMs) {
+    const step = await cdp.evaluate('document.documentElement.dataset.gitquestQuestStep ?? ""');
+    if (step === expected) return;
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  const step = await cdp.evaluate('document.documentElement.dataset.gitquestQuestStep ?? ""');
+  throw new Error(`Étape de quête attendue « ${expected} », obtenue « ${step} »`);
 }
 
 async function click(cdp, x, y) {
@@ -283,15 +301,45 @@ try {
   await clickIntroductionSkip(cdp);
   await waitForState(cdp, 'world');
 
+  await waitForQuestStep(cdp, 'talk-midou');
+  await holdKey(cdp, 'ArrowRight', 460);
+  await holdKey(cdp, 'ArrowUp', 430);
+  await key(cdp, 'e');
+  await waitForQuestStep(cdp, 'run-init');
+
+  await holdKey(cdp, 'ArrowLeft', 620);
+  await holdKey(cdp, 'ArrowDown', 1350);
+  await key(cdp, 'e');
+  const crystalSave = await cdp.evaluate('JSON.parse(localStorage.getItem("gitquest-save") ?? "null")');
+  if (!crystalSave?.collectedObjects?.['level-01']?.includes('memory-crystal') || crystalSave.xp?.total < 10) throw new Error('Le cristal ou son XP n’est pas persisté après une interaction réelle.');
+
   await key(cdp, 't');
   await waitForState(cdp, 'terminal');
   await new Promise((resolve) => setTimeout(resolve, 150));
   await cdp.send('Input.insertText', { text: 'git init' });
   await key(cdp, 'Enter');
+  await waitForQuestStep(cdp, 'collect-key');
   const save = await cdp.evaluate('JSON.parse(localStorage.getItem("gitquest-save") ?? "null")');
   if (!save || save.version !== 1 || save.levelId !== 'level-01' || !save.git?.initialized) throw new Error('La sauvegarde ou git init n’est pas confirmé par le navigateur.');
   await key(cdp, 'Escape');
   await waitForState(cdp, 'world');
+  await holdKey(cdp, 'ArrowUp', 1000);
+  await holdKey(cdp, 'ArrowRight', 4300);
+  await holdKey(cdp, 'ArrowDown', 1000);
+  await key(cdp, 'e');
+  await waitForQuestStep(cdp, 'open-exit');
+  const keySave = await cdp.evaluate('JSON.parse(localStorage.getItem("gitquest-save") ?? "null")');
+  if (!keySave?.inventory?.items?.includes('pass-key') || keySave.xp?.total < 60) throw new Error('Le coffre, la clé ou l’XP du niveau 1 n’est pas confirmé.');
+  await holdKey(cdp, 'ArrowUp', 850);
+  await holdKey(cdp, 'ArrowRight', 850);
+  await key(cdp, 'e');
+  const levelStarted = Date.now();
+  let nextLevel = await cdp.evaluate('document.documentElement.dataset.gitquestLevel ?? ""');
+  while (nextLevel !== 'level-02' && Date.now() - levelStarted < 5000) {
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    nextLevel = await cdp.evaluate('document.documentElement.dataset.gitquestLevel ?? ""');
+  }
+  if (nextLevel !== 'level-02') throw new Error(`Le niveau 2 n’a pas été chargé après l’ouverture de la porte : ${nextLevel}`);
   await cdp.send('Page.reload', { ignoreCache: true });
   await waitForState(cdp, 'title');
   // With an existing save the compact landscape layout has three buttons;
@@ -299,11 +347,11 @@ try {
   await clickMenuButton(cdp, 1, 3);
   await waitForState(cdp, 'world');
   const resumed = await cdp.evaluate('JSON.parse(localStorage.getItem("gitquest-save") ?? "null")');
-  if (!resumed || resumed.version !== 1 || resumed.levelId !== 'level-01' || !resumed.git?.initialized) {
+  if (!resumed || resumed.version !== 1 || resumed.levelId !== 'level-02' || !resumed.git?.initialized || resumed.xp?.total < 60) {
     throw new Error('La reprise après actualisation n’a pas restauré la partie sauvegardée.');
   }
   if (consoleErrors.length) throw new Error(`Erreurs navigateur : ${consoleErrors.join(' | ')}`);
-  console.log('QA navigateur PASS: menu, paramètres, RTL, nouvelle partie, chargement, introduction, niveau 1, terminal, sauvegarde et reprise après actualisation.');
+  console.log('QA navigateur PASS: menu, paramètres, RTL, Midou, cristal, git init, coffre, clé, porte, niveau 2, sauvegarde et reprise après actualisation.');
   }
 } finally {
   cdp?.socket.close();

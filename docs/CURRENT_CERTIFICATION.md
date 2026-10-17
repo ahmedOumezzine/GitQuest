@@ -61,7 +61,7 @@ Cette intégration ne modifie ni les règles Git, ni l’ordre des quêtes, ni l
 - Le contrat de touches du monde couvre `E` et `Entrée` pour interagir, ainsi que `T` pour le terminal ; il est testé dans `tests/InputBindings.test.ts`.
 - `tests/Extensibility.test.ts` charge un niveau 7 et une carte Tiled synthétiques uniquement par données, puis valide sa quête sans modifier les scènes Phaser.
 - `tests/ManifestConsistency.test.ts` vérifie que les six définitions actuelles sont exactement celles du manifest et que chaque carte référencée existe.
-- `npm run qa:browser` exécute un smoke test Chrome/Edge headless versionné via `scripts/browser-smoke.mjs` ; il couvre le menu, les paramètres, le RTL, Nouvelle partie, l’introduction, le niveau 1, le terminal, la sauvegarde et la reprise après actualisation. `GITQUEST_QA_WIDTH`, `GITQUEST_QA_HEIGHT` et `GITQUEST_QA_TOUCH=1` permettent la matrice responsive et l’émulation tactile.
+- `npm run qa:browser` exécute un smoke test Chrome/Edge headless versionné via `scripts/browser-smoke.mjs` ; il couvre le menu, les paramètres, le RTL, Nouvelle partie, l’introduction, Midou, le cristal, l’XP, le terminal, `git init`, le coffre, la clé, la porte, le chargement du niveau 2 et la reprise après actualisation. `GITQUEST_QA_WIDTH`, `GITQUEST_QA_HEIGHT` et `GITQUEST_QA_TOUCH=1` permettent la matrice responsive et l’émulation tactile.
 
 Recheck headless direct des cartes legacy le 17 octobre 2026, avec `npm run qa:browser` et `GITQUEST_QA_LEVEL=level-XX` :
 

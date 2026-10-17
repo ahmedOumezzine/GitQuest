@@ -8,7 +8,7 @@ import type { GitCommandResult } from '../systems/GitSimulator';
 import { TerminalInputModel } from '../systems/TerminalInputModel';
 import { ResponsiveLayoutManager, type LayoutMetrics } from '../ui/layout/ResponsiveLayoutManager';
 import { UITheme } from '../ui/theme/UITheme';
-import { markQaState, markQaTouchControls } from '../diagnostics/QaMarker';
+import { markQaQuestStep, markQaState, markQaTouchControls } from '../diagnostics/QaMarker';
 
 export class UIScene extends Phaser.Scene {
   private session!: GameSession;
@@ -282,6 +282,7 @@ export class UIScene extends Phaser.Scene {
     this.stats.setOrigin(rtl ? 0 : 1, 0).setStyle({ align: rtl ? 'left' : 'right' });
     const quest = this.world.activeQuest;
     const step = quest?.currentStep;
+    markQaQuestStep(step?.id);
     this.levelTitle.setText(this.i18n.localized(this.level.title));
     this.objective.setText(this.i18n.text('objective') + ' : ' + this.i18n.localized(this.level.quest.title) + ' · ' + (step ? this.i18n.stepLabel(step.id) : this.i18n.text('missionDone')));
     this.stats.setText(this.i18n.text('xp') + ': ' + this.session.xp.value);

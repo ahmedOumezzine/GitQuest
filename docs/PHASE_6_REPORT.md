@@ -12,6 +12,7 @@ Date : 2026-10-17
 - Un test de progression générique couvre les six définitions de niveau, leurs commandes Git, la clé et l’ouverture de porte au niveau logique.
 - Le point d’entrée charge désormais le runtime Phaser de façon asynchrone ; le chunk initial passe à environ 2,2 kB, avec un chunk applicatif de 73 kB et Phaser isolé dans un chunk vendor d’environ 1,21 MB.
 - Le parcours navigateur réel a été prolongé jusqu’à l’écran Victoire : les six niveaux ont été parcourus dans Chrome desktop avec les commandes propres à chaque mission, les coffres, les clés, les portes et l’XP observés.
+- Le smoke test Chrome versionné automatise maintenant le parcours métier du niveau 1 : Midou, cristal, XP, terminal `git init`, coffre, clé, porte, chargement du niveau 2, actualisation et reprise sauvegardée.
 - Un compteur optionnel `?perf=1` publie une mesure DOM lisible sans modifier le gameplay. Sur le niveau 1 à `1280×720`, Chrome a mesuré `143,99 FPS`, `6,95 ms/frame`, soit `144 frames` sur `1000 ms`.
 - Les tests `RuntimeMetrics.test.ts` vérifient le calcul déterministe du FPS et la résolution sûre de la route QA ; la suite globale compte 42 tests.
 - La route QA `?qa=benchmark&qaLevel=level-XX&perf=1` permet de mesurer chaque carte sans modifier la sauvegarde ni sa progression :
