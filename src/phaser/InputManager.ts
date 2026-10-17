@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import type { Point } from '../models/game';
 import { calculateTouchLayout, type LayoutMetrics } from '../ui/layout/ResponsiveLayoutManager';
+import { interactionKeyEvents, terminalKeyEvent } from './InputBindings';
 
 export class InputManager {
   private readonly cursors: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -17,8 +18,8 @@ export class InputManager {
     this.cursors = scene.input.keyboard!.createCursorKeys();
     this.keys = scene.input.keyboard!.addKeys('W,A,S,D') as Record<string, Phaser.Input.Keyboard.Key>;
     if (bindKeyboard) {
-      scene.input.keyboard!.on('keydown-E', onInteract);
-      scene.input.keyboard!.on('keydown-T', onTerminal);
+      interactionKeyEvents.forEach((eventName) => scene.input.keyboard!.on(eventName, onInteract));
+      scene.input.keyboard!.on(terminalKeyEvent, onTerminal);
     }
     scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       scene.input.off('pointermove', this.handlePointerMove, this);

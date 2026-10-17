@@ -9,7 +9,7 @@ Ce document décrit l’état courant vérifié dans le dépôt. Les rapports `P
 Commandes exécutées depuis `C:\Users\ahmed\source\repos\GitQuest` :
 
 ```text
-npm test       -> 38/38 PASS
+npm test       -> 39/39 PASS
 npm run typecheck -> PASS
 npm run build  -> PASS
 ```
@@ -56,6 +56,7 @@ Cette intégration ne modifie ni les règles Git, ni l’ordre des quêtes, ni l
 - Benchmark QA des six niveaux à `1280×720` : environ `137,99` à `144,02 FPS`, sans erreur ni avertissement applicatif.
 - Vérification visuelle ciblée des niveaux 2 et 6 après la passe legacy : palettes, chemins, obstacles décorés, props et titres distincts ; console Chrome à 0 erreur / 0 avertissement.
 - Le protocole reproductible est consigné dans `docs/CHROME_QA_RUNBOOK.md`.
+- Le contrat de touches du monde couvre `E` et `Entrée` pour interagir, ainsi que `T` pour le terminal ; il est testé dans `tests/InputBindings.test.ts`.
 
 Ces vérifications ont été réalisées dans Chrome desktop via l’outil d’interface ; elles ne constituent pas un test sur appareil tactile réel ni un runner navigateur versionné.
 
