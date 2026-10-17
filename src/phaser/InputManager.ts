@@ -4,6 +4,7 @@ import { calculateTouchLayout, type LayoutMetrics } from '../ui/layout/Responsiv
 import { interactionKeyEvents, terminalKeyEvent } from './InputBindings';
 
 export class InputManager {
+  private static readonly touchButtonRadius = 36;
   private readonly cursors: Phaser.Types.Input.Keyboard.CursorKeys;
   private readonly keys: Record<string, Phaser.Input.Keyboard.Key>;
   private readonly touchButtons: Phaser.GameObjects.Text[] = [];
@@ -54,9 +55,29 @@ export class InputManager {
     this.touchPad.on('pointerdown', (pointer: Phaser.Input.Pointer) => { this.touchPointerId = pointer.id; this.updateJoystick(pointer.x, pointer.y); });
     this.scene.input.on('pointerup', this.handlePointerUp, this);
     this.scene.input.on('pointerupoutside', this.handlePointerUp, this);
-    this.touchAction = this.scene.add.text(870, 465, 'E', { fontFamily: 'monospace', fontSize: '20px', color: '#18233e', backgroundColor: '#f7c84b', padding: { x: 12, y: 12 }, align: 'center' }).setOrigin(0.5).setDepth(30).setInteractive(new Phaser.Geom.Rectangle(-22, -22, 44, 44), Phaser.Geom.Rectangle.Contains);
+    const buttonRadius = InputManager.touchButtonRadius;
+    const touchHitArea = new Phaser.Geom.Rectangle(-buttonRadius, -buttonRadius, buttonRadius * 2, buttonRadius * 2);
+    this.touchAction = this.scene.add.text(870, 465, 'E', {
+      fontFamily: 'monospace',
+      fontSize: '26px',
+      color: '#18233e',
+      backgroundColor: '#f7c84b',
+      padding: { x: 20, y: 16 },
+      align: 'center',
+      stroke: '#fff0a8',
+      strokeThickness: 1,
+    }).setOrigin(0.5).setDepth(30).setInteractive(touchHitArea, Phaser.Geom.Rectangle.Contains);
     this.touchAction.on('pointerdown', interact);
-    this.touchTerminal = this.scene.add.text(870, 395, 'T', { fontFamily: 'monospace', fontSize: '20px', color: '#fff6df', backgroundColor: '#18233e', padding: { x: 12, y: 12 }, align: 'center' }).setOrigin(0.5).setDepth(30).setInteractive(new Phaser.Geom.Rectangle(-22, -22, 44, 44), Phaser.Geom.Rectangle.Contains);
+    this.touchTerminal = this.scene.add.text(870, 395, 'T', {
+      fontFamily: 'monospace',
+      fontSize: '26px',
+      color: '#fff6df',
+      backgroundColor: '#18233e',
+      padding: { x: 20, y: 16 },
+      align: 'center',
+      stroke: '#7e9bd1',
+      strokeThickness: 1,
+    }).setOrigin(0.5).setDepth(30).setInteractive(new Phaser.Geom.Rectangle(-buttonRadius, -buttonRadius, buttonRadius * 2, buttonRadius * 2), Phaser.Geom.Rectangle.Contains);
     this.touchTerminal.on('pointerdown', this.onTerminal);
   }
 
