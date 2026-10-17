@@ -30,6 +30,7 @@ export class WorldScene extends Phaser.Scene {
   private playerAccent?: Phaser.GameObjects.Image;
   private mentorAccent?: Phaser.GameObjects.Image;
   private shrineLabels: Phaser.GameObjects.Text[] = [];
+  private worldTitle?: Phaser.GameObjects.Text;
   private runtimeMetrics?: RuntimeMetrics;
   private publishedRuntimeSample = 0;
 
@@ -123,7 +124,7 @@ export class WorldScene extends Phaser.Scene {
     this.map.colliders.forEach((rect) => this.drawLegacyObstacle(rect, style.obstacle));
     this.addLegacyProps(style.propKeys, worldWidth, worldHeight);
     this.map.decorations.forEach((definition) => this.addLegacyDecoration(definition.type, definition.x, definition.y));
-    this.add.text(28, 26, new I18nManager(this.session.locale).localized(this.level.title), { fontFamily: 'monospace', fontSize: '22px', color: '#fff6df', stroke: '#18233e', strokeThickness: 5 }).setDepth(10);
+    this.worldTitle = this.add.text(28, 26, new I18nManager(this.session.locale).localized(this.level.title), { fontFamily: 'monospace', fontSize: '22px', color: '#fff6df', stroke: '#18233e', strokeThickness: 5 }).setDepth(10);
   }
 
   private drawLegacyObstacle(rect: { x: number; y: number; width: number; height: number }, kind: ReturnType<typeof getLegacyWorldStyle>['obstacle']): void {
@@ -159,7 +160,7 @@ export class WorldScene extends Phaser.Scene {
     for (let row = 0; row < this.map.height; row += 1) rows.push(this.map.ground.slice(row * this.map.width, (row + 1) * this.map.width));
     const tilemap = this.make.tilemap({ data: rows, tileWidth: this.map.tileWidth, tileHeight: this.map.tileHeight });
     const tileset = tilemap.addTilesetImage('beach-tileset', 'beach-tileset', this.map.tileWidth, this.map.tileHeight, 0, 0);
-    if (tileset) tilemap.createLayer(0, tileset, 0, 0)?.setDepth(0);
+    if (tileset) tilemap.createLayer(0, tileset, 0, 0)?.setDepth(0).setCullPadding(0, 0);
     this.map.decorations.forEach((definition) => {
       const key = ['palm', 'rock', 'grass', 'ruin', 'shrine', 'shrine-glow', 'wave', 'flower', 'shell'].includes(definition.type) ? definition.type : undefined;
       if (!key) return;
@@ -349,6 +350,7 @@ export class WorldScene extends Phaser.Scene {
   private refreshLocalizedScene(): void {
     const i18n = new I18nManager(this.session.locale);
     i18n.applyDirection(this.game.canvas);
+    this.worldTitle?.setText(i18n.localized(this.level.title));
     this.shrineLabels.forEach((label) => label.setText(i18n.text('shrine')));
   }
 

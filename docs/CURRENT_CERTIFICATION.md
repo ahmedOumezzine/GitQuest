@@ -74,7 +74,7 @@ Recheck headless direct des cartes legacy le 17 octobre 2026, avec `npm run qa:b
 
 Cette série vérifie le rendu de chaque région après l’ajout des fonds raster locaux et le remplacement des anciens obstacles graphiques par des textures Phaser répétées. Elle ne certifie pas encore une finition complète en tilesets 32×32 ni un appareil tactile physique.
 
-Un recheck à viewport exact `1280×720` a mesuré les six niveaux à `49,18–57,05 FPS` dans Chrome headless avec GPU désactivé, sans erreur console. Le niveau 1 est le point bas à `49,18 FPS` ; aucune optimisation supplémentaire n’est déclarée terminée sur ce point.
+Un recheck à viewport exact `1280×720` après culling explicite de la couche Tiled a mesuré les six niveaux à `56,07–57,05 FPS` dans Chrome headless avec GPU désactivé, sans erreur console. Le niveau 1 est passé de `49,18` à `57,00 FPS` dans la même campagne.
 
 Recheck Chrome du 17 octobre 2026 via `?qa=benchmark&qaLevel=level-XX&perf=1` à `1280×720` :
 
