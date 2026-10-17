@@ -22,6 +22,8 @@ export class InputManager {
       scene.input.keyboard!.on(terminalKeyEvent, onTerminal);
     }
     scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      interactionKeyEvents.forEach((eventName) => scene.input.keyboard?.off(eventName, onInteract));
+      scene.input.keyboard?.off(terminalKeyEvent, onTerminal);
       scene.input.off('pointermove', this.handlePointerMove, this);
       scene.input.off('pointerup', this.handlePointerUp, this);
       scene.input.off('pointerupoutside', this.handlePointerUp, this);
