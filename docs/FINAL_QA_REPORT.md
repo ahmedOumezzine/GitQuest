@@ -13,7 +13,7 @@ Date : 2026-10-17
 
 ## Résultats vérifiables
 
-- `npm test` : **37/37 PASS**.
+- `npm test` : **38/38 PASS**.
 - `npm run typecheck` : **PASS**.
 - `npm run build` : **PASS**.
 - Chrome desktop : menu, paramètres, changement de langue, niveau 1 et absence d’erreur console vérifiés.
@@ -28,6 +28,7 @@ Date : 2026-10-17
 - Les six cartes JSON Tiled ont été vérifiées par test sur les couches `Ground`, `Decorations`, `Collisions`, `Objects`, le spawn, Midou et la porte.
 - Les positions Tiled des six spawns, de Midou et des portes sont maintenant consommées par `WorldScene`, avec repli explicite sur les définitions de niveau ; leur concordance est couverte par un test.
 - Le chargeur refuse une carte Tiled incomplète ou une couche `Ground` incohérente avec une erreur explicite ; ce cas est couvert par test.
+- Le chargeur vérifie également le type attendu de chaque couche Tiled ; le cas incompatible est couvert par test.
 - Le manifeste d’assets est partagé entre le préchargement et les tests ; tous les fichiers locaux demandés sont vérifiés présents.
 - Les niveaux 2 et 6 ont été vérifiés visuellement après l’ajout de styles legacy distincts ; la console Chrome est restée sans erreur ni avertissement.
 - La surface Phaser expose la direction RTL lorsque l’arabe est sélectionné ; les alignements du HUD suivent déjà cette direction.

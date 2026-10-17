@@ -9,7 +9,7 @@ Ce document décrit l’état courant vérifié dans le dépôt. Les rapports `P
 Commandes exécutées depuis `C:\Users\ahmed\source\repos\GitQuest` :
 
 ```text
-npm test       -> 37/37 PASS
+npm test       -> 38/38 PASS
 npm run typecheck -> PASS
 npm run build  -> PASS
 ```
@@ -39,6 +39,8 @@ Le build conserve un avertissement connu sur le chunk Phaser vendor (`1 208 kB` 
 Une définition de niveau reste le repli explicite si une ancienne carte n’a pas encore l’ancre concernée. Le test `LevelManager.test.ts` vérifie les six cartes et garantit que les coordonnées Tiled correspondent aux coordonnées métier actuelles.
 
 Le même chargeur vérifie désormais les quatre couches obligatoires et la taille de `Ground`. Une carte incomplète est refusée avec une erreur exploitable par l’écran de chargement ; cette régression est couverte par un test dédié.
+
+Le type de chaque couche est également contrôlé (`tilelayer` pour `Ground`, `objectgroup` pour `Decorations`, `Collisions` et `Objects`).
 
 Le manifeste `src/data/AssetManifest.ts` est partagé par le préchargement et les tests ; tous les fichiers référencés sont présents localement et les spritesheets respectent la grille 32×32.
 

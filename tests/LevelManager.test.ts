@@ -94,3 +94,18 @@ test('LevelManager refuse une carte Tiled incomplète avec une erreur exploitabl
   const level = { id: 'level-07', order: 7, title: { fr: 'Nouveau niveau' }, map: { path: '/map.json' }, theme: { sky: '#000', ground: '#111', accent: '#fff' }, playerSpawn: { x: 1, y: 1 }, mentor: { x: 2, y: 2 }, objects: [], dialogues: [], quest: { id: 'q7', title: { fr: 'Q7' }, steps: [{ id: 'exit', kind: 'open-exit' }] }, gitCommands: [], key: { itemId: 'key', objectId: 'chest' }, exit: { position: { x: 3, y: 3 }, requiredItemId: 'key' } } as never;
   await assert.rejects(() => manager.loadMap(level), /Couches Tiled manquantes/);
 });
+
+test('LevelManager refuse une couche Tiled avec un type incompatible', async () => {
+  const fetcher: typeof fetch = async () => new Response(JSON.stringify({
+    width: 2, height: 2, tilewidth: 32, tileheight: 32,
+    layers: [
+      { name: 'Ground', type: 'objectgroup', objects: [] },
+      { name: 'Decorations', type: 'objectgroup', objects: [] },
+      { name: 'Collisions', type: 'objectgroup', objects: [] },
+      { name: 'Objects', type: 'objectgroup', objects: [] },
+    ],
+  }));
+  const manager = new LevelManager('/index.json', fetcher);
+  const level = { id: 'level-08', map: { path: '/map.json' } } as never;
+  await assert.rejects(() => manager.loadMap(level), /Types de couches Tiled invalides/);
+});

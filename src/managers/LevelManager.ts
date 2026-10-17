@@ -64,14 +64,16 @@ export class LevelManager {
   }
 
   private validateMap(map: TiledMapJson, levelId: string): void {
-    if (!Number.isInteger(map.width) || !Number.isInteger(map.height) || map.width <= 0 || map.height <= 0 || !Number.isInteger(map.tilewidth) || !Number.isInteger(map.tileheight) || map.tilewidth <= 0 || map.tileheight <= 0 || !Array.isArray(map.layers)) {
+    if (!map || !Number.isInteger(map.width) || !Number.isInteger(map.height) || map.width <= 0 || map.height <= 0 || !Number.isInteger(map.tilewidth) || !Number.isInteger(map.tileheight) || map.tilewidth <= 0 || map.tileheight <= 0 || !Array.isArray(map.layers) || map.layers.some((layer) => !layer || typeof layer.name !== 'string' || typeof layer.type !== 'string')) {
       throw new Error('Schéma Tiled invalide pour ' + levelId + '.');
     }
-    const required = ['ground', 'decorations', 'collisions', 'objects'];
-    const names = new Set(map.layers.map((layer) => layer.name.toLowerCase()));
-    const missing = required.filter((name) => !names.has(name));
+    const required: Record<string, string> = { ground: 'tilelayer', decorations: 'objectgroup', collisions: 'objectgroup', objects: 'objectgroup' };
+    const layerByName = new Map(map.layers.map((layer) => [layer.name.toLowerCase(), layer]));
+    const missing = Object.keys(required).filter((name) => !layerByName.has(name));
     if (missing.length) throw new Error('Couches Tiled manquantes pour ' + levelId + ' : ' + missing.join(', ') + '.');
-    const ground = map.layers.find((layer) => layer.name.toLowerCase() === 'ground');
+    const wrongType = Object.entries(required).filter(([name, type]) => layerByName.get(name)?.type.toLowerCase() !== type).map(([name]) => name);
+    if (wrongType.length) throw new Error('Types de couches Tiled invalides pour ' + levelId + ' : ' + wrongType.join(', ') + '.');
+    const ground = layerByName.get('ground');
     if (ground?.data?.length && ground.data.length !== map.width * map.height) {
       throw new Error('Couche Ground Tiled incohérente pour ' + levelId + '.');
     }
