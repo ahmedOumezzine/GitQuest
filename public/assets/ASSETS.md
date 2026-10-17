@@ -8,6 +8,8 @@ Les cartes Tiled exposent les couches Ground, Decorations, Collisions et Objects
 
 Les musiques et bruitages ne sont pas encore fournis dans cette base. Les scènes prévoient un point d'intégration via AudioManager lors d'une prochaine étape.
 
+Le manifeste de chargement Phaser est centralisé dans `src/data/AssetManifest.ts`. Le test `tests/AssetManifest.test.ts` vérifie que chaque fichier demandé par `PreloadScene` existe dans `public/assets` et que les spritesheets utilisent une grille de 32×32.
+
 ## Assets UI — Phase 3, étape B
 
 Les fichiers `ui/menu-background.svg`, `ui/menu-logo.svg`, `ui/menu-subtitle.svg`, `ui/menu-button-gold.svg`, `ui/menu-button-navy.svg` et `ui/menu-panel.svg` ont été créés localement pour GitQuest pendant l’étape B.

@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { I18nManager } from '../managers/I18nManager';
 import type { LevelDefinition } from '../models/game';
 import { resolveQaLevelId } from '../diagnostics/QaRoute';
+import { imageAssets, spriteSheetAssets } from '../data/AssetManifest';
 
 type SessionLike = { locale?: import('../models/game').Locale };
 
@@ -15,18 +16,8 @@ export class PreloadScene extends Phaser.Scene {
     this.i18n = new I18nManager(session?.locale ?? 'fr');
     this.i18n.applyDirection(this.game.canvas);
     this.load.on('loaderror', (file: Phaser.Loader.File) => { this.loadError = this.i18n.text('assetMissing') + ' : ' + file.key + ' (' + file.url + ')'; });
-    const base = '/assets/sprites/';
-    const ui = '/assets/ui/';
-    ['menu-background', 'menu-logo', 'menu-subtitle', 'menu-button-gold', 'menu-button-navy', 'menu-panel'].forEach((name) => this.load.image(name, ui + name + '.svg'));
-    this.load.image('menu-background-v2', ui + 'menu-background-v2.png');
-    this.load.image('island-tileset', '/assets/tilesets/island-tileset.svg');
-    this.load.spritesheet('beach-tileset', '/assets/tilesets/beach-tileset.svg', { frameWidth: 32, frameHeight: 32 });
-    ['player', 'midou', 'chest', 'crystal', 'scroll', 'gate', 'key'].forEach((name) => this.load.image(name, base + name + '.svg'));
-    ['palm', 'rock', 'grass', 'ruin', 'shrine', 'shrine-glow', 'lighthouse', 'wave', 'flower', 'shell', 'player-scarf', 'midou-staff'].forEach((name) => this.load.image(name, base + name + '.svg'));
-    this.load.spritesheet('player-sheet', base + 'player-sheet.svg', { frameWidth: 32, frameHeight: 32 });
-    this.load.spritesheet('midou-sheet', base + 'midou-sheet.svg', { frameWidth: 32, frameHeight: 32 });
-    this.load.spritesheet('player-4dir', base + 'player-4dir.svg', { frameWidth: 32, frameHeight: 32 });
-    this.load.spritesheet('midou-4dir', base + 'midou-4dir.svg', { frameWidth: 32, frameHeight: 32 });
+    imageAssets.forEach((asset) => this.load.image(asset.key, asset.path));
+    spriteSheetAssets.forEach((asset) => this.load.spritesheet(asset.key, asset.path, { frameWidth: asset.frameWidth, frameHeight: asset.frameHeight }));
     this.add.text(480, 270, 'GITQUEST', { fontFamily: 'monospace', fontSize: '32px', color: '#f7d56a' }).setOrigin(0.5);
   }
 
