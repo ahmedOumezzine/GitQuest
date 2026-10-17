@@ -31,11 +31,11 @@ Les chemins relatifs des tilesets Tiled restent compatibles avec les cartes JSON
 
 - Le remote `origin` pointe vers le dépôt attendu.
 - La vérification réseau confirme qu’aucune branche distante n’est encore présente avant le premier push.
-- Commit : à renseigner après création.
-- Push `main` : à renseigner après exécution.
-- GitHub Actions : à vérifier après le push.
-- Site public : à vérifier après le succès du workflow.
+- Commit initial : `c4c6aa58541152cdbf46630d0a5f4c288d085aea`.
+- Push `main` : **PASS**, sans force push.
+- Workflow GitHub Actions : **PASS**, run `39074311070`, conclusion `success`.
+- Site public : **accessible**, titre `GitQuest — L'île des commits` affiché sur l’URL Pages.
 
 ## Limites honnêtes
 
-Le workflow et le build Pages sont préparés et validés localement. La publication ne sera considérée comme réussie qu’après confirmation du workflow GitHub Actions et ouverture réelle de l’URL publique. Aucun token, secret ou fichier `.env` n’est inclus dans le commit.
+Le smoke test public confirme le chargement initial de la page et du canvas. Le parcours complet reste couvert par le QA Chrome local ; une vérification manuelle complémentaire des interactions directement sur le domaine public reste recommandée après mise en cache du navigateur. Aucun token, secret ou fichier `.env` n’est inclus dans le commit.
