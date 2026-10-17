@@ -14,6 +14,6 @@ Date : 2026-10-17
 
 ## Mesures et limites
 
-Aucune mesure FPS automatisée ni benchmark runtime des six niveaux n’a été exécuté. Les niveaux 2 à 6 restent fonctionnels via leur rendu générique, mais ne disposent pas encore d’une finition artistique équivalente au niveau 1. Le parcours complet a été vérifié manuellement dans Chrome desktop, pas sous un runner navigateur automatisé.
+Aucune mesure FPS automatisée ni benchmark runtime des six niveaux n’a été exécuté. L’API d’évaluation navigateur disponible pour cette session expose le DOM mais pas `performance` ni `requestAnimationFrame`, donc elle ne permet pas de produire honnêtement un FPS. Les niveaux 2 à 6 restent fonctionnels via leur rendu générique, mais ne disposent pas encore d’une finition artistique équivalente au niveau 1. Le parcours complet a été vérifié manuellement dans Chrome desktop, pas sous un runner navigateur automatisé.
 
 Le build passe. L’avertissement Vite restant concerne uniquement le chunk vendor Phaser (environ 1,21 MB minifié, 332 kB gzip) ; le code GitQuest et son point d’entrée sont désormais découpés.

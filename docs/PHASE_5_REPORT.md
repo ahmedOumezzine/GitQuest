@@ -26,4 +26,6 @@ Le parcours tactile réel et l’affichage des contrôles sur appareils physique
 - 768×1024
 - 1024×768
 
+Le HUD du niveau 1 a toutefois été observé en français à `844×390` : titre, objectif, XP, langues, journal et aide de contrôle restent visibles sans chevauchement, avec console Chrome sans erreur.
+
 Ils restent à certifier manuellement ou avec une matrice navigateur disposant d’un contrôle explicite du viewport.
