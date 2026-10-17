@@ -28,6 +28,7 @@ Date : 2026-10-17
 - Les six cartes JSON Tiled ont été vérifiées par test sur les couches `Ground`, `Decorations`, `Collisions`, `Objects`, le spawn, Midou et la porte.
 - La surface Phaser expose la direction RTL lorsque l’arabe est sélectionné ; les alignements du HUD suivent déjà cette direction.
 - Vérification Chrome arabe : menu traduit, paramètres centrés, branding du menu masqué derrière le panneau, Retour fonctionnel, console à 0 erreur/0 avertissement.
+- Chargement asynchrone vérifié dans Chrome après découpage Vite : le menu démarre correctement et la console reste sans erreur.
 - Console Chrome sur le parcours isolé : **0 erreur / 0 avertissement**.
 
 ## Non certifié

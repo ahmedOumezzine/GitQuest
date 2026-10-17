@@ -1,6 +1,9 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  build: { chunkSizeWarningLimit: 1200 },
+  build: {
+    chunkSizeWarningLimit: 1200,
+    rollupOptions: { output: { manualChunks: { phaser: ['phaser'] } } },
+  },
   server: { host: 'localhost', port: 5173 },
 });
