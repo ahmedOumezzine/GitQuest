@@ -312,5 +312,6 @@ Il subsiste une différence avec la référence : le joueur et Midou utilisent e
 - Le niveau 1 conserve ses cartes, collisions, spawns, objets, sanctuaire, clé, porte et progression Git.
 - Le sol de la plage est rendu par un `TilemapLayer` Phaser pour éviter un GameObject par tuile.
 - Les erreurs de chargement de carte sont responsive et localisées via l’i18n.
+- Le panneau Paramètres masque désormais la couche branding du menu ; le décor tropical reste visible en arrière-plan et le Retour a été vérifié en arabe.
 
 Ces améliorations ne constituent pas encore une certification graphique complète des six niveaux ni une validation mobile exacte.

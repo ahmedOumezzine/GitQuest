@@ -14,6 +14,7 @@ export class TitleScene extends Phaser.Scene {
   private settingsPanel!: SettingsPanel;
   private confirmPanel!: ConfirmPanel;
   private backdrop!: Phaser.GameObjects.Container;
+  private menuBranding!: Phaser.GameObjects.Container;
   private backdropSubtitle!: Phaser.GameObjects.Text;
   private i18n!: I18nManager;
   private layout!: ResponsiveLayoutManager;
@@ -57,8 +58,10 @@ export class TitleScene extends Phaser.Scene {
     if (this.backdrop) {
       this.tweens.killTweensOf(this.backdrop.list);
       this.backdrop.destroy(true);
+      this.menuBranding?.destroy(true);
     }
     this.backdrop = this.add.container(0, 0).setDepth(0);
+    this.menuBranding = this.add.container(0, 0).setDepth(3).setVisible(!this.settingsPanel?.visible);
     const backgroundScale = Math.max(width / 960, height / 540);
     this.backdrop.add(this.add.image(width / 2, height / 2, 'menu-background-v2').setScale(backgroundScale).setDepth(0));
     const propScale = compact ? 0.82 : 1;
@@ -67,22 +70,22 @@ export class TitleScene extends Phaser.Scene {
     this.addMenuCharacter('midou', width * 0.36, height * 0.82, 132 * propScale);
     const logoWidth = Math.min(760, width - margin * 2);
     const logoHeight = logoWidth * 150 / 760;
-    this.backdrop.add(this.add.image(width / 2, Math.max(margin + logoHeight / 2, height * 0.18), 'menu-logo').setDisplaySize(logoWidth, logoHeight).setDepth(4));
+    this.menuBranding.add(this.add.image(width / 2, Math.max(margin + logoHeight / 2, height * 0.18), 'menu-logo').setDisplaySize(logoWidth, logoHeight).setDepth(4));
     const subtitleWidth = Math.min(520, width - margin * 2);
     const subtitleHeight = subtitleWidth * 76 / 520;
     const subtitleY = Math.max(margin + logoHeight + subtitleHeight / 2 + 4, height * 0.31);
-    this.backdrop.add(this.add.image(width / 2, subtitleY, 'menu-subtitle').setDisplaySize(subtitleWidth, subtitleHeight).setDepth(4));
+    this.menuBranding.add(this.add.image(width / 2, subtitleY, 'menu-subtitle').setDisplaySize(subtitleWidth, subtitleHeight).setDepth(4));
     this.backdropSubtitle = this.add.text(width / 2, subtitleY, this.i18n.text('title'), { fontFamily: UITheme.fontFamily, fontSize: compact ? '14px' : '20px', color: '#18233e', align: 'center', wordWrap: { width: subtitleWidth - 80 } }).setOrigin(0.5).setDepth(5);
-    this.backdrop.add(this.backdropSubtitle);
+    this.menuBranding.add(this.backdropSubtitle);
     if (this.session.saveError) {
-      this.backdrop.add(this.add.text(width / 2, height - margin - 10, this.i18n.text('saveError'), { fontFamily: UITheme.fontFamily, fontSize: compact ? '10px' : '12px', color: '#ffd0a8', align: 'center', wordWrap: { width: width - margin * 2 } }).setOrigin(0.5).setDepth(5));
+      this.menuBranding.add(this.add.text(width / 2, height - margin - 10, this.i18n.text('saveError'), { fontFamily: UITheme.fontFamily, fontSize: compact ? '10px' : '12px', color: '#ffd0a8', align: 'center', wordWrap: { width: width - margin * 2 } }).setOrigin(0.5).setDepth(5));
     }
   }
 
   private addMenuCharacter(key: string, x: number, y: number, size: number): void {
     const shadow = this.add.ellipse(x, y + size * 0.34, size * 0.42, size * 0.12, 0x10172b, 0.48).setDepth(2);
     const character = this.add.image(x, y, key).setDisplaySize(size, size).setDepth(3);
-    this.backdrop.add([shadow, character]);
+    this.menuBranding.add([shadow, character]);
   }
 
   private addAmbientWave(x: number, y: number): void {
@@ -93,8 +96,8 @@ export class TitleScene extends Phaser.Scene {
 
   private changeLocale(locale: Locale): void { this.session.locale = locale; this.refreshLocale(); this.session.save(); }
   private refreshLocale(): void { this.i18n.locale = this.session.locale; this.game.canvas?.setAttribute('dir', this.i18n.direction); this.backdropSubtitle.setText(this.i18n.text('title')); this.mainMenu.refresh(this.session.locale); this.settingsPanel.refresh(this.session.locale, this.session.touchControlsMode); this.confirmPanel?.refresh(this.session.locale); }
-  private showSettings(): void { this.mainMenu.setMenuVisible(false); this.settingsPanel.setVisible(true); }
-  private hideSettings(): void { this.settingsPanel.setVisible(false); this.mainMenu.setMenuVisible(true); }
+  private showSettings(): void { this.mainMenu.setMenuVisible(false); this.menuBranding?.setVisible(false); this.settingsPanel.setVisible(true); }
+  private hideSettings(): void { this.settingsPanel.setVisible(false); this.menuBranding?.setVisible(true); this.mainMenu.setMenuVisible(true); }
   private requestNewGame(): void {
     if (this.session.hadExistingSave) {
       this.mainMenu.setMenuVisible(false);
