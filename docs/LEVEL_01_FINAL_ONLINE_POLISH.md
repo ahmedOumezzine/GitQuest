@@ -74,6 +74,13 @@ Constats visuels :
 - Captures isolées du niveau 1 : **PASS** à 1280×720, 844×390 et 390×844.
 - Parcours niveau 1 vérifié : Nouvelle partie → Midou → cristal → terminal contextualisé → `git init` → coffre → clé/XP → porte verrouillée puis ouverte → niveau 2 → actualisation/reprise.
 
+## Publication GitHub Pages
+
+- Commit publié sur `origin/main` : `a33036a`.
+- Workflow `deploy.yml` : **success** pour le SHA `a33036a` — [run GitHub Actions](https://github.com/ahmedOumezzine/GitQuest/actions/runs/39158125917).
+- URL publique : [ahmedoumezzine.github.io/GitQuest](https://ahmedoumezzine.github.io/GitQuest/) — vérification HTTP **200 OK** après le déploiement.
+- Les captures de comparaison de ce rapport proviennent du Chromium local contrôlé ; la disponibilité publique est confirmée, mais aucune capture visuelle automatisée n’a été prise directement depuis le domaine GitHub Pages.
+
 ## Comparaison avant / après
 
 Avant cette passe, le minimap desktop était directement sous le HUD avec un chevauchement de quelques pixels, le panneau de quête n’indiquait pas explicitement la commande étudiée et le label de porte était peu contrasté et décalé vers la gauche.
@@ -85,4 +92,4 @@ Après cette passe, le minimap est repliable et séparé du panneau de quête, l
 - La validation tactile est faite en émulation Chromium ; un appareil physique avec clavier virtuel et safe areas n’a pas été certifié.
 - Le build conserve l’avertissement de taille du chunk Phaser ; il n’empêche pas l’exécution.
 - La comparaison artistique est limitée au niveau 1 conformément au périmètre demandé ; aucune refonte des niveaux 2 à 6 n’est incluse.
-- Le déploiement GitHub Pages et son URL publique seront confirmés après le push et l’exécution du workflow GitHub Actions.
+- Une vérification visuelle sur appareil physique reste recommandée malgré la validation Chromium et la publication GitHub Pages réussie.
