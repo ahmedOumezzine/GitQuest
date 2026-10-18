@@ -40,7 +40,11 @@ export class QuestTracker extends ResponsivePanel {
     this.title.setText(`${i18n.text('objective')} · ${title}`).setFontSize(portrait ? '9px' : compact ? '10px' : '12px').setPosition(textX, portrait ? 7 : 10).setOrigin(originX, 0).setStyle({ align });
     this.objective.setText('▶ ' + action).setFontSize(portrait ? '10px' : compact ? '11px' : '12px').setPosition(textX, portrait ? 26 : 32).setOrigin(originX, 0).setStyle({ align }).setWordWrapWidth(Math.max(150, this.panelWidth - 24));
     this.guidance.setText('› ' + i18n.objectiveGuidance(current)).setFontSize(portrait ? '8px' : compact ? '9px' : '10px').setPosition(textX, portrait ? 45 : compactCollapsed ? 53 : 55).setOrigin(originX, 0).setStyle({ align }).setWordWrapWidth(Math.max(150, this.panelWidth - 24)).setMaxLines(portrait ? 1 : undefined);
-    this.progress.setText(`${completed}/${total}`).setPosition(textX, portrait ? 64 : compactCollapsed ? 76 : 82).setOrigin(originX, 0).setStyle({ align });
+    const studiedCommand = level.gitCommands[0] ? i18n.gitCommand(level.gitCommands[0]) : '';
+    const progressLabel = studiedCommand
+      ? `${completed}/${total} · ${i18n.text('studied')}: ${studiedCommand}`
+      : `${completed}/${total}`;
+    this.progress.setText(progressLabel).setFontSize(portrait ? '8px' : '10px').setPosition(textX, portrait ? 64 : compactCollapsed ? 76 : 82).setOrigin(originX, 0).setStyle({ align });
     return this;
   }
 

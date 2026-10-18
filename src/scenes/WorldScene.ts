@@ -689,7 +689,10 @@ export class WorldScene extends Phaser.Scene {
       this.gateGlow = this.add.image(gatePosition.x, gatePosition.y, isBeach ? 'level-01-gate-v1' : style.gateTextures?.open ?? gateTexture).setOrigin(0.5, 0.92).setDisplaySize(isBeach ? 120 : style.decorationProfile === 'cave' ? 132 : style.decorationProfile === 'harbor' ? 128 : style.decorationProfile === 'mountain' ? 124 : style.decorationProfile === 'castle' ? 132 : 118, isBeach ? 110 : style.decorationProfile === 'cave' ? 136 : style.decorationProfile === 'harbor' ? 130 : style.decorationProfile === 'mountain' ? 132 : style.decorationProfile === 'castle' ? 138 : 124).setTint(isBeach ? 0x70edff : style.decorationProfile === 'cave' ? 0xd48cff : style.decorationProfile === 'harbor' ? 0x6fe6ff : style.decorationProfile === 'mountain' ? 0xcdefff : style.decorationProfile === 'castle' ? 0xff4fd8 : 0xb4e26c).setAlpha(0).setDepth(3.2);
       // Keep the label inside the playable camera bounds: the gate anchor is
       // intentionally close to the eastern edge of the Tiled map.
-      this.gateLabel = this.add.text(gatePosition.x - 88, gatePosition.y - 92, i18n.text('gateName'), { fontFamily: 'Courier New, monospace', fontSize: '11px', color: '#c6d1e7', stroke: '#18233e', strokeThickness: 3 }).setOrigin(1, 1).setDepth(6).setVisible(false);
+      this.gateLabel = this.add.text(gatePosition.x, gatePosition.y - 84, i18n.text('gateName'), {
+        fontFamily: 'Courier New, monospace', fontSize: '11px', color: '#c6d1e7', backgroundColor: '#10172b',
+        padding: { x: 7, y: 5 }, stroke: '#18233e', strokeThickness: 3,
+      }).setOrigin(0.5, 1).setDepth(6).setVisible(false);
       this.gateUnlocked = true;
       this.refreshGatePresentation();
     }
@@ -721,7 +724,8 @@ export class WorldScene extends Phaser.Scene {
   private refreshGateLabel(): void {
     if (!this.gateLabel) return;
     const i18n = new I18nManager(this.session.locale);
-    this.gateLabel.setText(i18n.text('gateName') + ' · ' + i18n.text(this.gateUnlocked ? 'gateOpen' : 'gateLocked'));
+    const icon = this.gateUnlocked ? '✦' : '▣';
+    this.gateLabel.setText(icon + ' ' + i18n.text('gateName') + ' · ' + i18n.text(this.gateUnlocked ? 'gateOpen' : 'gateLocked'));
   }
 
   private resolveSafeSpawn(point: Point): Point {
@@ -799,7 +803,7 @@ export class WorldScene extends Phaser.Scene {
     }
     if (this.gateLabel && this.gate) {
       const gateDistance = Phaser.Math.Distance.Between(this.player.x, this.player.y, this.gate.x, this.gate.y);
-      this.gateLabel.setVisible(gateDistance < 260);
+      this.gateLabel.setVisible(gateDistance < 190);
     }
     if (this.interactionHint) {
       const visible = Boolean(this.nearby);

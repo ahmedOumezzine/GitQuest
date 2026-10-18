@@ -12,6 +12,7 @@ export class MiniMap extends ResponsivePanel {
   private readonly legend: Phaser.GameObjects.Text;
   private readonly mapWidth = 160;
   private readonly mapHeight = 78;
+  private collapsed = false;
 
   public constructor(scene: Phaser.Scene) {
     super(scene, 182, 122, { fillColor: UITheme.colors.panel, fillAlpha: 0.93, borderWidth: 1 });
@@ -19,10 +20,26 @@ export class MiniMap extends ResponsivePanel {
     this.mapGraphics = scene.add.graphics();
     this.legend = scene.add.text(10, 103, '', { fontFamily: UITheme.fontFamily, fontSize: '8px', color: UITheme.colors.textMuted });
     this.add([this.title, this.mapGraphics, this.legend]);
+    this.setInteractive(new Phaser.Geom.Rectangle(0, 0, 182, 122), Phaser.Geom.Rectangle.Contains);
+    this.on('pointerdown', () => this.toggle());
   }
 
+  public get isCollapsed(): boolean { return this.collapsed; }
+
+  public setCollapsed(collapsed: boolean): this {
+    this.collapsed = collapsed;
+    const height = collapsed ? 30 : 122;
+    this.setPanelSize(182, height);
+    this.setInteractive(new Phaser.Geom.Rectangle(0, 0, 182, height), Phaser.Geom.Rectangle.Contains);
+    this.mapGraphics.setVisible(!collapsed);
+    this.legend.setVisible(!collapsed);
+    return this;
+  }
+
+  public toggle(): this { return this.setCollapsed(!this.collapsed); }
+
   public updateMap(data: MiniMapData | undefined, target: ObjectiveTarget | undefined, i18n: I18nManager): this {
-    this.title.setText(i18n.text('minimap'));
+    this.title.setText(i18n.text('minimap') + (this.collapsed ? ' ▸' : ' ▾') + ' · M');
     this.legend.setText(i18n.text('minimapLegend'));
     this.mapGraphics.clear();
     if (!data || data.width <= 0 || data.height <= 0) return this;

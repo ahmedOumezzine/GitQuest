@@ -159,6 +159,7 @@ export class UIScene extends Phaser.Scene {
       this.level = level;
       this.journalSelectedLevelId = level.id;
       this.world = this.scene.get('WorldScene') as import('./WorldScene').WorldScene;
+      this.miniMap.setCollapsed(level.id === 'level-01');
       this.refresh();
     });
     EventBus.on('nearby', (item: Phaser.GameObjects.GameObject | null) => {
@@ -223,6 +224,7 @@ export class UIScene extends Phaser.Scene {
     this.journalButton = this.add.text(742, 35, 'J', { fontFamily: UITheme.fontFamily, fontSize: '12px', color: '#fff6df', backgroundColor: '#354268', padding: { x: 11, y: 13 }, stroke: '#10172b', strokeThickness: 1 }).setOrigin(0.5).setDepth(30).setInteractive();
     this.journalButton.on('pointerdown', () => this.toggleJournal());
     this.input.keyboard!.on('keydown-J', () => this.toggleJournal());
+    this.input.keyboard!.on('keydown-M', () => this.miniMap.toggle());
     this.input.keyboard!.on('keydown-I', () => this.toggleInventory());
     this.input.keyboard!.on('keydown-ESC', () => { if (this.inventoryScreen.visible) { this.inventoryScreen.close(); this.markInventoryQa(false); } });
     this.journalPanel = this.add.container(590, 76).setDepth(45).setVisible(false);
@@ -692,8 +694,10 @@ export class UIScene extends Phaser.Scene {
     this.compass?.setPosition(compassX, compassY).setVisible(!metrics.compact);
     const miniMapWidth = this.miniMap?.panelWidth ?? 182;
     const miniMapX = rtl ? metrics.width - margin - miniMapWidth : margin;
-    const miniMapY = metrics.portrait ? metrics.topBarHeight + 44 : metrics.compact ? metrics.topBarHeight + 54 : metrics.topBarHeight + 98;
-    this.miniMap?.setPosition(miniMapX, miniMapY).setVisible(!metrics.compact);
+    const desktopMiniMapOffset = beach ? this.questTracker.panelHeight + 14 : 98;
+    const miniMapY = metrics.portrait ? metrics.topBarHeight + 44 : metrics.compact ? metrics.topBarHeight + 54 : metrics.topBarHeight + desktopMiniMapOffset;
+    if (metrics.compact) this.miniMap?.setCollapsed(true);
+    this.miniMap?.setPosition(miniMapX, miniMapY).setVisible(true);
     this.toast.setPosition(metrics.width / 2, metrics.topBarHeight + 24).setWordWrapWidth(Math.max(180, metrics.width - margin * 2));
     const journalWidth = Math.min(380, metrics.width - margin * 2);
     const journalHeight = Math.min(370, Math.max(250, metrics.height - metrics.topBarHeight - margin * 2));
