@@ -34,6 +34,8 @@ test('le menu compacte ses actions en bas en paysage étroit', () => {
 });
 
 test('les contrôles tactiles restent dans les zones sûres en portrait et paysage', () => {
+  const portrait = calculateTouchLayout(calculateLayout(390, 844));
+  assert.ok(portrait.joystick.y + TOUCH_LAYOUT_SIZES.actionLabelBottom <= 844 - 12);
   for (const metrics of [calculateLayout(390, 844), calculateLayout(844, 390)]) {
     const touch = calculateTouchLayout(metrics);
     assert.ok(touch.joystick.x - TOUCH_LAYOUT_SIZES.padHalf >= metrics.margin);

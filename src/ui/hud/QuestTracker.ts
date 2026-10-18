@@ -23,23 +23,24 @@ export class QuestTracker extends ResponsivePanel {
     this.on('pointerdown', () => this.toggle());
   }
 
-  public setQuest(level: LevelDefinition, quest: QuestManager, i18n: I18nManager, width: number, compact: boolean): this {
+  public setQuest(level: LevelDefinition, quest: QuestManager, i18n: I18nManager, width: number, compact: boolean, portrait = false): this {
     const current = quest.currentStep;
     const completed = level.quest.steps.filter((step) => quest.hasCompleted(step.id)).length;
     const total = level.quest.steps.length;
     const title = i18n.localized(level.quest.title);
     const action = current ? i18n.stepLabel(current.id) : i18n.text('missionDone');
     const compactCollapsed = compact && !this.expanded;
-    const panelHeight = compactCollapsed ? 88 : 98;
+    const panelHeight = portrait ? 76 : compactCollapsed ? 88 : 98;
     this.setPanelSize(Math.min(380, Math.max(220, width)), panelHeight);
+    this.setInteractive(new Phaser.Geom.Rectangle(0, 0, this.panelWidth, panelHeight), Phaser.Geom.Rectangle.Contains);
     const rtl = i18n.direction === 'rtl';
     const textX = rtl ? this.panelWidth - 14 : 14;
     const originX = rtl ? 1 : 0;
     const align = rtl ? 'right' : 'left';
-    this.title.setText(`${i18n.text('objective')} · ${title}`).setFontSize(compact ? '10px' : '12px').setPosition(textX, 10).setOrigin(originX, 0).setStyle({ align });
-    this.objective.setText('▶ ' + action).setFontSize(compact ? '11px' : '12px').setPosition(textX, 32).setOrigin(originX, 0).setStyle({ align }).setWordWrapWidth(Math.max(150, this.panelWidth - 24));
-    this.guidance.setText('› ' + i18n.objectiveGuidance(current)).setFontSize(compact ? '9px' : '10px').setPosition(textX, compactCollapsed ? 53 : 55).setOrigin(originX, 0).setStyle({ align }).setWordWrapWidth(Math.max(150, this.panelWidth - 24));
-    this.progress.setText(`${completed}/${total}`).setPosition(textX, compactCollapsed ? 76 : 82).setOrigin(originX, 0).setStyle({ align });
+    this.title.setText(`${i18n.text('objective')} · ${title}`).setFontSize(portrait ? '9px' : compact ? '10px' : '12px').setPosition(textX, portrait ? 7 : 10).setOrigin(originX, 0).setStyle({ align });
+    this.objective.setText('▶ ' + action).setFontSize(portrait ? '10px' : compact ? '11px' : '12px').setPosition(textX, portrait ? 26 : 32).setOrigin(originX, 0).setStyle({ align }).setWordWrapWidth(Math.max(150, this.panelWidth - 24));
+    this.guidance.setText('› ' + i18n.objectiveGuidance(current)).setFontSize(portrait ? '8px' : compact ? '9px' : '10px').setPosition(textX, portrait ? 45 : compactCollapsed ? 53 : 55).setOrigin(originX, 0).setStyle({ align }).setWordWrapWidth(Math.max(150, this.panelWidth - 24)).setMaxLines(portrait ? 1 : undefined);
+    this.progress.setText(`${completed}/${total}`).setPosition(textX, portrait ? 64 : compactCollapsed ? 76 : 82).setOrigin(originX, 0).setStyle({ align });
     return this;
   }
 

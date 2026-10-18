@@ -17,12 +17,17 @@ const appUrl = requestedLevel
   : `http://127.0.0.1:${appPort}/?qa=browser`;
 
 const legacyLevels = [
-  { id: 'level-02', next: 'level-03', minimumXp: 120, mentor: { x: 105, y: 180 }, crystal: { x: 125, y: 410 }, chest: { x: 760, y: 240 }, gate: { x: 900, y: 270 }, commands: [{ operation: 'add', text: 'git add .' }], chestWaypoints: [{ x: 125, y: 430 }, { x: 700, y: 430 }, { x: 700, y: 240 }, { x: 760, y: 240 }], toGate: [{ key: 'ArrowDown', ms: 220 }, { key: 'ArrowRight', ms: 1000 }] },
-  { id: 'level-03', next: 'level-04', minimumXp: 180, mentor: { x: 115, y: 180 }, crystal: { x: 130, y: 380 }, chest: { x: 760, y: 170 }, gate: { x: 900, y: 270 }, commands: [{ operation: 'commit', text: 'git commit -m "archive"' }], chestWaypoints: [{ x: 500, y: 380 }, { x: 500, y: 350 }, { x: 560, y: 360 }, { x: 680, y: 360 }, { x: 680, y: 170 }, { x: 760, y: 170 }], toGate: [{ key: 'ArrowDown', ms: 700 }, { key: 'ArrowRight', ms: 1000 }] },
-  { id: 'level-04', next: 'level-05', minimumXp: 240, mentor: { x: 110, y: 190 }, crystal: { x: 130, y: 390 }, chest: { x: 740, y: 330 }, gate: { x: 900, y: 270 }, commands: [{ operation: 'push', text: 'git push' }, { operation: 'pull', text: 'git pull' }], chestWaypoints: [{ x: 350, y: 390 }, { x: 350, y: 310 }, { x: 740, y: 310 }, { x: 740, y: 330 }], toGate: [{ key: 'ArrowUp', ms: 450 }, { key: 'ArrowRight', ms: 1100 }] },
-  { id: 'level-05', next: 'level-06', minimumXp: 300, mentor: { x: 110, y: 180 }, crystal: { x: 130, y: 405 }, chest: { x: 720, y: 190 }, gate: { x: 900, y: 270 }, commands: [{ operation: 'branch', text: 'git branch feature' }, { operation: 'switch', text: 'git switch feature' }], chestWaypoints: [{ x: 130, y: 430 }, { x: 580, y: 430 }, { x: 580, y: 190 }, { x: 720, y: 190 }], gateWaypoints: [{ x: 760, y: 190 }, { x: 900, y: 190 }, { x: 900, y: 270 }] },
-  { id: 'level-06', minimumXp: 360, mentor: { x: 110, y: 180 }, crystal: { x: 115, y: 390 }, chest: { x: 790, y: 255 }, gate: { x: 900, y: 270 }, commands: [{ operation: 'merge', text: 'git merge main' }], chestWaypoints: [{ x: 115, y: 450 }, { x: 430, y: 450 }, { x: 650, y: 450 }, { x: 650, y: 255 }, { x: 790, y: 255 }], toGate: [{ key: 'ArrowRight', ms: 760 }, { key: 'ArrowDown', ms: 100 }] },
+  { id: 'level-02', next: 'level-03', minimumXp: 120, mentor: { x: 105, y: 180 }, crystal: { x: 125, y: 410 }, terminalWaypoints: [{ x: 220, y: 310 }, { x: 478, y: 310 }, { x: 478, y: 136 }], chest: { x: 760, y: 240 }, gate: { x: 900, y: 270 }, commands: [{ operation: 'add', text: 'git add .' }], chestWaypoints: [{ x: 125, y: 430 }, { x: 700, y: 430 }, { x: 700, y: 240 }, { x: 760, y: 240 }], toGate: [{ key: 'ArrowDown', ms: 220 }, { key: 'ArrowRight', ms: 1000 }] },
+  { id: 'level-03', next: 'level-04', minimumXp: 180, mentor: { x: 115, y: 180 }, crystal: { x: 130, y: 380 }, terminalWaypoints: [{ x: 130, y: 300 }, { x: 468, y: 300 }, { x: 468, y: 138 }], chest: { x: 760, y: 170 }, gate: { x: 900, y: 270 }, commands: [{ operation: 'commit', text: 'git commit -m "archive"' }], chestWaypoints: [{ x: 500, y: 380 }, { x: 500, y: 350 }, { x: 560, y: 360 }, { x: 680, y: 360 }, { x: 680, y: 170 }, { x: 760, y: 170 }], toGate: [{ key: 'ArrowDown', ms: 700 }, { key: 'ArrowRight', ms: 1000 }] },
+  { id: 'level-04', next: 'level-05', minimumXp: 240, mentor: { x: 110, y: 190 }, crystal: { x: 130, y: 390 }, terminalWaypoints: [{ x: 130, y: 330 }, { x: 300, y: 330 }, { x: 464, y: 330 }, { x: 464, y: 213 }], chest: { x: 740, y: 330 }, gate: { x: 900, y: 270 }, commands: [{ operation: 'push', text: 'git push' }, { operation: 'pull', text: 'git pull' }], chestWaypoints: [{ x: 350, y: 390 }, { x: 350, y: 310 }, { x: 740, y: 310 }, { x: 740, y: 330 }], toGate: [{ key: 'ArrowUp', ms: 450 }, { key: 'ArrowRight', ms: 1100 }] },
+  { id: 'level-05', next: 'level-06', minimumXp: 300, mentor: { x: 110, y: 180 }, crystal: { x: 130, y: 405 }, terminalWaypoints: [{ x: 440, y: 418 }], chest: { x: 720, y: 190 }, gate: { x: 900, y: 270 }, commands: [{ operation: 'branch', text: 'git branch feature' }, { operation: 'switch', text: 'git switch feature' }], chestWaypoints: [{ x: 130, y: 430 }, { x: 580, y: 430 }, { x: 580, y: 190 }, { x: 720, y: 190 }], gateWaypoints: [{ x: 760, y: 190 }, { x: 900, y: 190 }, { x: 900, y: 270 }] },
+  { id: 'level-06', minimumXp: 360, mentor: { x: 110, y: 180 }, crystal: { x: 115, y: 390 }, terminalWaypoints: [{ x: 115, y: 330 }, { x: 358, y: 330 }], chest: { x: 790, y: 255 }, gate: { x: 900, y: 270 }, commands: [{ operation: 'merge', text: 'git merge main' }], chestWaypoints: [{ x: 115, y: 450 }, { x: 430, y: 450 }, { x: 650, y: 450 }, { x: 650, y: 255 }, { x: 790, y: 255 }], toGate: [{ key: 'ArrowRight', ms: 760 }, { key: 'ArrowDown', ms: 100 }] },
 ];
+
+const terminalWaypointsByLevel = {
+  'level-01': [{ x: 350, y: 500 }, { x: 520, y: 500 }, { x: 520, y: 430 }],
+  ...Object.fromEntries(legacyLevels.map((level) => [level.id, level.terminalWaypoints])),
+};
 
 function findChrome() {
   const candidates = [
@@ -271,6 +276,7 @@ async function runLegacyLevel(cdp, config) {
   await moveToward(cdp, config.crystal, 42);
   if (process.env.GITQUEST_QA_DEBUG === '1') console.log(`${config.id} crystal: ${await cdp.evaluate('document.documentElement.dataset.gitquestPlayerX + "," + document.documentElement.dataset.gitquestPlayerY')}`);
   await key(cdp, 'e');
+  await moveToPoints(cdp, config.terminalWaypoints);
   await runTerminalCommands(cdp, config.commands);
   await moveToPoints(cdp, config.chestWaypoints);
   if (process.env.GITQUEST_QA_DEBUG === '1') console.log(`${config.id} before chest: ${await cdp.evaluate('document.documentElement.dataset.gitquestPlayerX + "," + document.documentElement.dataset.gitquestPlayerY')}`);
@@ -490,6 +496,7 @@ try {
     if (await cdp.evaluate('document.documentElement.dataset.gitquestInventory === "visible"')) throw new Error('Le panneau d’inventaire ne s’est pas refermé.');
   }
   if (requestedLevel && process.env.GITQUEST_QA_TERMINAL_SCREENSHOT) {
+    await moveToPoints(cdp, terminalWaypointsByLevel[requestedLevel] ?? []);
     await key(cdp, 't');
     await waitForState(cdp, 'terminal');
     const screenshot = await cdp.send('Page.captureScreenshot', { format: 'png' });
@@ -604,6 +611,15 @@ try {
   const crystalSave = await cdp.evaluate('JSON.parse(localStorage.getItem("gitquest-save") ?? "null")');
   if (!crystalSave?.collectedObjects?.['level-01']?.includes('memory-crystal') || crystalSave.xp?.total < 10) throw new Error('Le cristal ou son XP n’est pas persisté après une interaction réelle.');
 
+  // The terminal is contextual: a shortcut outside a Git shrine must not
+  // bypass the authored world interaction. First prove it stays closed, then
+  // walk around the shrine pillar to the terminal zone.
+  await key(cdp, 't');
+  await new Promise((resolve) => setTimeout(resolve, 180));
+  if (await cdp.evaluate('document.documentElement.dataset.gitquestQaState ?? ""') === 'terminal') {
+    throw new Error('Le terminal s’est ouvert hors de sa zone de sanctuaire.');
+  }
+  await moveToPoints(cdp, [{ x: 350, y: 500 }, { x: 520, y: 500 }, { x: 520, y: 430 }]);
   await key(cdp, 't');
   await waitForState(cdp, 'terminal');
   await new Promise((resolve) => setTimeout(resolve, 150));

@@ -78,6 +78,8 @@ export class UIScene extends Phaser.Scene {
   private miniMap!: MiniMap;
   private promptPulse?: Phaser.Tweens.Tween;
   private promptInteractionActive = false;
+  private nearbyActive = false;
+  private terminalNearby = false;
   private lastQuestStepId?: string;
 
   public constructor() { super('UIScene'); }
@@ -130,7 +132,7 @@ export class UIScene extends Phaser.Scene {
     this.createLanguageButtons();
     this.journalLevels = ((this.registry.get('levels') as LevelDefinition[] | undefined) ?? []).slice().sort((a, b) => a.order - b.order);
     this.createJournal();
-    this.touchInput = new InputManager(this, () => undefined, () => EventBus.emit('terminal-open'), false);
+    this.touchInput = new InputManager(this, () => undefined, () => this.world?.requestTerminal(), false);
     this.touchInput.setTouchMoveHandler((vector) => this.world?.setTouchVector(vector));
     if (this.session.shouldShowTouchControls()) {
       this.touchInput.bindTouch(
@@ -162,6 +164,7 @@ export class UIScene extends Phaser.Scene {
     EventBus.on('nearby', (item: Phaser.GameObjects.GameObject | null) => {
       const kind = (item as (Phaser.GameObjects.GameObject & { interactionKind?: string }) | null)?.interactionKind;
       const active = Boolean(item);
+      this.nearbyActive = active;
       const touchHint = this.layout.current.compact && this.session.shouldShowTouchControls();
       this.prompt.setText(active ? '✦ ' + this.i18n.interactionHint(kind, touchHint) : this.i18n.text('controls'));
       this.prompt.setStyle({
@@ -169,7 +172,7 @@ export class UIScene extends Phaser.Scene {
         backgroundColor: active ? '#f7d56a' : '#18233e',
       });
       const beach = this.level?.id === 'level-01';
-      this.prompt.setVisible(active || (!this.layout.current.compact && !beach));
+      this.prompt.setVisible(active || this.terminalNearby || (!this.layout.current.compact && !beach));
       if (active && !this.promptInteractionActive) {
         this.promptInteractionActive = true;
         this.promptPulse?.stop();
@@ -181,6 +184,18 @@ export class UIScene extends Phaser.Scene {
         this.promptPulse = undefined;
         this.prompt.setScale(1);
       }
+    });
+    EventBus.on('terminal-nearby', (active: boolean) => {
+      this.terminalNearby = active;
+      if (!this.prompt || this.nearbyActive) return;
+      const beach = this.level?.id === 'level-01';
+      const touchHint = this.layout.current.compact && this.session.shouldShowTouchControls();
+      this.prompt.setText(active ? '✦ ' + this.i18n.text('terminalHint') + (touchHint ? ' · ' + this.i18n.text('tapInteract') : '') : this.i18n.text('controls'));
+      this.prompt.setStyle({
+        color: active ? '#18233e' : '#fff6df',
+        backgroundColor: active ? '#f7d56a' : '#18233e',
+      });
+      this.prompt.setVisible(active || (!this.layout.current.compact && !beach));
     });
     EventBus.on('dialogue', ({ text }: { text: string }) => this.showDialogue(text));
     EventBus.on('toast', (text: string) => this.showToast(text));
@@ -583,7 +598,7 @@ export class UIScene extends Phaser.Scene {
     const questWidth = this.layout.current.portrait
       ? this.layout.current.width - this.layout.current.margin * 2
       : this.layout.current.compact ? this.layout.current.width - this.layout.current.margin * 2 : 360;
-    this.questTracker.setQuest(this.level, quest, this.i18n, questWidth, this.layout.current.compact);
+    this.questTracker.setQuest(this.level, quest, this.i18n, questWidth, this.layout.current.compact, this.layout.current.portrait);
     this.xpBar.setBarWidth(this.layout.current.compact ? 86 : 118).setValue(this.session.xp.value);
     this.inventoryBar.setItems(this.session.inventory.list(), this.i18n, this.session.inventory.quantitiesJSON());
     this.inventoryScreen.setItems(this.session.inventory.list(), this.i18n, this.session.inventory.quantitiesJSON(), this.session.inventory.equippedJSON(), (itemId) => this.handleInventoryAction(itemId));
@@ -654,7 +669,7 @@ export class UIScene extends Phaser.Scene {
     this.languageButtons.forEach((button, index) => {
       button.setPosition(languageStart + languageWidth / 2 + index * (languageWidth + languageGap), buttonY);
     });
-    this.journalButton?.setPosition(rtl ? margin + 24 : languageStart - 34, buttonY);
+    this.journalButton?.setPosition(metrics.portrait ? metrics.width / 2 : rtl ? margin + 24 : languageStart - 34, metrics.portrait ? 96 : buttonY);
     this.prompt.setPosition(metrics.width / 2, metrics.height - margin - 18).setWordWrapWidth(Math.max(160, metrics.width - margin * 2));
     const hud = calculateGameplayHudLayout(metrics, this.questTracker.panelWidth, this.xpBar.panelWidth, this.inventoryBar.panelWidth);
     const questX = rtl && !metrics.portrait ? metrics.width - margin - hud.quest.width : hud.quest.x;

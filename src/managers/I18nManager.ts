@@ -8,13 +8,13 @@ export const TRANSLATIONS: Record<Locale, Record<string, string>> = {
 
 const EXTRA_TRANSLATIONS: Record<Locale, Record<string, string>> = {
   fr: {
-    secretReward: 'Secret découvert', secretShortcut: 'Passage secret découvert.', tapInteract: 'Touchez pour agir', compass: 'Boussole', compassTerminal: 'Terminal · T', compassObject: 'Point d’intérêt', discoveries: 'Découvertes', minimap: 'Carte', minimapLegend: '● toi  ● Midou  ● sortie',
+    secretReward: 'Secret découvert', secretShortcut: 'Passage secret découvert.', tapInteract: 'Touchez pour agir', guideGit: 'Approche-toi du sanctuaire Git, ouvre le terminal avec T puis exécute la commande indiquée.', terminalHint: 'Sanctuaire Git · appuyez sur T pour ouvrir', terminalNeedShrine: 'Approche-toi d’un sanctuaire Git pour ouvrir le terminal.', compass: 'Boussole', compassTerminal: 'Terminal · T', compassObject: 'Point d’intérêt', discoveries: 'Découvertes', minimap: 'Carte', minimapLegend: '● toi  ● Midou  ● sortie',
   },
   en: {
-    secretReward: 'Secret discovered', secretShortcut: 'Secret passage discovered.', tapInteract: 'Tap to interact', compass: 'Compass', compassTerminal: 'Terminal · T', compassObject: 'Point of interest', discoveries: 'Discoveries', minimap: 'Map', minimapLegend: '● you  ● Midou  ● exit',
+    secretReward: 'Secret discovered', secretShortcut: 'Secret passage discovered.', tapInteract: 'Tap to interact', guideGit: 'Move to the Git shrine, open the terminal with T, then run the command shown.', terminalHint: 'Git Shrine · press T to open', terminalNeedShrine: 'Move to a Git shrine to open the terminal.', compass: 'Compass', compassTerminal: 'Terminal · T', compassObject: 'Point of interest', discoveries: 'Discoveries', minimap: 'Map', minimapLegend: '● you  ● Midou  ● exit',
   },
   ar: {
-    secretReward: 'تم اكتشاف سر', secretShortcut: 'تم اكتشاف ممر سري.', tapInteract: 'اضغط للتفاعل', compass: 'البوصلة', compassTerminal: 'الطرفية · T', compassObject: 'نقطة اهتمام', discoveries: 'الاكتشافات', minimap: 'الخريطة', minimapLegend: '● أنت  ● ميدو  ● الخروج',
+    secretReward: 'تم اكتشاف سر', secretShortcut: 'تم اكتشاف ممر سري.', tapInteract: 'اضغط للتفاعل', guideGit: 'اقترب من مزار Git، وافتح الطرفية بالضغط على T ثم نفّذ الأمر الظاهر.', terminalHint: 'مزار Git · اضغط T للفتح', terminalNeedShrine: 'اقترب من مزار Git لفتح الطرفية.', compass: 'البوصلة', compassTerminal: 'الطرفية · T', compassObject: 'نقطة اهتمام', discoveries: 'الاكتشافات', minimap: 'الخريطة', minimapLegend: '● أنت  ● ميدو  ● الخروج',
   },
 };
 
@@ -56,7 +56,7 @@ const WORLD_UI_TRANSLATIONS: Record<Locale, Record<string, string>> = {
 
 export class I18nManager {
   public constructor(public locale: Locale = 'fr') {}
-  public text(key: string): string { return TRANSLATIONS[this.locale][key] ?? EXTRA_TRANSLATIONS[this.locale][key] ?? INTRO_DIALOGUE[this.locale][key] ?? WORLD_UI_TRANSLATIONS[this.locale][key] ?? TRANSLATIONS.fr[key] ?? EXTRA_TRANSLATIONS.fr[key] ?? INTRO_DIALOGUE.fr[key] ?? WORLD_UI_TRANSLATIONS.fr[key] ?? key; }
+  public text(key: string): string { return EXTRA_TRANSLATIONS[this.locale][key] ?? TRANSLATIONS[this.locale][key] ?? INTRO_DIALOGUE[this.locale][key] ?? WORLD_UI_TRANSLATIONS[this.locale][key] ?? EXTRA_TRANSLATIONS.fr[key] ?? TRANSLATIONS.fr[key] ?? INTRO_DIALOGUE.fr[key] ?? WORLD_UI_TRANSLATIONS.fr[key] ?? key; }
   public localized(value: LocalizedText): string { return value[this.locale] ?? value.fr; }
   public get direction(): 'ltr' | 'rtl' { return this.locale === 'ar' ? 'rtl' : 'ltr'; }
   public applyDirection(surface?: HTMLElement): void {

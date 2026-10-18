@@ -11,6 +11,7 @@ import { getLegacyWorldStyle } from '../world/LegacyWorldStyle';
 import { markQaLevel, markQaPlayerPosition, markQaState } from '../diagnostics/QaMarker';
 import { assetsForLevel } from '../data/AssetManifest';
 import { enqueueAssets } from '../phaser/AssetLoader';
+import { findNearbyTerminal } from '../systems/TerminalAccess';
 
 export class WorldScene extends Phaser.Scene {
   private session!: GameSession;
@@ -29,6 +30,7 @@ export class WorldScene extends Phaser.Scene {
   private terminalOpen = false;
   private touchVector: Point = { x: 0, y: 0 };
   private nearby: Phaser.GameObjects.GameObject | null = null;
+  private terminalNearby = false;
   private playerShadow?: Phaser.GameObjects.Ellipse;
   private mentorShadow?: Phaser.GameObjects.Ellipse;
   private mentorLabel?: Phaser.GameObjects.Text;
@@ -103,7 +105,7 @@ export class WorldScene extends Phaser.Scene {
     this.sceneManager = new SceneManager(this);
     markQaState('world');
     markQaLevel(this.level.id);
-    this.inputManager = new InputManager(this, () => { if (!this.terminalOpen) this.interact(); }, () => { if (!this.terminalOpen) EventBus.emit('terminal-open'); });
+    this.inputManager = new InputManager(this, () => { if (!this.terminalOpen) this.interact(); }, () => { if (!this.terminalOpen) this.requestTerminal(); });
     this.events.on('touch-move', (vector: Point) => { this.touchVector = vector; });
     this.events.on('touch-interact', () => { if (!this.terminalOpen) this.interact(); });
     EventBus.on('terminal-open', this.openTerminal, this);
@@ -131,6 +133,22 @@ export class WorldScene extends Phaser.Scene {
 
   public get activeQuest() { return this.quest; }
   public setTouchVector(vector: Point): void { this.touchVector = vector; }
+
+  /**
+   * Opens the terminal only from a terminal zone authored in Tiled.
+   * The keyboard and the mobile action button intentionally share this path.
+   */
+  public requestTerminal(): void {
+    if (!this.player || !this.map || this.terminalOpen) return;
+    const terminal = findNearbyTerminal({ x: this.player.x, y: this.player.y }, this.map.decorations);
+    if (!terminal) {
+      const i18n = new I18nManager(this.session.locale);
+      EventBus.emit('toast', i18n.text('terminalNeedShrine'));
+      EventBus.emit('interaction-locked');
+      return;
+    }
+    EventBus.emit('terminal-open');
+  }
 
   /** Navigation data for the HUD compass. Quest state remains authoritative. */
   public getObjectiveNavigation(): { player: Point; target?: ObjectiveTarget } | undefined {
@@ -766,6 +784,11 @@ export class WorldScene extends Phaser.Scene {
       document.documentElement.dataset.gitquestPlayerAnimation = this.player.anims.currentAnim?.key ?? '';
     }
     this.nearby = this.findNearby();
+    const terminalNearby = Boolean(findNearbyTerminal({ x: this.player.x, y: this.player.y }, this.map.decorations));
+    if (terminalNearby !== this.terminalNearby) {
+      this.terminalNearby = terminalNearby;
+      EventBus.emit('terminal-nearby', terminalNearby);
+    }
     this.refreshGatePresentation();
     markQaPlayerPosition(this.player.x, this.player.y);
     this.playerShadow?.setPosition(this.player.x, this.player.y + 23);

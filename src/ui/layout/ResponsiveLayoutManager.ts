@@ -44,7 +44,8 @@ export const TOUCH_LAYOUT_SIZES = {
 export function calculateTouchLayout(metrics: Pick<LayoutMetrics, 'width' | 'height' | 'margin'>): TouchLayout {
   // The mobile pad is a 164px square, so keep its center far enough from the
   // safe-area edges instead of positioning it like the old 108px joystick.
-  const joystick = { x: metrics.margin + 90, y: metrics.height - metrics.margin - 90 };
+  const portrait = metrics.height > metrics.width;
+  const joystick = { x: metrics.margin + 90, y: metrics.height - metrics.margin - (portrait ? 108 : 90) };
   const action = { x: metrics.width - metrics.margin - TOUCH_LAYOUT_SIZES.actionHalf, y: joystick.y };
   return { joystick, action, terminal: { x: action.x, y: action.y - 70 } };
 }
