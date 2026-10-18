@@ -8,16 +8,18 @@ import { UITheme } from '../theme/UITheme';
 export class QuestTracker extends ResponsivePanel {
   private readonly title: Phaser.GameObjects.Text;
   private readonly objective: Phaser.GameObjects.Text;
+  private readonly guidance: Phaser.GameObjects.Text;
   private readonly progress: Phaser.GameObjects.Text;
   private expanded = false;
 
   public constructor(scene: Phaser.Scene) {
-    super(scene, 360, 70, { fillColor: UITheme.colors.panel, fillAlpha: 0.92, borderWidth: 2 });
+    super(scene, 360, 98, { fillColor: UITheme.colors.panel, fillAlpha: 0.92, borderWidth: 2 });
     this.title = scene.add.text(14, 10, '', { fontFamily: UITheme.fontFamily, fontSize: '12px', color: UITheme.colors.accent, stroke: '#10172b', strokeThickness: 1 });
     this.objective = scene.add.text(14, 32, '', { fontFamily: UITheme.fontFamily, fontSize: '12px', color: UITheme.colors.text, wordWrap: { width: 332 } });
-    this.progress = scene.add.text(14, 55, '', { fontFamily: UITheme.fontFamily, fontSize: '10px', color: UITheme.colors.textMuted });
-    this.add([this.title, this.objective, this.progress]);
-    this.setInteractive(new Phaser.Geom.Rectangle(0, 0, 330, 66), Phaser.Geom.Rectangle.Contains);
+    this.guidance = scene.add.text(14, 55, '', { fontFamily: UITheme.fontFamily, fontSize: '10px', color: UITheme.colors.success, wordWrap: { width: 332 }, lineSpacing: 2 });
+    this.progress = scene.add.text(14, 82, '', { fontFamily: UITheme.fontFamily, fontSize: '10px', color: UITheme.colors.textMuted });
+    this.add([this.title, this.objective, this.guidance, this.progress]);
+    this.setInteractive(new Phaser.Geom.Rectangle(0, 0, 380, 98), Phaser.Geom.Rectangle.Contains);
     this.on('pointerdown', () => this.toggle());
   }
 
@@ -28,14 +30,16 @@ export class QuestTracker extends ResponsivePanel {
     const title = i18n.localized(level.quest.title);
     const action = current ? i18n.stepLabel(current.id) : i18n.text('missionDone');
     const compactCollapsed = compact && !this.expanded;
-    this.setPanelSize(Math.min(380, Math.max(220, width)), compactCollapsed ? 60 : 70);
+    const panelHeight = compactCollapsed ? 88 : 98;
+    this.setPanelSize(Math.min(380, Math.max(220, width)), panelHeight);
     const rtl = i18n.direction === 'rtl';
     const textX = rtl ? this.panelWidth - 14 : 14;
     const originX = rtl ? 1 : 0;
     const align = rtl ? 'right' : 'left';
     this.title.setText(`${i18n.text('objective')} · ${title}`).setFontSize(compact ? '10px' : '12px').setPosition(textX, 10).setOrigin(originX, 0).setStyle({ align });
-    this.objective.setText(action).setFontSize(compact ? '11px' : '12px').setPosition(textX, compactCollapsed ? 28 : 32).setOrigin(originX, 0).setStyle({ align }).setWordWrapWidth(Math.max(150, this.panelWidth - 24));
-    this.progress.setText(`${completed}/${total}`).setPosition(textX, compactCollapsed ? 46 : 55).setOrigin(originX, 0).setStyle({ align });
+    this.objective.setText('▶ ' + action).setFontSize(compact ? '11px' : '12px').setPosition(textX, 32).setOrigin(originX, 0).setStyle({ align }).setWordWrapWidth(Math.max(150, this.panelWidth - 24));
+    this.guidance.setText('› ' + i18n.objectiveGuidance(current)).setFontSize(compact ? '9px' : '10px').setPosition(textX, compactCollapsed ? 53 : 55).setOrigin(originX, 0).setStyle({ align }).setWordWrapWidth(Math.max(150, this.panelWidth - 24));
+    this.progress.setText(`${completed}/${total}`).setPosition(textX, compactCollapsed ? 76 : 82).setOrigin(originX, 0).setStyle({ align });
     return this;
   }
 

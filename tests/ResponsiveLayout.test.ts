@@ -44,11 +44,17 @@ test('les contrôles tactiles restent dans les zones sûres en portrait et paysa
   }
 });
 
+test('les boutons tactiles gardent une zone de pression confortable', () => {
+  assert.ok(TOUCH_LAYOUT_SIZES.actionHalf >= 42);
+  assert.ok(TOUCH_LAYOUT_SIZES.actionLabelBottom >= TOUCH_LAYOUT_SIZES.actionHalf);
+});
+
 test('le HUD portrait empile l’objectif et les statistiques sans chevauchement', () => {
   const metrics = calculateLayout(390, 844);
   const hud = calculateGameplayHudLayout(metrics, 220, 144, 150);
   assert.equal(hud.quest.x, 12);
   assert.equal(hud.quest.width, 366);
+  assert.ok(hud.xp.y >= 96, 'les statistiques restent sous la carte d’objectif guidée');
   assert.equal(hud.xp.y, hud.inventory.y);
   assert.ok(hud.xp.x + 144 <= hud.inventory.x);
   assert.ok(hud.inventory.x + 150 <= metrics.width - metrics.margin);

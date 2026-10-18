@@ -37,8 +37,8 @@ export interface GameplayHudLayout {
 /** Visual and hit-area sizes shared by the responsive layout and its tests. */
 export const TOUCH_LAYOUT_SIZES = {
   padHalf: 82,
-  actionHalf: 38,
-  actionLabelBottom: 54,
+  actionHalf: 42,
+  actionLabelBottom: 62,
 } as const;
 
 export function calculateTouchLayout(metrics: Pick<LayoutMetrics, 'width' | 'height' | 'margin'>): TouchLayout {
@@ -58,7 +58,9 @@ export function calculateGameplayHudLayout(
   const margin = metrics.margin;
   if (metrics.portrait) {
     const fullWidth = Math.max(220, metrics.width - margin * 2);
-    const rowY = 74;
+    // The quest card now includes one concise action hint below the active
+    // step, so keep XP/inventory below it on narrow portrait screens.
+    const rowY = 104;
     return {
       quest: { x: margin, y: 8, width: fullWidth },
       xp: { x: margin, y: rowY },

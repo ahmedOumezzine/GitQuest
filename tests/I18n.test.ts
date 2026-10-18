@@ -71,3 +71,15 @@ test('les étapes Git et les interactions HUD sont localisées dans les trois la
     assert.ok(i18n.interactionHint('gate').length > 0);
   }
 });
+
+test('les objectifs proposent une action guidée selon leur type', () => {
+  for (const locale of ['fr', 'en', 'ar'] as const) {
+    const i18n = new I18nManager(locale);
+    assert.notEqual(i18n.objectiveGuidance({ id: 'talk', kind: 'dialogue', dialogueId: 'midou' }), i18n.objectiveGuidance({ id: 'git', kind: 'git-command', operation: 'init' }));
+    assert.ok(i18n.objectiveGuidance({ id: 'talk', kind: 'dialogue', dialogueId: 'midou' }).length > 0, `${locale}.dialogue guidance`);
+    assert.ok(i18n.objectiveGuidance({ id: 'git', kind: 'git-command', operation: 'init' }).length > 0, `${locale}.git guidance`);
+    assert.ok(i18n.objectiveGuidance({ id: 'key', kind: 'collect', objectId: 'chest' }).length > 0, `${locale}.collect guidance`);
+    assert.ok(i18n.objectiveGuidance({ id: 'exit', kind: 'open-exit' }).length > 0, `${locale}.exit guidance`);
+  }
+  assert.match(new I18nManager('fr').objectiveGuidance(), /Mission terminée/);
+});

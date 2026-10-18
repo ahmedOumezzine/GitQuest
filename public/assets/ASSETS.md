@@ -6,7 +6,7 @@ Les sprites SVG présents dans ce dossier sont des assets pixel-art originaux cr
 
 Les cartes Tiled exposent les couches Ground, Decorations, Collisions et Objects. Le niveau 1 utilise actuellement une couche Ground remplie et des objets de décoration typés rendus par `WorldScene`.
 
-Les musiques et bruitages ne sont pas encore fournis dans cette base. L’interface indique explicitement leur indisponibilité ; aucun `AudioManager` ni réglage audio actif n’est prétendu comme terminé.
+La musique de fond n’est pas encore fournie. Les effets courts d’interface et de gameplay sont générés localement par `src/audio/AudioManager.ts` via Web Audio : aucun fichier distant, asset tiers ou URL inventée n’est utilisé. L’interface indique séparément que la musique est indisponible et que les effets générés sont actifs.
 
 Le manifeste de chargement Phaser est centralisé dans `src/data/AssetManifest.ts`. Le test `tests/AssetManifest.test.ts` vérifie que chaque fichier demandé par `PreloadScene` existe dans `public/assets` et que les atlas utilisent leur grille déclarée : 32×32 pour les assets historiques et le tileset, 96×96 pour les nouveaux personnages du niveau 1.
 

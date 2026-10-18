@@ -766,6 +766,7 @@ export class WorldScene extends Phaser.Scene {
     // tick précédent lorsque le joueur vient juste d’entrer dans la portée.
     this.nearby = this.findNearby();
     if (!this.nearby) return;
+    EventBus.emit('interaction');
     if (this.nearby === this.mentor) {
       const step = this.quest.currentStep;
       if (step?.kind === 'dialogue' && step.dialogueId) this.quest.acceptDialogue(step.dialogueId);
@@ -779,11 +780,13 @@ export class WorldScene extends Phaser.Scene {
       if (this.quest.currentStep?.kind !== 'open-exit' || !this.session.inventory.has(this.level.exit.requiredItemId)) {
         const i18n = new I18nManager(this.session.locale);
         EventBus.emit('toast', i18n.text(this.level.id === 'level-01' ? 'gateLockedHint' : 'locked'));
+        EventBus.emit('interaction-locked');
         return;
       }
       if (!this.quest.acceptExit()) return;
       this.refreshGatePresentation();
       this.showRewardEffect(this.gate.x, this.gate.y - 35, new I18nManager(this.session.locale).text('gateOpened'), '#ffe08a');
+      EventBus.emit('gate-open');
       this.session.inventory.remove(this.level.exit.requiredItemId);
       this.session.save();
       const levels = this.registry.get('levels') as LevelDefinition[];
@@ -804,6 +807,7 @@ export class WorldScene extends Phaser.Scene {
         object.destroy();
         this.persist();
         this.showRewardEffect(object.x, object.y, '+50 XP · ' + new I18nManager(this.session.locale).text('key'), '#ffe08a');
+        EventBus.emit('reward');
         EventBus.emit('toast', new I18nManager(this.session.locale).text('keyReward'));
       }
     } else if (definition.kind === 'crystal') {
@@ -812,6 +816,7 @@ export class WorldScene extends Phaser.Scene {
       object.destroy();
       this.session.save();
       this.showRewardEffect(object.x, object.y, '+' + (definition.xp ?? 10) + ' XP', '#b9f6ff');
+      EventBus.emit('reward');
       EventBus.emit('mission-update', this.quest);
       EventBus.emit('toast', new I18nManager(this.session.locale).text('crystalReward') + ' : +' + (definition.xp ?? 10) + ' ' + new I18nManager(this.session.locale).text('xpReward'));
     } else if (definition.dialogueId) {

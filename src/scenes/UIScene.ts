@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { audioManager } from '../audio/AudioManager';
 import { EventBus } from '../core/EventBus';
 import type { GameSession } from '../core/GameSession';
 import type { LevelDefinition } from '../models/game';
@@ -71,6 +72,7 @@ export class UIScene extends Phaser.Scene {
   private commandHint!: CommandHint;
   private promptPulse?: Phaser.Tweens.Tween;
   private promptInteractionActive = false;
+  private lastQuestStepId?: string;
 
   public constructor() { super('UIScene'); }
 
@@ -155,7 +157,13 @@ export class UIScene extends Phaser.Scene {
     });
     EventBus.on('dialogue', ({ text }: { text: string }) => this.showDialogue(text));
     EventBus.on('toast', (text: string) => this.showToast(text));
+    EventBus.on('interaction', () => audioManager.play('interaction'));
+    EventBus.on('interaction-locked', () => audioManager.play('locked'));
+    EventBus.on('dialogue', () => audioManager.play('dialogue'));
+    EventBus.on('reward', () => audioManager.play('reward'));
+    EventBus.on('gate-open', () => audioManager.play('gate-open'));
     EventBus.on('terminal-open', () => {
+      audioManager.play('terminal-open');
       markQaState('terminal');
       this.setTerminalVisible(true);
       this.terminalInputModel.clear();
@@ -362,6 +370,7 @@ export class UIScene extends Phaser.Scene {
 
   private closeTerminal(): void {
     this.setTerminalVisible(false);
+    audioManager.play('terminal-close');
     markQaState('world');
     EventBus.emit('terminal-close');
   }
@@ -501,6 +510,9 @@ export class UIScene extends Phaser.Scene {
     this.stats.setOrigin(rtl ? 0 : 1, 0).setStyle({ align: rtl ? 'left' : 'right' });
     const quest = this.world.activeQuest;
     const step = quest?.currentStep;
+    const nextQuestStepId = step?.id ?? 'complete';
+    const questStepChanged = this.lastQuestStepId !== undefined && this.lastQuestStepId !== nextQuestStepId;
+    this.lastQuestStepId = nextQuestStepId;
     markQaQuestStep(step?.id);
     this.levelTitle.setText(this.i18n.localized(this.level.title));
     this.objective.setText(this.i18n.text('objective') + ' : ' + this.i18n.localized(this.level.quest.title) + ' · ' + (step ? this.i18n.stepLabel(step.id) : this.i18n.text('missionDone')));
@@ -545,6 +557,11 @@ export class UIScene extends Phaser.Scene {
     // la direction active aux lecteurs et aux outils d’intégration.
     this.i18n.applyDirection(this.game.canvas);
     this.applyLayout(this.layout.current);
+    if (questStepChanged) {
+      const nextLabel = step ? this.i18n.stepLabel(step.id) : this.i18n.text('missionDone');
+      const nextGuide = this.i18n.objectiveGuidance(step);
+      this.showToast(this.i18n.text('nextObjective') + '\n' + nextLabel + '\n' + nextGuide, 3400);
+    }
   }
 
   private applyLayout(metrics: LayoutMetrics): void {
