@@ -13,6 +13,7 @@ export class InventoryPanel extends Phaser.GameObjects.Container {
   private readonly hint: Phaser.GameObjects.Text;
   private readonly grid: Phaser.GameObjects.Container;
   private items: string[] = [];
+  private selectedItem = '';
   private i18n?: I18nManager;
   private cardWidth = 520;
   private cardHeight = 300;
@@ -39,7 +40,8 @@ export class InventoryPanel extends Phaser.GameObjects.Container {
     this.items = [...items];
     this.i18n = i18n;
     this.title.setText(i18n.text('inventory'));
-    this.subtitle.setText(this.itemCountLabel(items.length, i18n));
+    if (!this.items.includes(this.selectedItem)) this.selectedItem = this.items[0] ?? '';
+    this.refreshSubtitle();
     this.hint.setText(i18n.direction === 'rtl' ? 'I / Esc · إغلاق' : 'I / Esc · Fermer');
     this.renderGrid();
     return this;
@@ -55,6 +57,19 @@ export class InventoryPanel extends Phaser.GameObjects.Container {
     if (i18n.locale === 'en') return 'No items yet';
     if (i18n.locale === 'ar') return 'لا توجد عناصر بعد';
     return 'Aucun objet pour le moment';
+  }
+
+  private itemDescription(item: string, i18n: I18nManager): string {
+    if (item !== 'pass-key') return item;
+    if (i18n.locale === 'en') return 'Opens passage gates between regions.';
+    if (i18n.locale === 'ar') return 'يفتح بوابات العبور بين المناطق.';
+    return 'Ouvre les portes de passage entre les régions.';
+  }
+
+  private refreshSubtitle(): void {
+    if (!this.i18n) return;
+    const count = this.itemCountLabel(this.items.length, this.i18n);
+    this.subtitle.setText(this.selectedItem ? count + '\n' + this.itemDescription(this.selectedItem, this.i18n) : count);
   }
 
   private renderGrid(): void {
@@ -74,9 +89,15 @@ export class InventoryPanel extends Phaser.GameObjects.Container {
       const y = Math.floor(index / columns) * (slotHeight + gap);
       const slot = this.scene.add.rectangle(x, y, slotWidth, slotHeight, item ? UITheme.colors.panelRaised : UITheme.colors.ink, item ? 0.96 : 0.34)
         .setOrigin(0)
-        .setStrokeStyle(item ? 1 : 1, item ? UITheme.colors.panelLine : UITheme.colors.panelLine, item ? 1 : 0.55);
+        .setStrokeStyle(item ? (item === this.selectedItem ? 2 : 1) : 1, item === this.selectedItem ? UITheme.colors.goldSoft : UITheme.colors.panelLine, item ? 1 : 0.55);
       this.grid.add(slot);
       if (item) {
+        slot.setInteractive({ useHandCursor: true });
+        slot.on('pointerdown', () => {
+          this.selectedItem = item;
+          this.refreshSubtitle();
+          this.renderGrid();
+        });
         const icon = this.scene.add.image(x + slotWidth / 2, y + 31, item === 'pass-key' ? 'key' : 'chest').setDisplaySize(34, 34);
         const label = this.scene.add.text(x + slotWidth / 2, y + 60, item === 'pass-key' ? i18n.text('key') : item, { fontFamily: UITheme.fontFamily, fontSize: '10px', color: UITheme.colors.text, align: 'center', wordWrap: { width: slotWidth - 8 } }).setOrigin(0.5);
         this.grid.add([icon, label]);
@@ -97,7 +118,7 @@ export class InventoryPanel extends Phaser.GameObjects.Container {
     this.background.setPosition(x, y).setSize(this.cardWidth, this.cardHeight);
     this.accent.setPosition(x, y).setSize(this.cardWidth, 4);
     this.title.setPosition(x + 24, y + 22).setFontSize(compact ? '18px' : '22px');
-    this.subtitle.setPosition(x + 24, y + 54).setFontSize(compact ? '11px' : '13px');
+    this.subtitle.setPosition(x + 24, y + 54).setFontSize(compact ? '10px' : '12px').setWordWrapWidth(Math.max(160, this.cardWidth - 48));
     this.grid.setPosition(x + 24, y + (compact ? 86 : 96));
     this.renderGrid();
     this.hint.setPosition(x + 24, y + this.cardHeight - 30).setFontSize(compact ? '10px' : '12px');

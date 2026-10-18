@@ -403,6 +403,26 @@ Vérifications :
 La logique d’inventaire, les identifiants d’objets et la sauvegarde restent
 inchangés.
 
+## Continuation — sélection d’objet dans l’inventaire
+
+L’inventaire complet permet maintenant de sélectionner une case occupée :
+
+- la case sélectionnée reçoit un contour doré lisible ;
+- le sous-titre affiche le nom et la fonction pédagogique de l’objet ;
+- la clé de passage est expliquée en français, anglais et arabe ;
+- l’état sélectionné est conservé tant que l’objet est présent et réinitialisé
+  proprement lorsqu’il disparaît.
+
+Cette évolution reste purement UI : `InventoryManager`, les récompenses, les
+identifiants et les sauvegardes ne sont pas modifiés.
+
+Vérifications :
+
+- `npm test` : 51/51 réussis ;
+- `npm run typecheck` : réussi ;
+- `npm run build` : réussi, avec le warning Phaser connu sur la taille du
+  chunk.
+
 ## Validation responsive complémentaire
 
 La QA navigateur standard reste PASS après ces changements : menu,
@@ -442,6 +462,25 @@ La matrice vérifie également le menu, les paramètres, le RTL, les commandes
 Git, les récompenses, les portes, l’écran de victoire, la sauvegarde et la
 reprise. Le temps de chargement à froid est plus élevé sur les grands écrans
 à cause du poids des assets raster ; il reste couvert par une attente bornée.
+
+## Continuation — sélection des objectifs du journal
+
+Le journal permet maintenant de sélectionner chaque objectif affiché :
+
+- les lignes de mission possèdent une zone de clic dédiée et responsive ;
+- l’objectif sélectionné reçoit le marqueur `◆` ;
+- le panneau de détail affiche l’objectif choisi, y compris l’aide de commande
+  Git pour les étapes concernées ;
+- la sélection reste compatible avec les chapitres atteints, les chapitres
+  verrouillés et l’alignement RTL.
+
+Vérifications :
+
+- `npm test` : 51/51 réussis ;
+- `npm run typecheck` : réussi ;
+- `npm run build` : réussi, avec le warning Phaser connu ;
+- QA Chrome standard : PASS, niveaux 1 à 6, terminal, récompenses, portes,
+  victoire, sauvegarde et reprise.
 
 ## Continuation validée — terminal Git
 
@@ -526,3 +565,23 @@ Vérifications après cette évolution :
 - `npm run typecheck` : réussi ;
 - `npm run build` : réussi ;
 - avertissement connu conservé : chunk Phaser de 1 208,06 kB après minification.
+
+## Continuation — terminal pédagogique
+
+Le terminal propose désormais une action « Insérer » lorsqu’une étape Git est
+active :
+
+- la commande suggérée est remplie dans le champ, sans être exécutée ;
+- le joueur conserve la possibilité de la modifier avant validation ;
+- les commandes restent exécutées uniquement par `GitSimulator` après Entrée ;
+- le libellé est localisé en français, anglais et arabe ;
+- le bouton est repositionné avec le terminal responsive pour éviter le
+  chevauchement avec l’aide et le champ mobile.
+
+Vérifications :
+
+- `npm test` : 51/51 réussis ;
+- `npm run typecheck` : réussi ;
+- `npm run build` : réussi, avec le warning Phaser connu ;
+- QA Chrome standard : PASS, commandes Git, espaces, niveaux 1 à 6 et
+  sauvegarde conservés.

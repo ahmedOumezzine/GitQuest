@@ -32,8 +32,10 @@ export class UIScene extends Phaser.Scene {
   private journalDetail!: Phaser.GameObjects.Text;
   private journalHint!: Phaser.GameObjects.Text;
   private journalChapterButtons: Phaser.GameObjects.Text[] = [];
+  private journalStepHitAreas: Phaser.GameObjects.Rectangle[] = [];
   private journalLevels: LevelDefinition[] = [];
   private journalSelectedLevelId = '';
+  private journalSelectedStepId = '';
   private xpFill!: Phaser.GameObjects.Rectangle;
   private terminal!: Phaser.GameObjects.Container;
   private output!: Phaser.GameObjects.Text;
@@ -54,6 +56,7 @@ export class UIScene extends Phaser.Scene {
   private terminalTitle!: Phaser.GameObjects.Text;
   private terminalPrompt!: Phaser.GameObjects.Text;
   private terminalHint!: Phaser.GameObjects.Text;
+  private terminalSuggestion!: Phaser.GameObjects.Text;
   private terminalClose!: Phaser.GameObjects.Text;
   private terminalInput?: HTMLInputElement;
   private dialoguePanel!: Phaser.GameObjects.Container;
@@ -176,6 +179,7 @@ export class UIScene extends Phaser.Scene {
           return;
         }
         this.journalSelectedLevelId = level.id;
+        this.journalSelectedStepId = level.quest.steps[0]?.id ?? '';
         this.refreshJournalContent();
       });
       this.journalPanel.add(button);
@@ -195,18 +199,35 @@ export class UIScene extends Phaser.Scene {
     const selectedQuest = this.session.getQuest(selected.id);
     const completed = selectedQuest ? selected.quest.steps.filter((step) => selectedQuest.hasCompleted(step.id)).length : 0;
     const current = selected.id === this.level.id ? this.world.activeQuest.currentStep : undefined;
+    const selectedStep = selected.quest.steps.find((step) => step.id === this.journalSelectedStepId) ?? current ?? selected.quest.steps[0];
+    this.journalSelectedStepId = selectedStep?.id ?? '';
     this.journalProgress.setText(`${completed}/${selected.quest.steps.length} · ${this.i18n.localized(selected.title)}`);
     this.journalText.setText(selected.quest.steps.map((step) => {
       const done = selectedQuest?.hasCompleted(step.id) ?? false;
       const active = selected.id === this.level.id && step.id === current?.id;
-      return (done ? '✓ ' : active ? '◆ ' : '○ ') + this.i18n.stepLabel(step.id);
+      const focused = step.id === this.journalSelectedStepId;
+      return (done ? '✓ ' : focused ? '◆ ' : active ? '▶ ' : '○ ') + this.i18n.stepLabel(step.id);
     }).join('\n'));
-    this.journalDetail.setText(selected.id === this.level.id
-      ? current
-        ? this.i18n.stepLabel(current.id) + (current.kind === 'git-command' ? '\n' + this.i18n.commandHint(current.operation) : '')
-        : this.i18n.text('missionDone')
-      : `${this.i18n.localized(selected.title)}\n${completed}/${selected.quest.steps.length}`);
+    this.journalDetail.setText(selectedStep
+      ? this.i18n.stepLabel(selectedStep.id) + (selectedStep.kind === 'git-command' ? '\n' + this.i18n.commandHint(selectedStep.operation) : '')
+      : this.i18n.text('missionDone'));
+    this.rebuildJournalStepHitAreas(selected.quest.steps);
     this.renderJournalChapters();
+  }
+
+  private rebuildJournalStepHitAreas(steps: LevelDefinition['quest']['steps']): void {
+    this.journalStepHitAreas.forEach((hit) => hit.destroy());
+    this.journalStepHitAreas = steps.map((step, index) => {
+      const hit = this.add.rectangle(18, 112 + index * 22, 324, 21, 0x000000, 0)
+        .setOrigin(0)
+        .setInteractive({ useHandCursor: true });
+      hit.on('pointerdown', () => {
+        this.journalSelectedStepId = step.id;
+        this.refreshJournalContent();
+      });
+      this.journalPanel.add(hit);
+      return hit;
+    });
   }
 
   private renderJournalChapters(): void {
@@ -247,6 +268,15 @@ export class UIScene extends Phaser.Scene {
     this.terminal.add(this.terminalPrompt);
     this.terminalHint = this.add.text(30, 308, '', { fontFamily: UITheme.fontFamily, fontSize: '11px', color: '#cbd5e1' });
     this.terminal.add(this.terminalHint);
+    this.terminalSuggestion = this.add.text(690, 308, '', {
+      fontFamily: UITheme.fontFamily,
+      fontSize: '10px',
+      color: '#18233e',
+      backgroundColor: '#f7d56a',
+      padding: { x: 7, y: 4 },
+    }).setOrigin(1, 0).setInteractive({ useHandCursor: true });
+    this.terminalSuggestion.on('pointerdown', () => this.fillSuggestedCommand());
+    this.terminal.add(this.terminalSuggestion);
     this.inputField = this.add.text(55, 280, '', { fontFamily: UITheme.fontFamily, fontSize: '17px', color: '#fff6df', backgroundColor: '#18233e', padding: { x: 5, y: 3 } });
     this.terminal.add(this.inputField);
     this.createTerminalDomInput();
@@ -371,6 +401,30 @@ export class UIScene extends Phaser.Scene {
     this.session.save();
   }
 
+  private suggestedCommand(operation?: string): string {
+    return operation === 'init' ? 'git init'
+      : operation === 'add' ? 'git add .'
+        : operation === 'commit' ? 'git commit -m "archive"'
+          : operation === 'push' ? 'git push'
+            : operation === 'pull' ? 'git pull'
+              : operation === 'branch' ? 'git branch feature'
+                : operation === 'switch' ? 'git switch feature'
+                  : operation === 'merge' ? 'git merge main' : '';
+  }
+
+  private fillSuggestedCommand(): void {
+    const step = this.world?.activeQuest.currentStep;
+    if (step?.kind !== 'git-command') return;
+    const command = this.suggestedCommand(step.operation);
+    this.terminalInputModel.setValue(command);
+    this.inputField.setText(command);
+    if (this.terminalInput) {
+      this.terminalInput.value = command;
+      this.terminalInput.focus();
+      this.terminalInput.setSelectionRange(command.length, command.length);
+    }
+  }
+
   private selectHistory(direction: -1 | 1): void {
     const previous = this.terminalInputModel.value;
     const next = this.terminalInputModel.moveHistory(direction);
@@ -461,6 +515,9 @@ export class UIScene extends Phaser.Scene {
     terminalTitle?.setText(this.i18n.text('terminalTitle'));
     this.terminalStatus?.setText(step?.kind === 'git-command' ? 'READY · GIT' : 'READY');
     this.terminalHint?.setText(this.i18n.commandHint(step?.kind === 'git-command' ? step.operation : undefined));
+    const suggested = step?.kind === 'git-command' ? this.suggestedCommand(step.operation) : '';
+    const insertLabel = this.i18n.locale === 'en' ? 'Use' : this.i18n.locale === 'ar' ? 'إدراج' : 'Insérer';
+    this.terminalSuggestion?.setText(suggested ? insertLabel + ' · ' + suggested : '').setVisible(Boolean(suggested));
     if (this.terminalInput) {
       this.terminalInput.setAttribute('aria-label', this.i18n.text('terminalHelp'));
       this.terminalInput.setAttribute('dir', this.i18n.direction);
@@ -551,6 +608,7 @@ export class UIScene extends Phaser.Scene {
       });
     }
     this.journalText?.setPosition(rtl ? journalWidth - 18 : 18, 112).setOrigin(rtl ? 1 : 0, 0).setWordWrapWidth(journalWidth - 36).setStyle({ align: rtl ? 'right' : 'left' });
+    this.journalStepHitAreas.forEach((hit, index) => hit.setPosition(18, 112 + index * 22).setSize(Math.max(1, journalWidth - 36), 21));
     this.journalDetail?.setPosition(rtl ? journalWidth - 18 : 18, Math.max(190, journalHeight - 112)).setOrigin(rtl ? 1 : 0, 0).setWordWrapWidth(journalWidth - 36).setStyle({ align: rtl ? 'right' : 'left' });
     this.journalHint?.setPosition(rtl ? journalWidth - 18 : 18, journalHeight - 28).setOrigin(rtl ? 1 : 0, 0).setStyle({ align: rtl ? 'right' : 'left' });
     this.inventoryScreen?.layout(metrics.width, metrics.height, metrics.compact || metrics.portrait);
@@ -568,7 +626,8 @@ export class UIScene extends Phaser.Scene {
     this.output?.setPosition(30, 58).setFontSize(metrics.compact ? '12px' : '14px').setWordWrapWidth(Math.max(150, terminalWidth - 60));
     this.terminalPrompt?.setPosition(30, terminalHeight - 50);
     this.inputField?.setPosition(55, terminalHeight - 50);
-    this.terminalHint?.setPosition(30, terminalHeight - 22).setWordWrapWidth(Math.max(150, terminalWidth - 60));
+    this.terminalHint?.setPosition(30, terminalHeight - 22).setWordWrapWidth(Math.max(150, terminalWidth - (this.terminalSuggestion?.visible ? 220 : 60)));
+    this.terminalSuggestion?.setPosition(terminalWidth - 30, terminalHeight - 22);
     this.syncTerminalDomInput();
     this.touchInput?.layoutTouch(metrics);
     const dialogueWidth = Math.min(760, metrics.width - margin * 2);
