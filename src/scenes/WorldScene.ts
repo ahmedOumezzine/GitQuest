@@ -454,7 +454,7 @@ export class WorldScene extends Phaser.Scene {
       const displaySize = this.beachDecorationSize(definition.type, definition.width, definition.height);
       if (displaySize) sprite.setDisplaySize(displaySize.width, displaySize.height);
       this.decorations.push(sprite);
-      if (definition.type === 'wave' || definition.type === 'grass' || definition.type === 'palm' || definition.type === 'palm-rich' || definition.type === 'flower') {
+      if (definition.type === 'wave' || definition.type === 'beach-foam' || definition.type === 'grass' || definition.type === 'palm' || definition.type === 'palm-rich' || definition.type === 'flower') {
         this.tweens.add({ targets: sprite, y: definition.y + 2, duration: definition.type === 'wave' ? 900 : 1400, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
       }
       if (definition.type === 'shrine-glow') this.tweens.add({ targets: sprite, alpha: 0.45, duration: 1200, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
@@ -467,6 +467,7 @@ export class WorldScene extends Phaser.Scene {
 
   private applyBeachCameraZoom(): void {
     if (this.level?.id !== 'level-01') return;
+    const worldWidth = this.map.width * this.map.tileWidth;
     const portrait = this.scale.height > this.scale.width * 1.2;
     const compact = this.scale.width < 760 || this.scale.height < 500;
     // The reference keeps the player readable while showing enough shoreline
@@ -474,7 +475,11 @@ export class WorldScene extends Phaser.Scene {
     // Show the full beach composition (shoreline, foreground props and exit)
     // instead of cropping it to a narrow playable rectangle. The characters
     // remain readable because their level-one sprites are intentionally large.
-    this.cameras.main.setZoom(portrait ? 1.04 : compact ? 0.88 : 1.12);
+    // Desktop now frames the whole authored island instead of locking the
+    // player to the western shoreline. The world remains a real Tiled map;
+    // only the camera framing changes with the viewport.
+    const desktopFit = Math.max(0.84, Math.min(1.16, (this.scale.width / worldWidth) * 1.02));
+    this.cameras.main.setZoom(portrait ? 1.04 : compact ? 0.88 : desktopFit);
   }
 
   /**
@@ -592,6 +597,8 @@ export class WorldScene extends Phaser.Scene {
       shrine: 'level-01-shrine-v1',
       'shrine-rich': 'level-01-shrine-v1',
       grass: 'grass', flower: 'flower', shell: 'shell', wave: 'wave', 'shrine-glow': 'shrine-glow',
+      'beach-boat': 'harbor-boat', 'beach-dock': 'harbor-dock-post', 'beach-foam': 'harbor-wave-foam',
+      'beach-rocks': 'harbor-rocks', 'beach-shells': 'harbor-shells',
     };
     return textures[type];
   }
@@ -602,6 +609,9 @@ export class WorldScene extends Phaser.Scene {
       rock: { width: 104, height: 72 }, 'rock-rich': { width: 112, height: 78 },
       ruin: { width: 168, height: 132 }, 'ruin-rich': { width: 184, height: 142 },
       shrine: { width: 190, height: 174 }, 'shrine-rich': { width: 198, height: 182 },
+      'beach-boat': { width: 180, height: 126 }, 'beach-dock': { width: 170, height: 142 },
+      'beach-foam': { width: 220, height: 90 }, 'beach-rocks': { width: 148, height: 98 },
+      'beach-shells': { width: 108, height: 74 },
     };
     return authored[type] ?? (width && height ? { width, height } : undefined);
   }

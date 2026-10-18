@@ -161,6 +161,7 @@ const level01AssetKeys = new Set([
   'level-01-ruin-garden-v1',
   'level-01-shrine-v1',
   'level-01-gate-v1',
+  'level-01-player-v1',
   'grass',
   'flower',
   'shell',
@@ -168,6 +169,12 @@ const level01AssetKeys = new Set([
   'chest',
   'crystal',
   'scroll',
+  // Existing local coastal props reused for the level-one premium composition.
+  'harbor-boat',
+  'harbor-dock-post',
+  'harbor-wave-foam',
+  'harbor-rocks',
+  'harbor-shells',
 ]);
 
 const persistentItemIconKeys = new Set(['key', 'crystal', 'scroll', 'shrine-glow', 'chest']);

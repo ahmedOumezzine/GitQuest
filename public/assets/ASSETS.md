@@ -93,6 +93,25 @@ Les deux nouveaux atlas sont chargés par `PreloadScene` comme de vraies sprites
 
 La porte est rendue uniquement pour l’objet Tiled `exit-gate`. Son état fermé est assombri par Phaser et son état accessible reçoit une aura cyan animée séparée. Le sanctuaire Git utilise toujours son propre asset `level-01-shrine-v1.png`.
 
+## Niveau 1 — props côtiers réutilisés pour la composition premium
+
+La finition premium du niveau 1 réutilise des assets raster locaux déjà présents
+dans le pack du Port des Connexions, sans copie externe ni nouvelle provenance :
+
+| Fichier | Usage dans `level-01` |
+|---|---|
+| `sprites/harbor/harbor-boat.png` | bateau décoratif sur le littoral est |
+| `sprites/harbor/harbor-dock-post.png` | poteaux du petit ponton est |
+| `sprites/harbor/harbor-wave-foam.png` | écume séparée sur trois portions de côte |
+| `sprites/harbor/harbor-rocks.png` | rochers côtiers supplémentaires |
+| `sprites/harbor/harbor-shells.png` | détail de coquillages près du rivage |
+
+Ces éléments restent décoratifs et non interactifs. Ils ne modifient ni les
+collisions ni les objets Tiled de progression. Leur provenance reste celle
+documentée dans la section du niveau 4 : génération locale du projet, sans URL
+externe ; la licence de distribution finale doit être confirmée avant une
+distribution commerciale.
+
 ## Niveau 2 — terrain et props de la Forêt des Fichiers
 
 | Fichier | Rôle | Provenance/licence |

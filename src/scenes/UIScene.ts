@@ -16,6 +16,8 @@ import { InventoryPanel } from '../ui/hud/InventoryPanel';
 import { CommandHint } from '../ui/hud/CommandHint';
 import { Compass } from '../ui/hud/Compass';
 import { MiniMap } from '../ui/hud/MiniMap';
+import { ResponsivePanel } from '../ui/hud/ResponsivePanel';
+import { BeachStatusCard } from '../ui/hud/BeachStatusCard';
 import { itemDefinition } from '../data/ItemCatalog';
 import { markQaDialogue, markQaQuestStep, markQaState, markQaTouchControls } from '../diagnostics/QaMarker';
 
@@ -76,6 +78,9 @@ export class UIScene extends Phaser.Scene {
   private commandHint!: CommandHint;
   private compass!: Compass;
   private miniMap!: MiniMap;
+  private beachRegionBadge!: ResponsivePanel;
+  private beachRegionText!: Phaser.GameObjects.Text;
+  private beachStatusCard!: BeachStatusCard;
   private promptPulse?: Phaser.Tweens.Tween;
   private promptInteractionActive = false;
   private nearbyActive = false;
@@ -113,12 +118,18 @@ export class UIScene extends Phaser.Scene {
     this.commandHint = new CommandHint(this).setDepth(29);
     this.compass = new Compass(this).setDepth(24);
     this.miniMap = new MiniMap(this).setDepth(24);
+    this.beachRegionBadge = new ResponsivePanel(this, 320, 42, { fillColor: UITheme.colors.panel, fillAlpha: 0.96, borderWidth: 2 }).setDepth(24).setVisible(false);
+    this.beachRegionText = this.add.text(16, 12, '', { fontFamily: UITheme.fontFamily, fontSize: '14px', color: UITheme.colors.accent, stroke: '#10172b', strokeThickness: 2 });
+    this.beachRegionBadge.add(this.beachRegionText);
+    this.beachStatusCard = new BeachStatusCard(this).setDepth(24).setVisible(false);
     this.add.existing(this.questTracker);
     this.add.existing(this.xpBar);
     this.add.existing(this.inventoryBar);
     this.add.existing(this.inventoryScreen);
     this.add.existing(this.compass);
     this.add.existing(this.miniMap);
+    this.add.existing(this.beachRegionBadge);
+    this.add.existing(this.beachStatusCard);
     this.inventoryBar.setInteractive(new Phaser.Geom.Rectangle(0, 0, 180, 42), Phaser.Geom.Rectangle.Contains);
     this.inventoryBar.on('pointerdown', () => this.toggleInventory());
     this.add.existing(this.commandHint);
@@ -603,6 +614,8 @@ export class UIScene extends Phaser.Scene {
     this.questTracker.setQuest(this.level, quest, this.i18n, questWidth, this.layout.current.compact, this.layout.current.portrait);
     this.xpBar.setBarWidth(this.layout.current.compact ? 86 : 118).setValue(this.session.xp.value);
     this.inventoryBar.setItems(this.session.inventory.list(), this.i18n, this.session.inventory.quantitiesJSON());
+    this.beachStatusCard.setStats(this.session.xp.value, this.session.inventory.list().length, this.i18n);
+    this.beachRegionText.setText('✦ ' + this.i18n.localized(this.level.title));
     this.inventoryScreen.setItems(this.session.inventory.list(), this.i18n, this.session.inventory.quantitiesJSON(), this.session.inventory.equippedJSON(), (itemId) => this.handleInventoryAction(itemId));
     this.commandHint.setHint(this.i18n, step?.kind === 'git-command' ? step.operation : undefined);
     const completedSteps = this.level.quest.steps.filter((questStep) => quest.hasCompleted(questStep.id)).length;
@@ -671,7 +684,9 @@ export class UIScene extends Phaser.Scene {
     this.languageButtons.forEach((button, index) => {
       button.setPosition(languageStart + languageWidth / 2 + index * (languageWidth + languageGap), buttonY);
     });
-    this.journalButton?.setPosition(metrics.portrait ? metrics.width / 2 : rtl ? margin + 24 : languageStart - 34, metrics.portrait ? 96 : buttonY);
+    const beachDesktop = beach && !metrics.compact;
+    const journalButtonX = beachDesktop ? metrics.width - margin - this.beachStatusCard.panelWidth - 28 : rtl ? margin + 24 : languageStart - 34;
+    this.journalButton?.setPosition(metrics.portrait ? metrics.width / 2 : journalButtonX, metrics.portrait ? 96 : buttonY);
     this.prompt.setPosition(metrics.width / 2, metrics.height - margin - 18).setWordWrapWidth(Math.max(160, metrics.width - margin * 2));
     const hud = calculateGameplayHudLayout(metrics, this.questTracker.panelWidth, this.xpBar.panelWidth, this.inventoryBar.panelWidth);
     const questX = rtl && !metrics.portrait ? metrics.width - margin - hud.quest.width : hud.quest.x;
@@ -680,6 +695,10 @@ export class UIScene extends Phaser.Scene {
     const inventoryX = rtl && !metrics.portrait ? margin : hud.inventory.x;
     this.xpBar.setPosition(hudXpX, hud.xp.y);
     this.inventoryBar.setPosition(inventoryX, hud.inventory.y);
+    this.beachRegionBadge.setVisible(beachDesktop).setPosition(margin, 12);
+    this.beachStatusCard.setVisible(beachDesktop).setPosition(metrics.width - margin - this.beachStatusCard.panelWidth, 10);
+    this.xpBar.setVisible(!beachDesktop);
+    this.inventoryBar.setVisible(!beachDesktop);
     // On compact screens the E/T controls already communicate the interaction
     // affordance. Hiding the long keyboard hint keeps the beach and the
     // analogue pad unobstructed, matching the compact reference composition.
