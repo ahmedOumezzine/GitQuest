@@ -30,7 +30,14 @@ export class PixelButton extends Phaser.GameObjects.Container {
     this.background = options.backgroundTexture
       ? scene.add.image(0, 0, options.backgroundTexture).setOrigin(0.5).setDisplaySize(this.widthValue, this.heightValue)
       : scene.add.rectangle(0, 0, this.widthValue, this.heightValue, UITheme.colors.button, 1).setOrigin(0.5).setStrokeStyle(UITheme.borderWidth, UITheme.colors.border);
-    this.label = scene.add.text(0, 0, label, { fontFamily: UITheme.fontFamily, fontSize: options.fontSize ?? '20px', color: UITheme.colors.text, align: 'center' }).setOrigin(0.5);
+    this.label = scene.add.text(0, 0, label, {
+      fontFamily: UITheme.fontFamily,
+      fontSize: options.fontSize ?? '20px',
+      color: UITheme.colors.text,
+      align: 'center',
+      stroke: '#10172b',
+      strokeThickness: options.backgroundTexture ? 2 : 1,
+    }).setOrigin(0.5);
     this.add([this.background, this.label]);
     this.setSize(this.widthValue, this.heightValue);
     // The rectangle is the actual visual hit target. Keeping the hit area on
@@ -39,10 +46,10 @@ export class PixelButton extends Phaser.GameObjects.Container {
       new Phaser.Geom.Rectangle(0, 0, this.widthValue, this.heightValue),
       Phaser.Geom.Rectangle.Contains,
     );
-    this.background.on('pointerover', () => { if (this.enabled) { this.uiState = this.selected ? 'selected' : 'hover'; this.applyStyle(); } });
-    this.background.on('pointerout', () => { if (this.enabled) { this.uiState = this.selected ? 'selected' : 'normal'; this.applyStyle(); } });
-    this.background.on('pointerdown', () => { if (this.enabled) { this.uiState = 'pressed'; this.applyStyle(); } });
-    this.background.on('pointerup', () => { if (this.enabled) { this.uiState = this.selected ? 'selected' : 'hover'; this.applyStyle(); } });
+    this.background.on('pointerover', () => { if (this.enabled) { this.uiState = this.selected ? 'selected' : 'hover'; this.applyStyle(); this.setScale(1.015); } });
+    this.background.on('pointerout', () => { if (this.enabled) { this.uiState = this.selected ? 'selected' : 'normal'; this.applyStyle(); this.setScale(1); } });
+    this.background.on('pointerdown', () => { if (this.enabled) { this.uiState = 'pressed'; this.applyStyle(); this.setScale(0.985); } });
+    this.background.on('pointerup', () => { if (this.enabled) { this.uiState = this.selected ? 'selected' : 'hover'; this.applyStyle(); this.setScale(1.015); } });
     scene.add.existing(this);
     this.applyStyle();
   }
@@ -85,7 +92,7 @@ export class PixelButton extends Phaser.GameObjects.Container {
     if (this.textureBackground) {
       const image = this.background as Phaser.GameObjects.Image;
       image.clearTint();
-      if (this.uiState === 'hover' || this.uiState === 'focus') image.setTint(0xffefb0);
+      if (this.uiState === 'selected' || this.uiState === 'hover' || this.uiState === 'focus') image.setTint(0xffefb0);
       if (this.uiState === 'pressed') image.setTint(0xffd86b);
       if (this.uiState === 'disabled') image.setTint(0x66708a);
     } else {

@@ -28,8 +28,17 @@ export interface TouchLayout {
   terminal: { x: number; y: number };
 }
 
+/** Visual and hit-area sizes shared by the responsive layout and its tests. */
+export const TOUCH_LAYOUT_SIZES = {
+  padHalf: 82,
+  actionHalf: 38,
+  actionLabelBottom: 54,
+} as const;
+
 export function calculateTouchLayout(metrics: Pick<LayoutMetrics, 'width' | 'height' | 'margin'>): TouchLayout {
-  const joystick = { x: metrics.margin + 70, y: metrics.height - metrics.margin - 70 };
+  // The mobile pad is a 164px square, so keep its center far enough from the
+  // safe-area edges instead of positioning it like the old 108px joystick.
+  const joystick = { x: metrics.margin + 90, y: metrics.height - metrics.margin - 90 };
   const action = { x: metrics.width - metrics.margin - 48, y: joystick.y };
   return { joystick, action, terminal: { x: action.x, y: action.y - 70 } };
 }

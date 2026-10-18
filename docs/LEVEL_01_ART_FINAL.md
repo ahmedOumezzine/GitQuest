@@ -50,15 +50,34 @@ Captures produites après le fondu de la scène et après chargement des nouveau
 - [844×390](C:/Users/ahmed/.codex/visualizations/2026/10/17/01a14819-106c-7ea1-b7f5-67a70d0c1e2b/level1-art-final-844x390.png)
 - [390×844](C:/Users/ahmed/.codex/visualizations/2026/10/17/01a14819-106c-7ea1-b7f5-67a70d0c1e2b/level1-art-final-390x844.png)
 
+### Comparaison de référence — passe actuelle
+
+Les captures les plus récentes utilisées pour la comparaison avec
+`docs/references/gitquest-flow-reference.png` sont :
+
+- [Niveau 1 — desktop 1280×720](captures/level-01-reference-pass-1280x720-final3.png)
+- [Niveau 1 — mobile portrait 390×844](captures/level-01-reference-pass-390x844-final3.png)
+- [Niveau 1 — desktop après composition plage](captures/level-01-reference-pass-1280x720-final5.png)
+- [Niveau 1 — mobile paysage après cadrage](captures/level-01-reference-pass-844x390-final3.png)
+- [Niveau 1 — mobile après composition plage](captures/level-01-reference-pass-390x844-final4.png)
+
+La composition reprend maintenant les éléments structurants visibles dans la
+référence : littoral turquoise à gauche, plage jouable au premier plan,
+palmiers et ruines dans le plan intermédiaire, joueur et Midou ancrés par une
+ombre, sanctuaire Git central et porte de sortie distincte à droite. Le HUD
+compact suit cette composition : objectif en haut à gauche, XP et inventaire en
+haut à droite, contrôles tactiles en bas sur mobile.
+
 La capture desktop montre le nouveau joueur animé, Midou, le littoral, les ruines, les palmiers, les rochers et le sanctuaire sans carrés d’eau intérieurs. Les captures compactes confirment que le HUD reste visible et que le personnage reste lisible.
 
 ## Validation effectuée
 
-- `npm test` : **42/42 PASS**.
+- `npm test` : **51/51 PASS**.
 - `npm run typecheck` : **PASS**.
 - `npm run build` : **PASS**, avec l’avertissement existant sur la taille du chunk Phaser.
 - `npm run qa` : **PASS** après ajout de l’alias vers le smoke test navigateur.
 - `npm run qa:browser` : **PASS** pour le parcours complet : menu, paramètres, RTL, niveau 1, commandes Git, récompenses, portes, niveaux 2 à 6, victoire, sauvegarde et reprise.
+- `GITQUEST_QA_LEVEL=level-01` : **PASS** en 1280×720 et 390×844 tactile, avec captures finales produites.
 - `GITQUEST_QA_ANIMATION=1 npm run qa:browser` sur `level-01` : **PASS**, quatre directions de marche vérifiées par marqueur runtime.
 - `GITQUEST_QA_TOUCH=1 npm run qa:browser` sur `level-01` en 844×390 : **PASS**, contrôles tactiles visibles en émulation tactile.
 - Le parcours réel vérifie que Midou, le cristal, `git init`, le coffre, la clé, la porte et la sauvegarde restent fonctionnels.
@@ -74,6 +93,27 @@ Le résultat n’est toutefois pas une reproduction commerciale complète des r�
 - les décors riches sont des illustrations locales posées sur une base Tiled 32×32 et non un tileset unifié entièrement peint ;
 - la vue portrait montre une portion de la carte à la fois, conformément au suivi de caméra ;
 - la licence de distribution finale des images générées reste à confirmer.
+
+La comparaison objective montre encore trois écarts assumés : la référence est
+une illustration composite plus dense, certains détails de plage sont encore
+portés par des sprites de décor plutôt que par un tileset entièrement peint,
+et la vue portrait recadre fortement la carte pour conserver la lisibilité du
+joueur. Le niveau est donc adapté à la composition de référence et validé en
+jouabilité, sans être déclaré identique au visuel cible.
+
+### Dernière correction de composition
+
+- Le bandeau supérieur opaque du niveau 1 a été réduit à un accent discret ;
+  l’objectif, l’XP et l’inventaire flottent maintenant au-dessus du décor.
+- Les sélecteurs de langue et le journal ne sont plus affichés pendant le
+  gameplay du niveau 1 afin de conserver la hiérarchie de la référence.
+- Le zoom desktop et compact montre davantage de plage et de profondeur.
+- Quatre éléments de premier plan ont été ajoutés dans la couche `Decorations`
+  de la carte Tiled (`palm-foreground-west/east`,
+  `rock-foreground-west/east`). Ils sont décoratifs et ne changent pas les
+  collisions ni les ancres de progression.
+- Le message de commandes permanent est masqué dans le niveau 1 ; les
+  indicateurs `E` et `T` restent disponibles, ainsi que le prompt de proximité.
 
 Le niveau est techniquement validé et visuellement harmonisé pour cette passe, mais ces limites doivent être résolues avant de qualifier l’art comme définitif/commercial.
 
@@ -92,3 +132,19 @@ Le niveau est techniquement validé et visuellement harmonisé pour cette passe,
 - `tests/AssetManifest.test.ts`
 - `tests/LevelManager.test.ts`
 - `package.json`
+
+### Passe d’harmonisation UI/caméra
+
+- `src/scenes/UIScene.ts` : HUD niveau 1 compact, placement portrait et
+  correction de la référence de layout supprimée.
+- `src/scenes/WorldScene.ts` : zoom responsive niveau 1, route visuelle Tiled
+  légère et indicateur de porte plus discret.
+- `src/ui/hud/QuestTracker.ts` : séparation correcte du titre, de l’objectif et
+  de la progression sur mobile.
+- `src/ui/theme/UITheme.ts`, `src/ui/PixelButton.ts`, `src/ui/MainMenu.ts`,
+  `src/ui/SettingsPanel.ts`, `src/ui/hud/ResponsivePanel.ts`,
+  `src/ui/hud/XPBar.ts`, `src/ui/hud/InventoryBar.ts`,
+  `src/phaser/InputManager.ts` : cohérence visuelle et responsive des
+  composants partagés.
+- `scripts/browser-smoke.mjs` : trajet QA du cristal aligné sur le parcours
+  réel de la plage, sans modification du gameplay.

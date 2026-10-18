@@ -42,6 +42,9 @@ export class MainMenu extends Phaser.GameObjects.Container {
     this.settingsButton.onPress(callbacks.onSettings);
     this.add(this.settingsButton);
     (['fr', 'en', 'ar'] as const).forEach((locale, index) => {
+      // Keep the language selector on the proven rectangle hit target. Its
+      // selected gold border is more important than using a stretched button
+      // texture for this small control.
       const button = new PixelButton(scene, locale.toUpperCase(), { width: 54, height: 44, fontSize: '13px' });
       button.onPress(() => callbacks.onLocaleChange(locale));
       this.languageButtons.push(button);
@@ -76,6 +79,8 @@ export class MainMenu extends Phaser.GameObjects.Container {
       button.setDimensions(buttonWidth, buttonHeight, fontSize).setPosition(metrics.width / 2, y);
       y += buttonHeight + gap;
     });
+    // Keep the desktop hit positions stable for keyboard/mouse QA and for
+    // existing saved layouts; the navy texture provides the visual upgrade.
     const languageWidth = metrics.compact ? 48 : 54;
     const languageGap = metrics.compact ? 6 : 8;
     const totalLanguageWidth = languageWidth * this.languageButtons.length + languageGap * (this.languageButtons.length - 1);

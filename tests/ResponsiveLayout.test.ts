@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { calculateLayout, calculateMenuCenterY, calculateTouchLayout } from '../src/ui/layout/ResponsiveLayoutManager';
+import { calculateLayout, calculateMenuCenterY, calculateTouchLayout, TOUCH_LAYOUT_SIZES } from '../src/ui/layout/ResponsiveLayoutManager';
 
 test('le layout identifie correctement les modes desktop, compact et portrait', () => {
   const desktop = calculateLayout(1920, 1080);
@@ -36,9 +36,10 @@ test('le menu compacte ses actions en bas en paysage étroit', () => {
 test('les contrôles tactiles restent dans les zones sûres en portrait et paysage', () => {
   for (const metrics of [calculateLayout(390, 844), calculateLayout(844, 390)]) {
     const touch = calculateTouchLayout(metrics);
-    assert.ok(touch.joystick.x - 54 >= metrics.margin);
-    assert.ok(touch.joystick.y + 54 <= metrics.height - metrics.margin);
-    assert.ok(touch.action.x + 22 <= metrics.width - metrics.margin);
-    assert.ok(touch.terminal.y - 22 >= metrics.margin);
+    assert.ok(touch.joystick.x - TOUCH_LAYOUT_SIZES.padHalf >= metrics.margin);
+    assert.ok(touch.joystick.y + TOUCH_LAYOUT_SIZES.padHalf <= metrics.height - metrics.margin);
+    assert.ok(touch.action.x + TOUCH_LAYOUT_SIZES.actionHalf <= metrics.width - metrics.margin);
+    assert.ok(touch.action.y + TOUCH_LAYOUT_SIZES.actionLabelBottom <= metrics.height - metrics.margin);
+    assert.ok(touch.terminal.y - TOUCH_LAYOUT_SIZES.actionHalf >= metrics.margin);
   }
 });

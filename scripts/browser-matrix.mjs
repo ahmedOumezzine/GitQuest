@@ -11,8 +11,10 @@ const viewports = [
   [768, 1024],
   [1024, 768],
 ];
-const basePort = Number(process.env.GITQUEST_QA_MATRIX_PORT ?? 5300);
-const baseCdpPort = Number(process.env.GITQUEST_CDP_MATRIX_PORT ?? 9400);
+// Keep the matrix isolated from local development services (Cortex.Web uses
+// ports in the 5300 range on the development machine).
+const basePort = Number(process.env.GITQUEST_QA_MATRIX_PORT ?? 5400);
+const baseCdpPort = Number(process.env.GITQUEST_CDP_MATRIX_PORT ?? 9500);
 
 function runSmoke(width, height, index, extra = {}) {
   const environment = { ...process.env, ...extra };

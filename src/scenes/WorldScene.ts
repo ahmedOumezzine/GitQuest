@@ -381,6 +381,7 @@ export class WorldScene extends Phaser.Scene {
     const tilemap = this.make.tilemap({ data: rows, tileWidth: this.map.tileWidth, tileHeight: this.map.tileHeight });
     const tileset = tilemap.addTilesetImage('beach-tileset', 'beach-tileset', this.map.tileWidth, this.map.tileHeight, 0, 0);
     if (tileset) tilemap.createLayer(0, tileset, 0, 0)?.setDepth(0).setCullPadding(2, 2);
+    this.addBeachRouteArtPass();
     // A very light sun wash keeps the authored 32×32 terrain readable on
     // displays with strong contrast without hiding the Tiled ground layer.
     this.add.rectangle(worldWidth / 2, worldHeight / 2, worldWidth, worldHeight, 0xffe9b0, 0.08).setDepth(0.5);
@@ -400,7 +401,7 @@ export class WorldScene extends Phaser.Scene {
       }
       if (definition.type === 'shrine-glow') this.tweens.add({ targets: sprite, alpha: 0.45, duration: 1200, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
       if (isShrine) {
-        const label = this.add.text(definition.x + (definition.width || 96) / 2, definition.y - 8, new I18nManager(this.session.locale).text('shrine'), { fontFamily: 'monospace', fontSize: '13px', color: '#ffe08a', stroke: '#18233e', strokeThickness: 4 }).setOrigin(0.5, 1).setDepth(5);
+        const label = this.add.text(definition.x + (definition.width || 96) / 2, definition.y - 8, new I18nManager(this.session.locale).text('shrine'), { fontFamily: 'Courier New, monospace', fontSize: '12px', color: '#ffe08a', stroke: '#18233e', strokeThickness: 3 }).setOrigin(0.5, 1).setDepth(5);
         this.shrineLabels.push(label);
       }
     });
@@ -408,8 +409,83 @@ export class WorldScene extends Phaser.Scene {
 
   private applyBeachCameraZoom(): void {
     if (this.level?.id !== 'level-01') return;
+    const portrait = this.scale.height > this.scale.width * 1.2;
     const compact = this.scale.width < 760 || this.scale.height < 500;
-    this.cameras.main.setZoom(compact ? 1.2 : 1.42);
+    // The reference keeps the player readable while showing enough shoreline
+    // to establish a real beach. The previous 1.42 zoom hid route landmarks.
+    // Show the full beach composition (shoreline, foreground props and exit)
+    // instead of cropping it to a narrow playable rectangle. The characters
+    // remain readable because their level-one sprites are intentionally large.
+    this.cameras.main.setZoom(portrait ? 1.04 : compact ? 0.88 : 1.12);
+  }
+
+  /**
+   * Adds a restrained texture pass over the Tiled Ground layer. It is purely
+   * visual: water detection, collisions and progression still use the
+   * original Tiled data. The route is derived from Tiled spawn and quest
+   * objects so it remains valid when the map is rearranged in Tiled.
+   */
+  private addBeachRouteArtPass(): void {
+    const rows = Array.from({ length: this.map.height }, () => Array<number>(this.map.width).fill(-1));
+    const waterGid = 3;
+    const pathTile = 8; // GID 9: authored path tile in the beach atlas.
+    const foamTile = 5; // GID 6: sand/foam transition tile.
+    const isLand = (x: number, y: number): boolean => {
+      if (x < 0 || y < 0 || x >= this.map.width || y >= this.map.height) return false;
+      return this.map.ground[y * this.map.width + x] !== waterGid;
+    };
+    const paintPath = (from: Point, to: Point): void => {
+      const startX = from.x / this.map.tileWidth;
+      const startY = from.y / this.map.tileHeight;
+      const endX = to.x / this.map.tileWidth;
+      const endY = to.y / this.map.tileHeight;
+      const length = Math.max(Math.abs(endX - startX), Math.abs(endY - startY));
+      for (let step = 0; step <= Math.ceil(length * 2); step += 1) {
+        const t = length === 0 ? 0 : step / Math.ceil(length * 2);
+        const centerX = Math.round(Phaser.Math.Linear(startX, endX, t));
+        const centerY = Math.round(Phaser.Math.Linear(startY, endY, t));
+        for (let offset = -1; offset <= 1; offset += 1) {
+          const horizontal = Math.abs(endX - startX) >= Math.abs(endY - startY);
+          const x = centerX + (horizontal ? 0 : offset);
+          const y = centerY + (horizontal ? offset : 0);
+          if (isLand(x, y)) rows[y][x] = pathTile;
+        }
+      }
+    };
+
+    const player = resolveTiledObjectPoint(this.map.objects, 'spawn', 'player-spawn', this.level.playerSpawn);
+    const mentor = resolveTiledObjectPoint(this.map.objects, 'npc', 'midou', this.level.mentor);
+    const crystal = this.level.objects.find((object) => object.kind === 'crystal');
+    const chest = this.level.objects.find((object) => object.kind === 'chest');
+    const gate = resolveTiledObjectPoint(this.map.objects, 'door', 'exit-gate', this.level.exit.position);
+    const route = [
+      player,
+      mentor,
+      ...(crystal ? [resolveTiledObjectPoint(this.map.objects, crystal.kind, crystal.id, crystal.position)] : []),
+      ...(chest ? [resolveTiledObjectPoint(this.map.objects, chest.kind, chest.id, chest.position)] : []),
+      gate,
+    ];
+    for (let index = 1; index < route.length; index += 1) paintPath(route[index - 1], route[index]);
+
+    // Add foam only where land actually touches water. This creates an
+    // irregular shoreline without changing the water collision geometry.
+    for (let y = 0; y < this.map.height; y += 1) {
+      for (let x = 0; x < this.map.width; x += 1) {
+        if (!isLand(x, y) || rows[y][x] === pathTile) continue;
+        const touchesWater = [[-1, 0], [1, 0], [0, -1], [0, 1]].some(([dx, dy]) => {
+          const nx = x + dx;
+          const ny = y + dy;
+          return nx >= 0 && ny >= 0 && nx < this.map.width && ny < this.map.height && this.map.ground[ny * this.map.width + nx] === waterGid;
+        });
+        if (touchesWater) rows[y][x] = foamTile;
+      }
+    }
+
+    const overlayMap = this.make.tilemap({ data: rows, tileWidth: this.map.tileWidth, tileHeight: this.map.tileHeight });
+    const overlayTileset = overlayMap.addTilesetImage('beach-tileset', 'beach-tileset', this.map.tileWidth, this.map.tileHeight, 0, 0);
+    // Keep the authored route readable without turning the beach into a set
+    // of conspicuous horizontal bands.
+    overlayTileset && overlayMap.createLayer(0, overlayTileset, 0, 0)?.setDepth(0.55).setAlpha(0.26).setCullPadding(2, 2);
   }
 
   private applyForestCameraZoom(): void {
@@ -500,6 +576,12 @@ export class WorldScene extends Phaser.Scene {
     this.physics.world.setBounds(0, 0, worldWidth, worldHeight);
     this.cameras.main.setBounds(0, 0, worldWidth, worldHeight);
     this.cameras.main.startFollow(this.player, true, 0.08, 0.08);
+    if (this.level.id === 'level-01' && this.scale.width >= this.scale.height && this.scale.width < 900) {
+      // In compact landscape the spawn is close to the western shoreline.
+      // A small eastward follow offset keeps the exit landmark in the same
+      // composition as the reference without hiding the player or the water.
+      this.cameras.main.setFollowOffset(110, 0);
+    }
     if (this.level.id === 'level-02' && this.scale.width < 900 && this.scale.height < 500) {
       this.cameras.main.setFollowOffset(0, 78);
     }
@@ -548,7 +630,7 @@ export class WorldScene extends Phaser.Scene {
       this.gateGlow = this.add.image(gatePosition.x, gatePosition.y, isBeach ? 'level-01-gate-v1' : style.gateTextures?.open ?? gateTexture).setOrigin(0.5, 0.92).setDisplaySize(isBeach ? 120 : style.decorationProfile === 'cave' ? 132 : style.decorationProfile === 'harbor' ? 128 : style.decorationProfile === 'mountain' ? 124 : style.decorationProfile === 'castle' ? 132 : 118, isBeach ? 110 : style.decorationProfile === 'cave' ? 136 : style.decorationProfile === 'harbor' ? 130 : style.decorationProfile === 'mountain' ? 132 : style.decorationProfile === 'castle' ? 138 : 124).setTint(isBeach ? 0x70edff : style.decorationProfile === 'cave' ? 0xd48cff : style.decorationProfile === 'harbor' ? 0x6fe6ff : style.decorationProfile === 'mountain' ? 0xcdefff : style.decorationProfile === 'castle' ? 0xff4fd8 : 0xb4e26c).setAlpha(0).setDepth(3.2);
       // Keep the label inside the playable camera bounds: the gate anchor is
       // intentionally close to the eastern edge of the Tiled map.
-      this.gateLabel = this.add.text(gatePosition.x - 110, gatePosition.y - 100, i18n.text('gateName'), { fontFamily: 'monospace', fontSize: '13px', color: '#c6d1e7', stroke: '#18233e', strokeThickness: 4 }).setOrigin(1, 1).setDepth(6);
+      this.gateLabel = this.add.text(gatePosition.x - 88, gatePosition.y - 92, i18n.text('gateName'), { fontFamily: 'Courier New, monospace', fontSize: '11px', color: '#c6d1e7', stroke: '#18233e', strokeThickness: 3 }).setOrigin(1, 1).setDepth(6).setVisible(false);
       this.gateUnlocked = true;
       this.refreshGatePresentation();
     }
@@ -650,6 +732,10 @@ export class WorldScene extends Phaser.Scene {
     if (this.mentorLabel) {
       const mentorDistance = Phaser.Math.Distance.Between(this.player.x, this.player.y, this.mentor.x, this.mentor.y);
       this.mentorLabel.setPosition(this.mentor.x, this.mentor.y - 48).setVisible(mentorDistance < 150);
+    }
+    if (this.gateLabel && this.gate) {
+      const gateDistance = Phaser.Math.Distance.Between(this.player.x, this.player.y, this.gate.x, this.gate.y);
+      this.gateLabel.setVisible(gateDistance < 260);
     }
     if (this.interactionHint) {
       this.interactionHint.setVisible(Boolean(this.nearby));

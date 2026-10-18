@@ -1,19 +1,15 @@
 import Phaser from 'phaser';
 import type { Point } from '../models/game';
-import { calculateTouchLayout, type LayoutMetrics } from '../ui/layout/ResponsiveLayoutManager';
+import { calculateTouchLayout, TOUCH_LAYOUT_SIZES, type LayoutMetrics } from '../ui/layout/ResponsiveLayoutManager';
 import { interactionKeyEvents, terminalKeyEvent } from './InputBindings';
 
 export class InputManager {
-  private static readonly touchButtonRadius = 36;
   private readonly cursors: Phaser.Types.Input.Keyboard.CursorKeys;
   private readonly keys: Record<string, Phaser.Input.Keyboard.Key>;
-  private readonly touchButtons: Phaser.GameObjects.Text[] = [];
-  private touchAction?: Phaser.GameObjects.Text;
-  private touchTerminal?: Phaser.GameObjects.Text;
-  private touchPad?: Phaser.GameObjects.Arc;
-  private touchThumb?: Phaser.GameObjects.Arc;
-  private touchPointerId: number | null = null;
-  private touchCenter: Point = { x: 0, y: 0 };
+  private readonly touchButtons: Phaser.GameObjects.Container[] = [];
+  private touchAction?: Phaser.GameObjects.Container;
+  private touchTerminal?: Phaser.GameObjects.Container;
+  private touchPad?: Phaser.GameObjects.Container;
 
   public constructor(private readonly scene: Phaser.Scene, onInteract: () => void, private readonly onTerminal: () => void, bindKeyboard = true) {
     this.cursors = scene.input.keyboard!.createCursorKeys();
@@ -25,11 +21,8 @@ export class InputManager {
     scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       interactionKeyEvents.forEach((eventName) => scene.input.keyboard?.off(eventName, onInteract));
       scene.input.keyboard?.off(terminalKeyEvent, onTerminal);
-      scene.input.off('pointermove', this.handlePointerMove, this);
-      scene.input.off('pointerup', this.handlePointerUp, this);
-      scene.input.off('pointerupoutside', this.handlePointerUp, this);
-      this.touchPad?.destroy();
-      this.touchThumb?.destroy();
+      this.touchPad?.destroy(true);
+      this.touchButtons.length = 0;
       this.touchAction?.destroy();
       this.touchTerminal?.destroy();
     });
@@ -45,74 +38,68 @@ export class InputManager {
     return { x, y };
   }
 
-  public bindTouch(buttons: Array<{ label: string; x: number; y: number; vector: Point }>, interact: () => void): void {
-    // The legacy button description is kept for data compatibility, but the
-    // visual control is now a single analogue-style pad with a larger hit area.
-    void buttons;
-    this.touchPad = this.scene.add.circle(0, 0, 54, 0x18233e, 0.76).setStrokeStyle(2, 0xf7d56a).setDepth(30).setInteractive(new Phaser.Geom.Circle(0, 0, 54), Phaser.Geom.Circle.Contains);
-    this.touchThumb = this.scene.add.circle(0, 0, 18, 0xf7c84b, 0.92).setStrokeStyle(2, 0x10172b).setDepth(31);
-    this.scene.input.on('pointermove', this.handlePointerMove, this);
-    this.touchPad.on('pointerdown', (pointer: Phaser.Input.Pointer) => { this.touchPointerId = pointer.id; this.updateJoystick(pointer.x, pointer.y); });
-    this.scene.input.on('pointerup', this.handlePointerUp, this);
-    this.scene.input.on('pointerupoutside', this.handlePointerUp, this);
-    const buttonRadius = InputManager.touchButtonRadius;
-    const touchHitArea = new Phaser.Geom.Rectangle(-buttonRadius, -buttonRadius, buttonRadius * 2, buttonRadius * 2);
-    this.touchAction = this.scene.add.text(870, 465, 'E', {
-      fontFamily: 'monospace',
-      fontSize: '26px',
-      color: '#18233e',
-      backgroundColor: '#f7c84b',
-      padding: { x: 20, y: 16 },
-      align: 'center',
-      stroke: '#fff0a8',
-      strokeThickness: 1,
-    }).setOrigin(0.5).setDepth(30).setInteractive(touchHitArea, Phaser.Geom.Rectangle.Contains);
+  public bindTouch(buttons: Array<{ label: string; x: number; y: number; vector: Point }>, interact: () => void, labels = { interact: 'Interact', terminal: 'Terminal' }): void {
+    this.touchPad = this.scene.add.container(0, 0).setDepth(30);
+    const padBackground = this.scene.add.rectangle(0, 0, 164, 164, 0x18233e, 0.82).setOrigin(0.5).setStrokeStyle(2, 0xf7d56a, 0.9);
+    const padCenter = this.scene.add.rectangle(0, 0, 48, 48, 0x273e68, 0.9).setOrigin(0.5).setStrokeStyle(1, 0x7e9bd1, 0.9);
+    this.touchPad.add([padBackground, padCenter]);
+    buttons.forEach((definition) => {
+      const direction = this.createTouchDirection(definition.label, definition.vector);
+      const offset = definition.vector.x !== 0 ? { x: definition.vector.x * 42, y: 0 } : { x: 0, y: definition.vector.y * 42 };
+      direction.setPosition(offset.x, offset.y);
+      this.touchPad?.add(direction);
+      this.touchButtons.push(direction);
+    });
+    const touchHitArea = new Phaser.Geom.Rectangle(
+      -TOUCH_LAYOUT_SIZES.actionHalf,
+      -TOUCH_LAYOUT_SIZES.actionHalf,
+      TOUCH_LAYOUT_SIZES.actionHalf * 2,
+      TOUCH_LAYOUT_SIZES.actionHalf * 2,
+    );
+    this.touchAction = this.createTouchAction('E', labels.interact, 0xf7c84b, 0x18233e, touchHitArea);
     this.touchAction.on('pointerdown', interact);
-    this.touchTerminal = this.scene.add.text(870, 395, 'T', {
-      fontFamily: 'monospace',
-      fontSize: '26px',
-      color: '#fff6df',
-      backgroundColor: '#18233e',
-      padding: { x: 20, y: 16 },
-      align: 'center',
-      stroke: '#7e9bd1',
-      strokeThickness: 1,
-    }).setOrigin(0.5).setDepth(30).setInteractive(new Phaser.Geom.Rectangle(-buttonRadius, -buttonRadius, buttonRadius * 2, buttonRadius * 2), Phaser.Geom.Rectangle.Contains);
+    this.touchTerminal = this.createTouchAction('T', labels.terminal, 0x18233e, 0xfff6df, touchHitArea);
     this.touchTerminal.on('pointerdown', this.onTerminal);
+  }
+
+  private createTouchDirection(label: string, vector: Point): Phaser.GameObjects.Container {
+    const button = this.scene.add.container(0, 0);
+    const background = this.scene.add.rectangle(0, 0, 52, 52, 0x354d7d, 0.96).setOrigin(0.5).setStrokeStyle(2, 0x7e9bd1, 1);
+    const text = this.scene.add.text(0, 0, label, { fontFamily: 'Courier New, monospace', fontSize: '22px', color: '#fff6df' }).setOrigin(0.5);
+    button.add([background, text]);
+    button.setSize(60, 60).setInteractive(new Phaser.Geom.Rectangle(-30, -30, 60, 60), Phaser.Geom.Rectangle.Contains);
+    button.on('pointerdown', () => this.onTouchMove?.(vector));
+    button.on('pointerup', () => this.onTouchMove?.({ x: 0, y: 0 }));
+    button.on('pointerout', () => this.onTouchMove?.({ x: 0, y: 0 }));
+    return button;
+  }
+
+  private createTouchAction(label: string, caption: string, fill: number, textColor: number, hitArea: Phaser.Geom.Rectangle): Phaser.GameObjects.Container {
+    const button = this.scene.add.container(0, 0).setDepth(30);
+    const circle = this.scene.add.circle(0, 0, 34, fill, 0.96).setStrokeStyle(3, label === 'E' ? 0xfff0a8 : 0x7e9bd1, 1);
+    const text = this.scene.add.text(0, 0, label, { fontFamily: 'Courier New, monospace', fontSize: '22px', color: Phaser.Display.Color.IntegerToColor(textColor).rgba, stroke: '#10172b', strokeThickness: 1 }).setOrigin(0.5);
+    const labelText = this.scene.add.text(0, 48, caption, { fontFamily: 'Courier New, monospace', fontSize: '10px', color: '#fff6df', backgroundColor: '#10172b', padding: { x: 5, y: 3 }, align: 'center' }).setName('touch-caption').setOrigin(0.5);
+    button.add([circle, text, labelText]);
+    button.setSize(68, 68).setInteractive(hitArea, Phaser.Geom.Rectangle.Contains);
+    return button;
   }
 
   public layoutTouch(metrics: Pick<LayoutMetrics, 'width' | 'height' | 'margin'>): void {
     const layout = calculateTouchLayout(metrics);
-    this.touchCenter = layout.joystick;
     this.touchPad?.setPosition(layout.joystick.x, layout.joystick.y);
-    this.touchThumb?.setPosition(layout.joystick.x, layout.joystick.y);
     this.touchAction?.setPosition(layout.action.x, layout.action.y);
     this.touchTerminal?.setPosition(layout.terminal.x, layout.terminal.y);
+  }
+
+  public setTouchLabels(labels: { interact: string; terminal: string }): void {
+    const actionLabel = this.touchAction?.getByName('touch-caption') as Phaser.GameObjects.Text | undefined;
+    const terminalLabel = this.touchTerminal?.getByName('touch-caption') as Phaser.GameObjects.Text | undefined;
+    actionLabel?.setText(labels.interact);
+    terminalLabel?.setText(labels.terminal);
   }
 
   private onTouchMove?: (vector: Point) => void;
 
   public setTouchMoveHandler(handler: (vector: Point) => void): void { this.onTouchMove = handler; }
 
-  private handlePointerMove(pointer: Phaser.Input.Pointer): void {
-    if (this.touchPointerId === pointer.id) this.updateJoystick(pointer.x, pointer.y);
-  }
-
-  private handlePointerUp(pointer: Phaser.Input.Pointer): void {
-    if (this.touchPointerId !== pointer.id) return;
-    this.touchPointerId = null;
-    this.touchThumb?.setPosition(this.touchCenter.x, this.touchCenter.y);
-    this.onTouchMove?.({ x: 0, y: 0 });
-  }
-
-  private updateJoystick(x: number, y: number): void {
-    const dx = x - this.touchCenter.x;
-    const dy = y - this.touchCenter.y;
-    const distance = Math.hypot(dx, dy);
-    const radius = 42;
-    const scale = distance > radius ? radius / distance : 1;
-    this.touchThumb?.setPosition(this.touchCenter.x + dx * scale, this.touchCenter.y + dy * scale);
-    const normalized = distance < 12 ? { x: 0, y: 0 } : { x: Math.round(dx / Math.max(distance, 1)), y: Math.round(dy / Math.max(distance, 1)) };
-    this.onTouchMove?.(normalized);
-  }
 }

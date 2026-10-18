@@ -8,10 +8,10 @@ export class InventoryBar extends ResponsivePanel {
   private readonly items: Phaser.GameObjects.Container;
 
   public constructor(scene: Phaser.Scene) {
-    super(scene, 170, 34, { fillColor: UITheme.colors.panelRaised, fillAlpha: 0.9, borderWidth: 1 });
+    super(scene, 170, 38, { fillColor: UITheme.colors.panelRaised, fillAlpha: 0.94, borderWidth: 1 });
     this.title = scene.add.text(10, 8, '', { fontFamily: UITheme.fontFamily, fontSize: '10px', color: UITheme.colors.textMuted });
     this.add(this.title);
-    this.items = scene.add.container(10, 23);
+    this.items = scene.add.container(10, 25);
     this.add(this.items);
   }
 
@@ -23,7 +23,7 @@ export class InventoryBar extends ResponsivePanel {
       const image = this.scene.add.image(index * 27 + 10, 0, key).setDisplaySize(20, 20);
       this.items.add(image);
     });
-    this.setPanelSize(Math.max(150, 28 + Math.min(5, items.length) * 27), 34);
+    this.setPanelSize(Math.max(150, 28 + Math.min(5, items.length) * 27), 38);
     return this;
   }
 }

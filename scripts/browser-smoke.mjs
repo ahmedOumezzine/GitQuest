@@ -103,7 +103,10 @@ async function connectCdp() {
   return new Cdp(socket);
 }
 
-async function waitForState(cdp, expected, timeoutMs = 12000) {
+// A cold Vite/Chrome start can compile and load the regional asset bundle
+// after the page is already visible. Keep the browser check bounded, but do
+// not turn that legitimate startup cost into a false negative.
+async function waitForState(cdp, expected, timeoutMs = 60000) {
   const started = Date.now();
   while (Date.now() - started < timeoutMs) {
     const state = await cdp.evaluate('document.documentElement?.dataset.gitquestQa ?? ""');
@@ -239,6 +242,10 @@ async function runTerminalCommands(cdp, commands) {
   await key(cdp, 't');
   await waitForState(cdp, 'terminal');
   await new Promise((resolve) => setTimeout(resolve, 150));
+  if (process.env.GITQUEST_QA_TERMINAL_SCREENSHOT) {
+    const screenshot = await cdp.send('Page.captureScreenshot', { format: 'png' });
+    await writeFile(process.env.GITQUEST_QA_TERMINAL_SCREENSHOT, Buffer.from(screenshot.data, 'base64'));
+  }
   for (const [index, command] of commands.entries()) {
     await cdp.send('Input.insertText', { text: command.text });
     await key(cdp, 'Enter');
@@ -275,7 +282,18 @@ async function runLegacyLevel(cdp, config) {
   await moveToward(cdp, config.gate);
   if (config.id === 'level-02') await captureScreenshot(cdp, process.env.GITQUEST_QA_LEVEL2_GATE_OPEN_SCREENSHOT);
   await key(cdp, 'e');
-  if (config.next) await waitForLevel(cdp, config.next);
+  if (config.next) {
+    // A key press can arrive on the same frame as the final movement tick.
+    // Retry the already-authorized interaction a few times before failing the
+    // browser check; the game-side gate remains idempotent.
+    for (let attempt = 0; attempt < 8; attempt += 1) {
+      if (await cdp.evaluate(`document.documentElement.dataset.gitquestLevel === ${JSON.stringify(config.next)}`)) break;
+      await key(cdp, 'e');
+      await key(cdp, 'Enter');
+      await new Promise((resolve) => setTimeout(resolve, 180));
+    }
+    await waitForLevel(cdp, config.next);
+  }
   else await waitForState(cdp, 'victory');
 }
 
@@ -421,14 +439,19 @@ async function removeProfile(path) {
 const viteEntry = join(process.cwd(), 'node_modules', 'vite', 'bin', 'vite.js');
 const server = spawn(process.execPath, [viteEntry, '--host', '127.0.0.1', '--port', String(appPort)], { stdio: 'inherit', windowsHide: true });
 const profile = await mkdtemp(join(tmpdir(), 'gitquest-browser-'));
-const chrome = spawn(chromePath, [
-  '--headless=new', '--disable-gpu', '--no-sandbox', `--remote-debugging-port=${cdpPort}`,
-  `--user-data-dir=${profile}`, `--window-size=${viewportWidth},${viewportHeight}`, appUrl,
-], { stdio: 'ignore', windowsHide: true });
+let chrome;
 
 let cdp;
 try {
   await waitFor(`http://127.0.0.1:${appPort}/`);
+  // Do not navigate Chrome before Vite is serving. On a cold Windows start,
+  // Chrome can otherwise keep its initial connection-error document and
+  // never reach the QA page even though the server becomes ready moments
+  // later.
+  chrome = spawn(chromePath, [
+    '--headless=new', '--disable-gpu', '--no-sandbox', `--remote-debugging-port=${cdpPort}`,
+    `--user-data-dir=${profile}`, `--window-size=${viewportWidth},${viewportHeight}`, appUrl,
+  ], { stdio: 'ignore', windowsHide: true });
   await waitFor(`http://127.0.0.1:${cdpPort}/json/list`);
   cdp = await connectCdp();
   const consoleErrors = [];
@@ -452,6 +475,40 @@ try {
     if (requestedLevel) await new Promise((resolve) => setTimeout(resolve, 650));
     const screenshot = await cdp.send('Page.captureScreenshot', { format: 'png' });
     await writeFile(process.env.GITQUEST_QA_SCREENSHOT, Buffer.from(screenshot.data, 'base64'));
+  }
+  if (requestedLevel && process.env.GITQUEST_QA_INVENTORY_SCREENSHOT) {
+    await key(cdp, 'i');
+    const inventoryStarted = Date.now();
+    while (Date.now() - inventoryStarted < 1500) {
+      if (await cdp.evaluate('document.documentElement.dataset.gitquestInventory === "visible"')) break;
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+    if (!await cdp.evaluate('document.documentElement.dataset.gitquestInventory === "visible"')) throw new Error('Le panneau d’inventaire ne s’est pas ouvert.');
+    const screenshot = await cdp.send('Page.captureScreenshot', { format: 'png' });
+    await writeFile(process.env.GITQUEST_QA_INVENTORY_SCREENSHOT, Buffer.from(screenshot.data, 'base64'));
+    await key(cdp, 'i');
+    if (await cdp.evaluate('document.documentElement.dataset.gitquestInventory === "visible"')) throw new Error('Le panneau d’inventaire ne s’est pas refermé.');
+  }
+  if (requestedLevel && process.env.GITQUEST_QA_TERMINAL_SCREENSHOT) {
+    await key(cdp, 't');
+    await waitForState(cdp, 'terminal');
+    const screenshot = await cdp.send('Page.captureScreenshot', { format: 'png' });
+    await writeFile(process.env.GITQUEST_QA_TERMINAL_SCREENSHOT, Buffer.from(screenshot.data, 'base64'));
+    await key(cdp, 'Escape');
+    await waitForState(cdp, 'world');
+  }
+  if (requestedLevel && process.env.GITQUEST_QA_JOURNAL_SCREENSHOT) {
+    await key(cdp, 'j');
+    const journalStarted = Date.now();
+    while (Date.now() - journalStarted < 1500) {
+      if (await cdp.evaluate('document.documentElement.dataset.gitquestJournal === "visible"')) break;
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+    if (!await cdp.evaluate('document.documentElement.dataset.gitquestJournal === "visible"')) throw new Error('Le journal ne s’est pas ouvert.');
+    const screenshot = await cdp.send('Page.captureScreenshot', { format: 'png' });
+    await writeFile(process.env.GITQUEST_QA_JOURNAL_SCREENSHOT, Buffer.from(screenshot.data, 'base64'));
+    await key(cdp, 'j');
+    if (await cdp.evaluate('document.documentElement.dataset.gitquestJournal === "visible"')) throw new Error('Le journal ne s’est pas refermé.');
   }
 
   if (requestedLevel === 'level-02' && process.env.GITQUEST_QA_POLISH_SCREENSHOTS === '1') {
@@ -523,17 +580,24 @@ try {
     await captureScreenshot(cdp, process.env.GITQUEST_QA_MIDOU_SCREENSHOT);
     await holdKey(cdp, 'ArrowLeft', 350);
   } else {
-    await holdKey(cdp, 'ArrowRight', 460);
-    await holdKey(cdp, 'ArrowUp', 430);
+    await moveToward(cdp, { x: 240, y: 210 }, 30);
   }
   await debugPlayer(cdp, 'after-midou-route');
-  await key(cdp, 'e');
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    if (await cdp.evaluate('document.documentElement.dataset.gitquestQuestStep === "run-init"')) break;
+    await key(cdp, 'e');
+    await key(cdp, 'Enter');
+    await new Promise((resolve) => setTimeout(resolve, 180));
+  }
   await waitForQuestStep(cdp, 'run-init');
 
-  if (process.env.GITQUEST_QA_GATE_LOCKED_SCREENSHOT) await moveToPoints(cdp, [{ x: 155, y: 405 }]);
-  else {
-    await holdKey(cdp, 'ArrowLeft', 620);
-    await holdKey(cdp, 'ArrowDown', 1350);
+  if (process.env.GITQUEST_QA_GATE_LOCKED_SCREENSHOT) {
+    await moveToPoints(cdp, [{ x: 155, y: 405 }]);
+  } else {
+    // Follow the authored land route instead of hugging the water lip. The
+    // latter is intentionally collidable, so a straight legacy movement can
+    // stop the enlarged level-1 character before reaching the crystal.
+    await moveToPoints(cdp, [{ x: 176, y: 270 }, { x: 155, y: 405 }]);
   }
   await debugPlayer(cdp, 'before-crystal');
   await key(cdp, 'e');
@@ -543,6 +607,10 @@ try {
   await key(cdp, 't');
   await waitForState(cdp, 'terminal');
   await new Promise((resolve) => setTimeout(resolve, 150));
+  if (process.env.GITQUEST_QA_TERMINAL_SCREENSHOT) {
+    const screenshot = await cdp.send('Page.captureScreenshot', { format: 'png' });
+    await writeFile(process.env.GITQUEST_QA_TERMINAL_SCREENSHOT, Buffer.from(screenshot.data, 'base64'));
+  }
   await cdp.send('Input.insertText', { text: 'git init' });
   await key(cdp, 'Enter');
   await waitForQuestStep(cdp, 'collect-key');
@@ -553,12 +621,22 @@ try {
   await holdKey(cdp, 'ArrowUp', 1000);
   await holdKey(cdp, 'ArrowRight', 4300);
   await holdKey(cdp, 'ArrowDown', 1000);
-  await key(cdp, 'e');
+  // The fast route is useful for the normal viewport, but the enlarged
+  // level-1 sprite can stop against the central shrine pillar at wide
+  // resolutions. Use the authored clear corridor as a bounded fallback.
+  if (await cdp.evaluate('document.documentElement.dataset.gitquestQuestStep === "collect-key"')) {
+    await moveToPoints(cdp, [{ x: 155, y: 250 }, { x: 650, y: 250 }, { x: 780, y: 390 }]);
+  }
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    if (await cdp.evaluate('document.documentElement.dataset.gitquestQuestStep === "open-exit"')) break;
+    await key(cdp, 'e');
+    await key(cdp, 'Enter');
+    await new Promise((resolve) => setTimeout(resolve, 180));
+  }
   await waitForQuestStep(cdp, 'open-exit');
   const keySave = await cdp.evaluate('JSON.parse(localStorage.getItem("gitquest-save") ?? "null")');
   if (!keySave?.inventory?.items?.includes('pass-key') || keySave.xp?.total < 60) throw new Error('Le coffre, la clé ou l’XP du niveau 1 n’est pas confirmé.');
-  await holdKey(cdp, 'ArrowUp', 850);
-  await holdKey(cdp, 'ArrowRight', 850);
+  await moveToPoints(cdp, [{ x: 900, y: 270 }]);
   await waitForGateState(cdp, 'open');
   await captureScreenshot(cdp, process.env.GITQUEST_QA_GATE_OPEN_SCREENSHOT);
   await key(cdp, 'e');
