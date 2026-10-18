@@ -61,13 +61,21 @@ export class InputManager {
     );
     this.touchAction = this.createTouchAction('E', labels.interact, 0xf7c84b, 0x18233e, touchHitArea);
     this.touchAction.on('pointerdown', () => {
-      this.setTouchButtonPressed(this.touchAction, true);
+      const button = this.touchAction;
+      if (!button) return;
+      this.setTouchButtonPressed(button, true);
+      this.flashTouchButton(button);
+      audioManager.play('touch');
       interact();
     });
     this.bindTouchRelease(this.touchAction);
     this.touchTerminal = this.createTouchAction('T', labels.terminal, 0x18233e, 0xfff6df, touchHitArea);
     this.touchTerminal.on('pointerdown', () => {
-      this.setTouchButtonPressed(this.touchTerminal, true);
+      const button = this.touchTerminal;
+      if (!button) return;
+      this.setTouchButtonPressed(button, true);
+      this.flashTouchButton(button);
+      audioManager.play('touch');
       this.onTerminal();
     });
     this.bindTouchRelease(this.touchTerminal);
@@ -120,6 +128,16 @@ export class InputManager {
     button.setScale(pressed ? 0.93 : 1);
     const halo = button.list[0] as Phaser.GameObjects.Arc | undefined;
     halo?.setAlpha(pressed ? 0.42 : 0.18);
+  }
+
+  private flashTouchButton(button: Phaser.GameObjects.Container): void {
+    const halo = button.list[0] as Phaser.GameObjects.Arc | undefined;
+    if (!halo) return;
+    this.scene.tweens.killTweensOf([button, halo]);
+    button.setScale(0.9);
+    halo.setAlpha(0.62).setScale(1.14);
+    this.scene.tweens.add({ targets: button, scale: 1, duration: 150, ease: 'Back.Out' });
+    this.scene.tweens.add({ targets: halo, alpha: 0.18, scale: 1, duration: 220, ease: 'Quad.Out' });
   }
 
   private setTouchDirectionPressed(button: Phaser.GameObjects.Container, pressed: boolean): void {
