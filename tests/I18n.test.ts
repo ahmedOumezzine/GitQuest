@@ -45,6 +45,7 @@ test('les indications du guide et de la porte sont traduites', () => {
     assert.ok(i18n.text('midouName').length > 0, `${locale}.midouName`);
     assert.ok(i18n.text('gateName').length > 0, `${locale}.gateName`);
     assert.ok(i18n.text('gateLockedHint').length > 0, `${locale}.gateLockedHint`);
+    assert.ok(i18n.text('terminalAction').length > 0, `${locale}.terminalAction`);
   }
 });
 

@@ -403,6 +403,39 @@ Vérifications :
 La logique d’inventaire, les identifiants d’objets et la sauvegarde restent
 inchangés.
 
+## Continuation — passe UX interactive et HUD mobile
+
+Fichiers modifiés :
+
+- `src/ui/layout/ResponsiveLayoutManager.ts`
+- `src/scenes/UIScene.ts`
+- `src/ui/hud/QuestTracker.ts`
+- `src/scenes/WorldScene.ts`
+- `src/managers/I18nManager.ts`
+- `tests/ResponsiveLayout.test.ts`
+- `tests/I18n.test.ts`
+
+Améliorations réalisées :
+
+- Le HUD portrait empile l’objectif sur toute la largeur, puis XP et inventaire
+  sur une ligne séparée ; les panneaux ne se recouvrent plus à `390×844`.
+- Le prompt d’interaction devient un appel à l’action visuel : icône, contraste
+  renforcé et pulsation légère uniquement lorsqu’un objet est à portée.
+- Le badge `E` près de Midou, des objets et des portes possède un fond lisible
+  et une animation discrète.
+- Le libellé du bouton Terminal tactile est désormais localisé dans les trois
+  langues, y compris en arabe.
+- Le texte du suivi de quête s’aligne correctement en RTL.
+
+Vérification ajoutée : le test responsive contrôle explicitement l’absence de
+chevauchement du HUD portrait ; le test i18n contrôle le libellé Terminal dans
+les trois langues.
+
+Limites restantes : les compositions artistiques du HUD, du journal, de
+l’inventaire et du terminal restent moins riches que la planche de référence ;
+les appareils mobiles physiques et le clavier virtuel natif ne sont pas
+certifiés par l’émulation Chrome seule.
+
 ## Continuation — sélection d’objet dans l’inventaire
 
 L’inventaire complet permet maintenant de sélectionner une case occupée :

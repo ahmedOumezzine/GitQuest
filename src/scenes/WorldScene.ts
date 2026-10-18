@@ -35,6 +35,7 @@ export class WorldScene extends Phaser.Scene {
   private gateLabel?: Phaser.GameObjects.Text;
   private gateGlow?: Phaser.GameObjects.Image;
   private gateGlowTween?: Phaser.Tweens.Tween;
+  private interactionHintPulse?: Phaser.Tweens.Tween;
   private gateUnlocked = true;
   private shrineLabels: Phaser.GameObjects.Text[] = [];
   private worldTitle?: Phaser.GameObjects.Text;
@@ -634,7 +635,7 @@ export class WorldScene extends Phaser.Scene {
       this.gateUnlocked = true;
       this.refreshGatePresentation();
     }
-    this.interactionHint = this.add.text(0, 0, '✦ E', { fontFamily: 'monospace', fontSize: '13px', color: '#ffe08a', stroke: '#45334a', strokeThickness: 3 }).setOrigin(0.5).setDepth(20).setVisible(false);
+    this.interactionHint = this.add.text(0, 0, 'E', { fontFamily: 'monospace', fontSize: '13px', color: '#18233e', backgroundColor: '#f7d56a', padding: { x: 7, y: 4 }, stroke: '#10172b', strokeThickness: 2 }).setOrigin(0.5).setDepth(20).setVisible(false);
   }
 
   private refreshGatePresentation(): void {
@@ -738,7 +739,16 @@ export class WorldScene extends Phaser.Scene {
       this.gateLabel.setVisible(gateDistance < 260);
     }
     if (this.interactionHint) {
-      this.interactionHint.setVisible(Boolean(this.nearby));
+      const visible = Boolean(this.nearby);
+      if (visible && !this.interactionHint.visible) {
+        this.interactionHint.setVisible(true).setScale(1);
+        this.interactionHintPulse?.stop();
+        this.interactionHintPulse = this.tweens.add({ targets: this.interactionHint, y: '-=3', alpha: { from: 0.82, to: 1 }, duration: 650, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
+      } else if (!visible && this.interactionHint.visible) {
+        this.interactionHintPulse?.stop();
+        this.interactionHintPulse = undefined;
+        this.interactionHint.setVisible(false).setAlpha(1);
+      }
       if (this.nearby) {
         const target = this.nearby as Phaser.GameObjects.GameObject & { x: number; y: number };
         this.interactionHint.setPosition(target.x, target.y - 30);

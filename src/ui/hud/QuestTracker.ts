@@ -29,9 +29,13 @@ export class QuestTracker extends ResponsivePanel {
     const action = current ? i18n.stepLabel(current.id) : i18n.text('missionDone');
     const compactCollapsed = compact && !this.expanded;
     this.setPanelSize(Math.min(380, Math.max(220, width)), compactCollapsed ? 60 : 70);
-    this.title.setText(`${i18n.text('objective')} · ${title}`).setFontSize(compact ? '10px' : '12px');
-    this.objective.setText(action).setFontSize(compact ? '11px' : '12px').setPosition(14, compactCollapsed ? 28 : 32).setWordWrapWidth(Math.max(150, this.panelWidth - 24));
-    this.progress.setText(`${completed}/${total}`).setY(compactCollapsed ? 46 : 55);
+    const rtl = i18n.direction === 'rtl';
+    const textX = rtl ? this.panelWidth - 14 : 14;
+    const originX = rtl ? 1 : 0;
+    const align = rtl ? 'right' : 'left';
+    this.title.setText(`${i18n.text('objective')} · ${title}`).setFontSize(compact ? '10px' : '12px').setPosition(textX, 10).setOrigin(originX, 0).setStyle({ align });
+    this.objective.setText(action).setFontSize(compact ? '11px' : '12px').setPosition(textX, compactCollapsed ? 28 : 32).setOrigin(originX, 0).setStyle({ align }).setWordWrapWidth(Math.max(150, this.panelWidth - 24));
+    this.progress.setText(`${completed}/${total}`).setPosition(textX, compactCollapsed ? 46 : 55).setOrigin(originX, 0).setStyle({ align });
     return this;
   }
 

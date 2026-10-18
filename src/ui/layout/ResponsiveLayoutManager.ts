@@ -28,6 +28,12 @@ export interface TouchLayout {
   terminal: { x: number; y: number };
 }
 
+export interface GameplayHudLayout {
+  quest: { x: number; y: number; width: number };
+  xp: { x: number; y: number };
+  inventory: { x: number; y: number };
+}
+
 /** Visual and hit-area sizes shared by the responsive layout and its tests. */
 export const TOUCH_LAYOUT_SIZES = {
   padHalf: 82,
@@ -41,6 +47,34 @@ export function calculateTouchLayout(metrics: Pick<LayoutMetrics, 'width' | 'hei
   const joystick = { x: metrics.margin + 90, y: metrics.height - metrics.margin - 90 };
   const action = { x: metrics.width - metrics.margin - 48, y: joystick.y };
   return { joystick, action, terminal: { x: action.x, y: action.y - 70 } };
+}
+
+export function calculateGameplayHudLayout(
+  metrics: Pick<LayoutMetrics, 'width' | 'height' | 'margin' | 'topBarHeight' | 'compact' | 'portrait'>,
+  questWidth: number,
+  xpWidth: number,
+  inventoryWidth: number,
+): GameplayHudLayout {
+  const margin = metrics.margin;
+  if (metrics.portrait) {
+    const fullWidth = Math.max(220, metrics.width - margin * 2);
+    const rowY = 74;
+    return {
+      quest: { x: margin, y: 8, width: fullWidth },
+      xp: { x: margin, y: rowY },
+      inventory: { x: metrics.width - margin - inventoryWidth, y: rowY },
+    };
+  }
+
+  const resolvedQuestWidth = metrics.compact
+    ? Math.max(220, metrics.width - margin * 2)
+    : Math.min(380, Math.max(220, questWidth));
+  const rightX = metrics.width - margin;
+  return {
+    quest: { x: margin, y: metrics.compact ? 8 : metrics.topBarHeight + 6, width: resolvedQuestWidth },
+    xp: { x: rightX - xpWidth, y: metrics.compact ? 8 : metrics.topBarHeight + 6 },
+    inventory: { x: rightX - inventoryWidth, y: metrics.compact ? 48 : metrics.topBarHeight + 48 },
+  };
 }
 
 export function calculateMenuCenterY(metrics: Pick<LayoutMetrics, 'height' | 'margin' | 'compact' | 'portrait'>, totalHeight: number): number {

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { calculateLayout, calculateMenuCenterY, calculateTouchLayout, TOUCH_LAYOUT_SIZES } from '../src/ui/layout/ResponsiveLayoutManager';
+import { calculateGameplayHudLayout, calculateLayout, calculateMenuCenterY, calculateTouchLayout, TOUCH_LAYOUT_SIZES } from '../src/ui/layout/ResponsiveLayoutManager';
 
 test('le layout identifie correctement les modes desktop, compact et portrait', () => {
   const desktop = calculateLayout(1920, 1080);
@@ -42,4 +42,14 @@ test('les contrôles tactiles restent dans les zones sûres en portrait et paysa
     assert.ok(touch.action.y + TOUCH_LAYOUT_SIZES.actionLabelBottom <= metrics.height - metrics.margin);
     assert.ok(touch.terminal.y - TOUCH_LAYOUT_SIZES.actionHalf >= metrics.margin);
   }
+});
+
+test('le HUD portrait empile l’objectif et les statistiques sans chevauchement', () => {
+  const metrics = calculateLayout(390, 844);
+  const hud = calculateGameplayHudLayout(metrics, 220, 144, 150);
+  assert.equal(hud.quest.x, 12);
+  assert.equal(hud.quest.width, 366);
+  assert.equal(hud.xp.y, hud.inventory.y);
+  assert.ok(hud.xp.x + 144 <= hud.inventory.x);
+  assert.ok(hud.inventory.x + 150 <= metrics.width - metrics.margin);
 });

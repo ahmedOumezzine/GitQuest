@@ -6,7 +6,7 @@ import { I18nManager } from '../managers/I18nManager';
 import { InputManager } from '../phaser/InputManager';
 import type { GitCommandResult } from '../systems/GitSimulator';
 import { TerminalInputModel } from '../systems/TerminalInputModel';
-import { ResponsiveLayoutManager, type LayoutMetrics } from '../ui/layout/ResponsiveLayoutManager';
+import { calculateGameplayHudLayout, ResponsiveLayoutManager, type LayoutMetrics } from '../ui/layout/ResponsiveLayoutManager';
 import { UITheme } from '../ui/theme/UITheme';
 import { QuestTracker } from '../ui/hud/QuestTracker';
 import { XPBar } from '../ui/hud/XPBar';
@@ -69,6 +69,8 @@ export class UIScene extends Phaser.Scene {
   private inventoryBar!: InventoryBar;
   private inventoryScreen!: InventoryPanel;
   private commandHint!: CommandHint;
+  private promptPulse?: Phaser.Tweens.Tween;
+  private promptInteractionActive = false;
 
   public constructor() { super('UIScene'); }
 
@@ -85,7 +87,7 @@ export class UIScene extends Phaser.Scene {
     this.xpFill = this.add.rectangle(575, 13, 1, 6, 0xf7d56a).setOrigin(0, 0.5).setDepth(22);
     this.inventoryPanel = this.add.container(575, 33).setDepth(22);
     this.inventoryPanel.add(this.add.text(0, 0, '▣', { fontFamily: UITheme.fontFamily, fontSize: '16px', color: '#fff6df' }));
-    this.prompt = this.add.text(480, 506, '', { fontFamily: UITheme.fontFamily, fontSize: '12px', color: '#fff6df', backgroundColor: '#18233e', padding: { x: 8, y: 5 }, align: 'center', wordWrap: { width: 700 } }).setOrigin(0.5).setDepth(30);
+    this.prompt = this.add.text(480, 506, '', { fontFamily: UITheme.fontFamily, fontSize: '13px', color: '#fff6df', backgroundColor: '#18233e', padding: { x: 12, y: 7 }, align: 'center', wordWrap: { width: 700 }, stroke: '#10172b', strokeThickness: 2 }).setOrigin(0.5).setDepth(30);
     this.questTracker = new QuestTracker(this).setDepth(24);
     this.xpBar = new XPBar(this).setDepth(24);
     this.inventoryBar = new InventoryBar(this).setDepth(24);
@@ -114,7 +116,7 @@ export class UIScene extends Phaser.Scene {
       this.touchInput.bindTouch(
         [{ label: '◀', x: 68, y: 450, vector: { x: -1, y: 0 } }, { label: '▶', x: 178, y: 450, vector: { x: 1, y: 0 } }, { label: '▲', x: 123, y: 405, vector: { x: 0, y: -1 } }, { label: '▼', x: 123, y: 495, vector: { x: 0, y: 1 } }],
         () => this.world?.events.emit('touch-interact'),
-        { interact: this.i18n.text('interact'), terminal: this.i18n.locale === 'ar' ? 'طرفية' : 'Terminal' },
+        { interact: this.i18n.text('interact'), terminal: this.i18n.text('terminalAction') },
       );
       markQaTouchControls(true);
     } else {
@@ -131,9 +133,25 @@ export class UIScene extends Phaser.Scene {
     });
     EventBus.on('nearby', (item: Phaser.GameObjects.GameObject | null) => {
       const kind = (item as (Phaser.GameObjects.GameObject & { interactionKind?: string }) | null)?.interactionKind;
-      this.prompt.setText(item ? this.i18n.interactionHint(kind) : this.i18n.text('controls'));
+      const active = Boolean(item);
+      this.prompt.setText(active ? '✦ ' + this.i18n.interactionHint(kind) : this.i18n.text('controls'));
+      this.prompt.setStyle({
+        color: active ? '#18233e' : '#fff6df',
+        backgroundColor: active ? '#f7d56a' : '#18233e',
+      });
       const beach = this.level?.id === 'level-01';
-      this.prompt.setVisible(Boolean(item) || (!this.layout.current.compact && !beach));
+      this.prompt.setVisible(active || (!this.layout.current.compact && !beach));
+      if (active && !this.promptInteractionActive) {
+        this.promptInteractionActive = true;
+        this.promptPulse?.stop();
+        this.prompt.setScale(1);
+        this.promptPulse = this.tweens.add({ targets: this.prompt, scale: { from: 1, to: 1.035 }, duration: 650, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
+      } else if (!active && this.promptInteractionActive) {
+        this.promptInteractionActive = false;
+        this.promptPulse?.stop();
+        this.promptPulse = undefined;
+        this.prompt.setScale(1);
+      }
     });
     EventBus.on('dialogue', ({ text }: { text: string }) => this.showDialogue(text));
     EventBus.on('toast', (text: string) => this.showToast(text));
@@ -468,7 +486,7 @@ export class UIScene extends Phaser.Scene {
   private refresh(): void {
     if (!this.world || !this.level) return;
     this.i18n.locale = this.session.locale;
-    this.touchInput?.setTouchLabels({ interact: this.i18n.text('interact'), terminal: this.i18n.locale === 'ar' ? 'طرفية' : 'Terminal' });
+    this.touchInput?.setTouchLabels({ interact: this.i18n.text('interact'), terminal: this.i18n.text('terminalAction') });
     const levelOne = this.level.id === 'level-01';
     const forest = this.level.id === 'level-02';
     const portrait = this.layout?.current.portrait ?? false;
@@ -492,7 +510,7 @@ export class UIScene extends Phaser.Scene {
     this.inventoryPanel.add(this.add.text(0, 0, '▣', { fontFamily: 'monospace', fontSize: '16px', color: '#fff6df' }));
     this.session.inventory.list().forEach((item, index) => this.inventoryPanel.add(this.add.image(24 + index * 28, 8, item === 'pass-key' ? 'key' : 'chest').setDisplaySize(22, 22)));
     const questWidth = this.layout.current.portrait
-      ? Math.min(220, this.layout.current.width * 0.58)
+      ? this.layout.current.width - this.layout.current.margin * 2
       : this.layout.current.compact ? this.layout.current.width - this.layout.current.margin * 2 : 360;
     this.questTracker.setQuest(this.level, quest, this.i18n, questWidth, this.layout.current.compact);
     this.xpBar.setBarWidth(this.layout.current.compact ? 86 : 118).setValue(this.session.xp.value);
@@ -562,15 +580,13 @@ export class UIScene extends Phaser.Scene {
     });
     this.journalButton?.setPosition(rtl ? margin + 24 : languageStart - 34, buttonY);
     this.prompt.setPosition(metrics.width / 2, metrics.height - margin - 18).setWordWrapWidth(Math.max(160, metrics.width - margin * 2));
-    const trackerWidth = metrics.portrait ? Math.min(220, metrics.width * 0.58) : metrics.compact ? metrics.width - margin * 2 : Math.min(380, metrics.width * 0.34);
-    this.questTracker.setPosition(rtl ? metrics.width - margin - trackerWidth : margin, beach || metrics.portrait ? 8 : metrics.topBarHeight + 6);
-    const compactHudY = metrics.topBarHeight + 58;
-    const xpHudX = metrics.portrait ? metrics.width - margin - this.xpBar.panelWidth : (rtl ? margin : metrics.width - margin - this.xpBar.panelWidth);
-    const inventoryX = metrics.portrait
-      ? metrics.width - margin - this.inventoryBar.panelWidth
-      : (rtl ? margin : metrics.width - margin - this.inventoryBar.panelWidth);
-    this.xpBar.setPosition(xpHudX, beach || metrics.portrait ? 8 : metrics.topBarHeight + 6);
-    this.inventoryBar.setPosition(inventoryX, beach || metrics.portrait ? 48 : metrics.topBarHeight + 48);
+    const hud = calculateGameplayHudLayout(metrics, this.questTracker.panelWidth, this.xpBar.panelWidth, this.inventoryBar.panelWidth);
+    const questX = rtl && !metrics.portrait ? metrics.width - margin - hud.quest.width : hud.quest.x;
+    this.questTracker.setPosition(questX, hud.quest.y);
+    const hudXpX = rtl && !metrics.portrait ? margin : hud.xp.x;
+    const inventoryX = rtl && !metrics.portrait ? margin : hud.inventory.x;
+    this.xpBar.setPosition(hudXpX, hud.xp.y);
+    this.inventoryBar.setPosition(inventoryX, hud.inventory.y);
     // On compact screens the E/T controls already communicate the interaction
     // affordance. Hiding the long keyboard hint keeps the beach and the
     // analogue pad unobstructed, matching the compact reference composition.
