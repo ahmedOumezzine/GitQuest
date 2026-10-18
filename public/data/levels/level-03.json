@@ -2,14 +2,15 @@
   "id": "level-03",
   "order": 3,
   "title": { "fr": "Grotte des Souvenirs", "en": "Memory Cave", "ar": "كهف الذكريات" },
+  "journal": { "summary": { "fr": "Les souvenirs de la grotte attendent un commit pour être conservés.", "en": "The cave memories await a commit to be preserved.", "ar": "تنتظر ذكريات الكهف commit لحفظها." }, "reward": { "fr": "Récompense : clé de passage et accès au port.", "en": "Reward: passage key and access to the harbor.", "ar": "المكافأة: مفتاح العبور والوصول إلى الميناء." } },
   "map": { "path": "/data/maps/level-03.json" },
   "theme": { "sky": "#302b4f", "ground": "#5e567b", "accent": "#e29bd4" },
   "playerSpawn": { "x": 70, "y": 270 },
   "mentor": { "x": 115, "y": 180 },
   "objects": [
-    { "id": "cave-crystal", "kind": "crystal", "position": { "x": 130, "y": 380 }, "xp": 10 },
+    { "id": "cave-crystal", "kind": "crystal", "position": { "x": 130, "y": 380 }, "xp": 10, "itemId": "memory-shard", "optional": true, "secret": true },
     { "id": "cave-chest", "kind": "chest", "position": { "x": 760, "y": 170 }, "itemId": "pass-key" },
-    { "id": "cave-scroll", "kind": "scroll", "position": { "x": 480, "y": 390 }, "dialogueId": "scroll-03" }
+    { "id": "cave-scroll", "kind": "scroll", "position": { "x": 480, "y": 390 }, "dialogueId": "scroll-03", "itemId": "archive-scroll", "optional": true, "secret": true, "rewardXp": 5 }
   ],
   "dialogues": [
     { "id": "midou-03", "speaker": "Midou", "text": { "fr": "Un commit est un souvenir stable de ton travail.", "en": "A commit is a stable memory of your work.", "ar": "الالتزام هو ذكرى ثابتة لعملك." } },

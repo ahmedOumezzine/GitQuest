@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import type { I18nManager } from '../../managers/I18nManager';
 import { UITheme } from '../theme/UITheme';
+import { itemDefinition } from '../../data/ItemCatalog';
 
 /** Full inventory view opened from the compact HUD bar or with the I key. */
 export class InventoryPanel extends Phaser.GameObjects.Container {
@@ -13,6 +14,7 @@ export class InventoryPanel extends Phaser.GameObjects.Container {
   private readonly hint: Phaser.GameObjects.Text;
   private readonly grid: Phaser.GameObjects.Container;
   private items: string[] = [];
+  private quantities: Record<string, number> = {};
   private selectedItem = '';
   private i18n?: I18nManager;
   private cardWidth = 520;
@@ -36,8 +38,9 @@ export class InventoryPanel extends Phaser.GameObjects.Container {
     this.add([this.dimmer, this.shadow, this.background, this.accent, this.title, this.subtitle, this.grid, this.hint]);
   }
 
-  public setItems(items: string[], i18n: I18nManager): this {
+  public setItems(items: string[], i18n: I18nManager, quantities: Record<string, number> = {}): this {
     this.items = [...items];
+    this.quantities = { ...quantities };
     this.i18n = i18n;
     this.title.setText(i18n.text('inventory'));
     if (!this.items.includes(this.selectedItem)) this.selectedItem = this.items[0] ?? '';
@@ -60,10 +63,7 @@ export class InventoryPanel extends Phaser.GameObjects.Container {
   }
 
   private itemDescription(item: string, i18n: I18nManager): string {
-    if (item !== 'pass-key') return item;
-    if (i18n.locale === 'en') return 'Opens passage gates between regions.';
-    if (i18n.locale === 'ar') return 'يفتح بوابات العبور بين المناطق.';
-    return 'Ouvre les portes de passage entre les régions.';
+    return i18n.localized(itemDefinition(item).description);
   }
 
   private refreshSubtitle(): void {
@@ -98,9 +98,13 @@ export class InventoryPanel extends Phaser.GameObjects.Container {
           this.refreshSubtitle();
           this.renderGrid();
         });
-        const icon = this.scene.add.image(x + slotWidth / 2, y + 31, item === 'pass-key' ? 'key' : 'chest').setDisplaySize(34, 34);
-        const label = this.scene.add.text(x + slotWidth / 2, y + 60, item === 'pass-key' ? i18n.text('key') : item, { fontFamily: UITheme.fontFamily, fontSize: '10px', color: UITheme.colors.text, align: 'center', wordWrap: { width: slotWidth - 8 } }).setOrigin(0.5);
+        const definition = itemDefinition(item);
+        const icon = this.scene.add.image(x + slotWidth / 2, y + 31, definition.iconKey).setDisplaySize(34, 34);
+        const label = this.scene.add.text(x + slotWidth / 2, y + 60, i18n.localized(definition.name), { fontFamily: UITheme.fontFamily, fontSize: '10px', color: UITheme.colors.text, align: 'center', wordWrap: { width: slotWidth - 8 } }).setOrigin(0.5);
+        const quantity = this.quantities[item] ?? 1;
+        const count = quantity > 1 ? this.scene.add.text(x + slotWidth - 8, y + 8, '×' + quantity, { fontFamily: UITheme.fontFamily, fontSize: '10px', color: UITheme.colors.accent }).setOrigin(1, 0) : undefined;
         this.grid.add([icon, label]);
+        if (count) this.grid.add(count);
       }
     }
     if (!this.items.length) {

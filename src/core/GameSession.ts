@@ -13,6 +13,7 @@ export class GameSession {
   public touchControlsMode: TouchControlsMode = 'auto';
   public levelId = 'level-01';
   public readonly collectedObjects: Record<string, string[]> = {};
+  public readonly discoveredSecrets: Record<string, string[]> = {};
   public hadExistingSave = false;
   public saveError: SaveError | null = null;
   private readonly pendingQuestStates: Record<string, ReturnType<QuestManager['toJSON']>> = {};
@@ -44,9 +45,11 @@ export class GameSession {
     this.git.restore(save.git);
     Object.assign(this.pendingQuestStates, save.quests);
     Object.assign(this.collectedObjects, save.collectedObjects);
+    Object.assign(this.discoveredSecrets, save.discoveredSecrets ?? {});
   }
 
   public hasCollected(levelId: string, objectId: string): boolean { return this.collectedObjects[levelId]?.includes(objectId) ?? false; }
+  public hasDiscoveredSecret(levelId: string, objectId: string): boolean { return this.discoveredSecrets[levelId]?.includes(objectId) ?? false; }
   public shouldShowTouchControls(): boolean {
     if (this.touchControlsMode === 'always') return true;
     if (typeof window === 'undefined') return false;
@@ -55,6 +58,12 @@ export class GameSession {
     return coarse && !fine;
   }
   public collectObject(levelId: string, objectId: string): void { this.collectedObjects[levelId] ??= []; if (!this.collectedObjects[levelId].includes(objectId)) this.collectedObjects[levelId].push(objectId); }
+  public discoverSecret(levelId: string, objectId: string): boolean {
+    this.discoveredSecrets[levelId] ??= [];
+    if (this.discoveredSecrets[levelId].includes(objectId)) return false;
+    this.discoveredSecrets[levelId].push(objectId);
+    return true;
+  }
   public reset(): void {
     this.levelId = 'level-01';
     this.inventory.restore({ items: [] });
@@ -63,12 +72,13 @@ export class GameSession {
     this.quests.clear();
     Object.keys(this.pendingQuestStates).forEach((key) => delete this.pendingQuestStates[key]);
     Object.keys(this.collectedObjects).forEach((key) => delete this.collectedObjects[key]);
+    Object.keys(this.discoveredSecrets).forEach((key) => delete this.discoveredSecrets[key]);
   }
 
   public save(): void {
     const quests: Record<string, ReturnType<QuestManager['toJSON']>> = {};
     for (const [id, quest] of this.quests) quests[id] = quest.toJSON();
-    const saved = this.saveManager.save({ levelId: this.levelId, locale: this.locale, touchControlsMode: this.touchControlsMode, inventory: this.inventory.toJSON(), xp: this.xp.toJSON(), quests, collectedObjects: this.collectedObjects, git: this.git.toJSON() });
+    const saved = this.saveManager.save({ levelId: this.levelId, locale: this.locale, touchControlsMode: this.touchControlsMode, inventory: this.inventory.toJSON(), xp: this.xp.toJSON(), quests, collectedObjects: this.collectedObjects, discoveredSecrets: this.discoveredSecrets, git: this.git.toJSON() });
     this.saveError = saved ? null : this.saveManager.lastError;
   }
 }

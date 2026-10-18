@@ -12,6 +12,14 @@ test('les objets collectés sont idempotents et persistables', () => {
   assert.deepEqual(session.collectedObjects['level-01'], ['memory-crystal']);
 });
 
+test('les secrets d’exploration sont uniques et séparés des objectifs principaux', () => {
+  const session = new GameSession();
+  assert.equal(session.discoverSecret('level-01', 'origin-scroll'), true);
+  assert.equal(session.discoverSecret('level-01', 'origin-scroll'), false);
+  assert.equal(session.hasDiscoveredSecret('level-01', 'origin-scroll'), true);
+  assert.equal(session.hasCollected('level-01', 'origin-scroll'), false);
+});
+
 test('les commandes tactiles sont désactivées par défaut et forçables depuis les paramètres', () => {
   const session = new GameSession();
   assert.equal(session.shouldShowTouchControls(), false);

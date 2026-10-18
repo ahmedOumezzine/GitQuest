@@ -83,3 +83,15 @@ test('les objectifs proposent une action guidée selon leur type', () => {
   }
   assert.match(new I18nManager('fr').objectiveGuidance(), /Mission terminée/);
 });
+
+test('la navigation et les découvertes sont localisées dans les trois langues', () => {
+  for (const locale of ['fr', 'en', 'ar'] as const) {
+    const i18n = new I18nManager(locale);
+    assert.ok(i18n.text('compass').length > 0, `${locale}.compass`);
+    assert.ok(i18n.text('compassTerminal').length > 0, `${locale}.compassTerminal`);
+    assert.ok(i18n.text('secretReward').length > 0, `${locale}.secretReward`);
+    assert.ok(i18n.text('discoveries').length > 0, `${locale}.discoveries`);
+    assert.ok(i18n.text('minimap').length > 0, `${locale}.minimap`);
+    assert.ok(i18n.text('minimapLegend').length > 0, `${locale}.minimapLegend`);
+  }
+});

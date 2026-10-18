@@ -6,6 +6,18 @@ export const TRANSLATIONS: Record<Locale, Record<string, string>> = {
   ar: { interact: 'تفاعل', terminalAction: 'الطرفية', interactMidou: 'تحدث مع ميدو', interactCrystal: 'افحص البلورة', interactChest: 'افتح الصندوق', interactScroll: 'اقرأ الرقعة', interactGate: 'افحص البوابة', objective: 'الهدف', inventory: 'الحقيبة', xp: 'نقاط الخبرة', key: 'المفتاح', controls: 'WASD / الأسهم · E: تفاعل · T: الطرفية', missionDone: 'اكتملت المهمة', locked: 'الباب مغلق.', gateLocked: 'مغلقة', gateOpen: 'مفتوحة', title: 'جزيرة الالتزامات', newGame: 'لعبة جديدة', continueGame: 'متابعة', settings: 'الإعدادات', settingsTitle: 'الإعدادات', language: 'اللغة', touchControls: 'عناصر التحكم باللمس', touchAuto: 'تلقائي', touchAlways: 'إظهار دائمًا', audio: 'الصوت', audioUnavailable: 'الموسيقى غير متاحة (لا توجد ملفات) · المؤثرات المولدة مفعلة.', back: 'رجوع', musicUnavailable: 'الموسيقى غير متاحة (لا توجد ملفات) · المؤثرات المولدة مفعلة.', journal: 'سجل المهمة', terminalTitle: 'طرفية GITQUEST', terminalWelcome: 'طرفية GitQuest', terminalHelp: 'مساعدة: git init · git add . · git commit -m "رسالة" · git status', terminalHistoryEmpty: 'لا يوجد سجل للأوامر.', saveError: 'تعذرت قراءة الحفظ؛ يمكنك بدء لعبة جديدة.', mapLoadError: 'تعذر تحميل هذه الخريطة.', shrine: 'مزار Git', gateOpened: '✦ فُتحت البوابة', keyReward: 'حصلت على مفتاح العبور!', crystalReward: 'بلورة الذاكرة', xpReward: 'نقاط خبرة', stepTalk: 'تحدث مع ميدو', stepInit: 'نفّذ git init', stepAdd: 'نفّذ git add', stepCommit: 'نفّذ git commit', stepPush: 'نفّذ git push', stepPull: 'نفّذ git pull', stepBranch: 'أنشئ فرعًا', stepSwitch: 'بدّل الفرع', stepMerge: 'ادمج فرعًا', stepKey: 'اعثر على المفتاح', stepExit: 'افتح البوابة', guideTalk: 'اقترب من ميدو واضغط E للتحدث معه.', guideGit: 'افتح الطرفية بالضغط على T ثم نفّذ الأمر الظاهر.', guideCollect: 'استكشف المنطقة وتفاعل مع الصندوق للحصول على المفتاح.', guideExit: 'توجه إلى البوابة واضغط E للانتقال إلى المنطقة التالية.', guideComplete: 'اكتملت المهمة! توجه إلى بوابة الخروج.', nextObjective: 'هدف جديد', newGameConfirmTitle: 'لعبة جديدة', newGameConfirmMessage: 'ستتم إعادة تعيين الحفظ الحالي. هل تريد المتابعة؟', confirm: 'تأكيد', cancel: 'إلغاء', loadingTitle: 'الاستعداد للمغامرة', loadingMap: 'تحميل أرشيفات الشاطئ…', introTitle: 'سر الأرشيفات', introLine1: 'ميدو: تحتفظ هذه الجزيرة بذاكرة كل مغامرة.', introLine2: 'تفرقت أرشيفات Git في مناطق الجزيرة الست.', introLine3: 'اعثر عليها وتعلم الأوامر وأعد إشعال البوابات.', startAdventure: 'ابدأ المغامرة', skip: 'تخطٍ', retry: 'إعادة المحاولة', bootLoading: 'جارٍ تحميل الجزيرة…', bootLoadError: 'تعذر تحميل الجزيرة', assetMissing: 'أصل مفقود', victoryTitle: 'النصر!', victoryMessage: 'تمت استعادة جزيرة الالتزامات.', totalXp: 'إجمالي نقاط الخبرة', replay: 'العب مجددًا' },
 };
 
+const EXTRA_TRANSLATIONS: Record<Locale, Record<string, string>> = {
+  fr: {
+    secretReward: 'Secret découvert', compass: 'Boussole', compassTerminal: 'Terminal · T', compassObject: 'Point d’intérêt', discoveries: 'Découvertes', minimap: 'Carte', minimapLegend: '● toi  ● Midou  ● sortie',
+  },
+  en: {
+    secretReward: 'Secret discovered', compass: 'Compass', compassTerminal: 'Terminal · T', compassObject: 'Point of interest', discoveries: 'Discoveries', minimap: 'Map', minimapLegend: '● you  ● Midou  ● exit',
+  },
+  ar: {
+    secretReward: 'تم اكتشاف سر', compass: 'البوصلة', compassTerminal: 'الطرفية · T', compassObject: 'نقطة اهتمام', discoveries: 'الاكتشافات', minimap: 'الخريطة', minimapLegend: '● أنت  ● ميدو  ● الخروج',
+  },
+};
+
 const INTRO_DIALOGUE: Record<Locale, Record<string, string>> = {
   fr: {
     introLine4: 'Commence sur la Plage des Origines : je serai à tes côtés.',
@@ -44,7 +56,7 @@ const WORLD_UI_TRANSLATIONS: Record<Locale, Record<string, string>> = {
 
 export class I18nManager {
   public constructor(public locale: Locale = 'fr') {}
-  public text(key: string): string { return TRANSLATIONS[this.locale][key] ?? INTRO_DIALOGUE[this.locale][key] ?? WORLD_UI_TRANSLATIONS[this.locale][key] ?? TRANSLATIONS.fr[key] ?? INTRO_DIALOGUE.fr[key] ?? WORLD_UI_TRANSLATIONS.fr[key] ?? key; }
+  public text(key: string): string { return TRANSLATIONS[this.locale][key] ?? EXTRA_TRANSLATIONS[this.locale][key] ?? INTRO_DIALOGUE[this.locale][key] ?? WORLD_UI_TRANSLATIONS[this.locale][key] ?? TRANSLATIONS.fr[key] ?? EXTRA_TRANSLATIONS.fr[key] ?? INTRO_DIALOGUE.fr[key] ?? WORLD_UI_TRANSLATIONS.fr[key] ?? key; }
   public localized(value: LocalizedText): string { return value[this.locale] ?? value.fr; }
   public get direction(): 'ltr' | 'rtl' { return this.locale === 'ar' ? 'rtl' : 'ltr'; }
   public applyDirection(surface?: HTMLElement): void {

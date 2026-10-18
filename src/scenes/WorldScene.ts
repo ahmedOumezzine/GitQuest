@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import type { LevelDefinition, Point, TiledMapData } from '../models/game';
+import type { LevelDefinition, MiniMapData, ObjectiveTarget, Point, TiledMapData } from '../models/game';
 import { EventBus } from '../core/EventBus';
 import type { GameSession } from '../core/GameSession';
 import { I18nManager } from '../managers/I18nManager';
@@ -132,6 +132,46 @@ export class WorldScene extends Phaser.Scene {
 
   public get activeQuest() { return this.quest; }
   public setTouchVector(vector: Point): void { this.touchVector = vector; }
+
+  /** Navigation data for the HUD compass. Quest state remains authoritative. */
+  public getObjectiveNavigation(): { player: Point; target?: ObjectiveTarget } | undefined {
+    if (!this.player || !this.quest || !this.map) return undefined;
+    const step = this.quest.currentStep;
+    if (!step) return { player: { x: this.player.x, y: this.player.y } };
+    if (step.kind === 'dialogue') {
+      return { player: { x: this.player.x, y: this.player.y }, target: { point: { x: this.mentor.x, y: this.mentor.y }, kind: 'mentor' } };
+    }
+    if (step.kind === 'git-command') {
+      const shrine = this.map.decorations.find((item) => /shrine|altar|sanctuary/i.test(item.type + ' ' + item.name));
+      return {
+        player: { x: this.player.x, y: this.player.y },
+        target: shrine ? { point: { x: shrine.x, y: shrine.y }, kind: 'shrine' } : undefined,
+      };
+    }
+    if (step.kind === 'collect') {
+      const object = this.objects.find((item) => item.active && item.objectId === step.objectId);
+      return {
+        player: { x: this.player.x, y: this.player.y },
+        target: object ? { point: { x: object.x, y: object.y }, kind: 'object' } : undefined,
+      };
+    }
+    return { player: { x: this.player.x, y: this.player.y }, target: { point: { x: this.gate.x, y: this.gate.y }, kind: 'gate' } };
+  }
+
+  public getMiniMapData(): MiniMapData | undefined {
+    if (!this.player || !this.map || !this.mentor || !this.gate) return undefined;
+    return {
+      width: this.map.width,
+      height: this.map.height,
+      tileWidth: this.map.tileWidth,
+      tileHeight: this.map.tileHeight,
+      ground: this.map.ground,
+      player: { x: this.player.x, y: this.player.y },
+      mentor: { x: this.mentor.x, y: this.mentor.y },
+      gate: { x: this.gate.x, y: this.gate.y },
+      objects: this.objects.filter((object) => object.active).map((object) => ({ point: { x: object.x, y: object.y }, kind: (object.objectKind ?? 'chest') as 'crystal' | 'chest' | 'scroll' })),
+    };
+  }
 
   private drawWorld(): void {
     if (this.level.id === 'level-01' && this.map.ground.length === this.map.width * this.map.height) {
@@ -812,7 +852,9 @@ export class WorldScene extends Phaser.Scene {
       }
     } else if (definition.kind === 'crystal') {
       this.session.xp.add(definition.xp ?? 10);
+      if (definition.itemId) this.session.inventory.add(definition.itemId);
       this.session.collectObject(this.level.id, definition.id);
+      if (definition.secret) this.session.discoverSecret(this.level.id, definition.id);
       object.destroy();
       this.session.save();
       this.showRewardEffect(object.x, object.y, '+' + (definition.xp ?? 10) + ' XP', '#b9f6ff');
@@ -820,8 +862,24 @@ export class WorldScene extends Phaser.Scene {
       EventBus.emit('mission-update', this.quest);
       EventBus.emit('toast', new I18nManager(this.session.locale).text('crystalReward') + ' : +' + (definition.xp ?? 10) + ' ' + new I18nManager(this.session.locale).text('xpReward'));
     } else if (definition.dialogueId) {
+      const objectX = object.x;
+      const objectY = object.y;
+      const rewardXp = definition.rewardXp ?? 0;
+      if (definition.optional || definition.secret) {
+        this.session.collectObject(this.level.id, definition.id);
+        if (definition.itemId) this.session.inventory.add(definition.itemId);
+        if (definition.secret) this.session.discoverSecret(this.level.id, definition.id);
+        if (rewardXp > 0) this.session.xp.add(rewardXp);
+        object.destroy();
+      }
       const dialogue = this.level.dialogues.find((item) => item.id === definition.dialogueId);
       if (dialogue) EventBus.emit('dialogue', { text: dialogue.speaker + ' : ' + new I18nManager(this.session.locale).localized(dialogue.text) });
+      if (rewardXp > 0) {
+        this.showRewardEffect(objectX, objectY, '+' + rewardXp + ' XP', '#b9f6ff');
+        EventBus.emit('reward');
+        EventBus.emit('toast', new I18nManager(this.session.locale).text('secretReward') + ' : +' + rewardXp + ' ' + new I18nManager(this.session.locale).text('xpReward'));
+      }
+      if (definition.optional || definition.secret) this.persist();
     }
   }
 

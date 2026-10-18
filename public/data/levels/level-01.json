@@ -2,14 +2,15 @@
   "id": "level-01",
   "order": 1,
   "title": { "fr": "Plage des Origines", "en": "Origins Beach", "ar": "شاطئ البدايات" },
+  "journal": { "summary": { "fr": "Le premier dépôt sommeille sous les ruines de la plage.", "en": "The first repository sleeps beneath the beach ruins.", "ar": "ينام المستودع الأول تحت أطلال الشاطئ." }, "reward": { "fr": "Récompense : clé de passage et accès à la forêt.", "en": "Reward: passage key and access to the forest.", "ar": "المكافأة: مفتاح العبور والوصول إلى الغابة." } },
   "map": { "path": "/data/maps/level-01.json" },
   "theme": { "sky": "#4d9bb5", "ground": "#d5ae67", "accent": "#f7d56a" },
   "playerSpawn": { "x": 176, "y": 270 },
   "mentor": { "x": 240, "y": 210 },
   "objects": [
-    { "id": "memory-crystal", "kind": "crystal", "position": { "x": 155, "y": 405 }, "xp": 10 },
+    { "id": "memory-crystal", "kind": "crystal", "position": { "x": 155, "y": 405 }, "xp": 10, "itemId": "memory-shard", "optional": true, "secret": true },
     { "id": "origin-chest", "kind": "chest", "position": { "x": 780, "y": 390 }, "itemId": "pass-key" },
-    { "id": "origin-scroll", "kind": "scroll", "position": { "x": 300, "y": 250 }, "dialogueId": "scroll-01" }
+    { "id": "origin-scroll", "kind": "scroll", "position": { "x": 300, "y": 250 }, "dialogueId": "scroll-01", "itemId": "archive-scroll", "optional": true, "secret": true, "rewardXp": 5 }
   ],
   "dialogues": [
     { "id": "midou-01", "speaker": "Midou", "text": { "fr": "Commence par créer un dépôt avec git init.", "en": "Start by creating a repository with git init.", "ar": "ابدأ بإنشاء مستودع باستخدام git init." } },

@@ -19,6 +19,7 @@ export interface SaveData {
   xp: XPState;
   quests: Record<string, QuestState>;
   collectedObjects: Record<string, string[]>;
+  discoveredSecrets?: Record<string, string[]>;
   git: GitSimulatorState;
 }
 
@@ -79,6 +80,7 @@ export class SaveManager {
       xp: data.xp ?? { total: 0 },
       quests: data.quests ?? {},
       collectedObjects: data.collectedObjects ?? {},
+      discoveredSecrets: data.discoveredSecrets ?? {},
       git: data.git ?? { version: 1, initialized: false, files: { 'notes.txt': 'Une idée naît sur l’île.' }, staged: [], commits: [], currentBranch: 'main', branches: { main: [] }, remoteCommits: [], conflicts: [] },
     };
   }

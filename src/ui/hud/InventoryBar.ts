@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import type { I18nManager } from '../../managers/I18nManager';
 import { ResponsivePanel } from './ResponsivePanel';
 import { UITheme } from '../theme/UITheme';
+import { itemDefinition } from '../../data/ItemCatalog';
 
 export class InventoryBar extends ResponsivePanel {
   private readonly title: Phaser.GameObjects.Text;
@@ -15,12 +16,12 @@ export class InventoryBar extends ResponsivePanel {
     this.add(this.items);
   }
 
-  public setItems(items: string[], i18n: I18nManager): this {
-    this.title.setText(`${i18n.text('inventory')} · ${items.length}`);
+  public setItems(items: string[], i18n: I18nManager, quantities: Record<string, number> = {}): this {
+    const total = items.reduce((sum, item) => sum + (quantities[item] ?? 1), 0);
+    this.title.setText(`${i18n.text('inventory')} · ${total}`);
     this.items.removeAll(true);
     items.slice(0, 5).forEach((item, index) => {
-      const key = item === 'pass-key' ? 'key' : 'chest';
-      const image = this.scene.add.image(index * 27 + 10, 0, key).setDisplaySize(20, 20);
+      const image = this.scene.add.image(index * 27 + 10, 0, itemDefinition(item).iconKey).setDisplaySize(20, 20);
       this.items.add(image);
     });
     this.setPanelSize(Math.max(150, 28 + Math.min(5, items.length) * 27), 38);

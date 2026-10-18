@@ -6,13 +6,35 @@ export type Rectangle = { x: number; y: number; width: number; height: number };
 
 export type LevelObjectKind = 'crystal' | 'chest' | 'scroll';
 
+export type ObjectiveTargetKind = 'mentor' | 'shrine' | 'object' | 'gate';
+
+export interface ObjectiveTarget {
+  point: Point;
+  kind: ObjectiveTargetKind;
+}
+
+export interface MiniMapData {
+  width: number;
+  height: number;
+  tileWidth: number;
+  tileHeight: number;
+  ground: number[];
+  player: Point;
+  mentor: Point;
+  gate: Point;
+  objects: Array<{ point: Point; kind: LevelObjectKind }>;
+}
+
 export interface LevelObjectDefinition {
   id: string;
   kind: LevelObjectKind;
   position: Point;
   xp?: number;
+  rewardXp?: number;
   itemId?: string;
   dialogueId?: string;
+  optional?: boolean;
+  secret?: boolean;
 }
 
 export interface DialogueDefinition {
@@ -51,6 +73,10 @@ export interface LevelDefinition {
   objects: LevelObjectDefinition[];
   dialogues: DialogueDefinition[];
   quest: QuestDefinition;
+  journal?: {
+    summary: LocalizedText;
+    reward?: LocalizedText;
+  };
   gitCommands: GitOperation[];
   key: { itemId: string; objectId: string };
   exit: { position: Point; requiredItemId: string };

@@ -14,6 +14,8 @@ import { XPBar } from '../ui/hud/XPBar';
 import { InventoryBar } from '../ui/hud/InventoryBar';
 import { InventoryPanel } from '../ui/hud/InventoryPanel';
 import { CommandHint } from '../ui/hud/CommandHint';
+import { Compass } from '../ui/hud/Compass';
+import { MiniMap } from '../ui/hud/MiniMap';
 import { markQaDialogue, markQaQuestStep, markQaState, markQaTouchControls } from '../diagnostics/QaMarker';
 
 export class UIScene extends Phaser.Scene {
@@ -29,6 +31,7 @@ export class UIScene extends Phaser.Scene {
   private inventoryPanel!: Phaser.GameObjects.Container;
   private journalPanel!: Phaser.GameObjects.Container;
   private journalText!: Phaser.GameObjects.Text;
+  private journalSummary!: Phaser.GameObjects.Text;
   private journalProgress!: Phaser.GameObjects.Text;
   private journalDetail!: Phaser.GameObjects.Text;
   private journalHint!: Phaser.GameObjects.Text;
@@ -70,11 +73,20 @@ export class UIScene extends Phaser.Scene {
   private inventoryBar!: InventoryBar;
   private inventoryScreen!: InventoryPanel;
   private commandHint!: CommandHint;
+  private compass!: Compass;
+  private miniMap!: MiniMap;
   private promptPulse?: Phaser.Tweens.Tween;
   private promptInteractionActive = false;
   private lastQuestStepId?: string;
 
   public constructor() { super('UIScene'); }
+
+  public update(): void {
+    if (!this.world || !this.i18n || !this.compass) return;
+    const navigation = this.world.getObjectiveNavigation();
+    this.compass.setTarget(navigation, this.i18n);
+    this.miniMap.updateMap(this.world.getMiniMapData(), navigation?.target, this.i18n);
+  }
 
   public create(): void {
     this.session = this.registry.get('session') as GameSession;
@@ -95,10 +107,14 @@ export class UIScene extends Phaser.Scene {
     this.inventoryBar = new InventoryBar(this).setDepth(24);
     this.inventoryScreen = new InventoryPanel(this);
     this.commandHint = new CommandHint(this).setDepth(29);
+    this.compass = new Compass(this).setDepth(24);
+    this.miniMap = new MiniMap(this).setDepth(24);
     this.add.existing(this.questTracker);
     this.add.existing(this.xpBar);
     this.add.existing(this.inventoryBar);
     this.add.existing(this.inventoryScreen);
+    this.add.existing(this.compass);
+    this.add.existing(this.miniMap);
     this.inventoryBar.setInteractive(new Phaser.Geom.Rectangle(0, 0, 180, 42), Phaser.Geom.Rectangle.Contains);
     this.inventoryBar.on('pointerdown', () => this.toggleInventory());
     this.add.existing(this.commandHint);
@@ -211,11 +227,13 @@ export class UIScene extends Phaser.Scene {
       this.journalPanel.add(button);
       this.journalChapterButtons.push(button);
     });
-    this.journalText = this.add.text(18, 108, '', { fontFamily: UITheme.fontFamily, fontSize: '12px', color: '#fff6df', lineSpacing: 7, wordWrap: { width: 324 } });
+    this.journalSummary = this.add.text(18, 108, '', { fontFamily: UITheme.fontFamily, fontSize: '10px', color: '#cbd5e1', lineSpacing: 3, wordWrap: { width: 324 } });
+    this.journalPanel.add(this.journalSummary);
+    this.journalText = this.add.text(18, 148, '', { fontFamily: UITheme.fontFamily, fontSize: '12px', color: '#fff6df', lineSpacing: 7, wordWrap: { width: 324 } });
     this.journalPanel.add(this.journalText);
-    this.journalDetail = this.add.text(18, 218, '', { fontFamily: UITheme.fontFamily, fontSize: '12px', color: '#9ef0c1', lineSpacing: 5, wordWrap: { width: 324 } });
+    this.journalDetail = this.add.text(18, 250, '', { fontFamily: UITheme.fontFamily, fontSize: '10px', color: '#9ef0c1', lineSpacing: 4, wordWrap: { width: 324 } });
     this.journalPanel.add(this.journalDetail);
-    this.journalHint = this.add.text(18, 304, '', { fontFamily: UITheme.fontFamily, fontSize: '10px', color: '#cbd5e1' });
+    this.journalHint = this.add.text(18, 344, '', { fontFamily: UITheme.fontFamily, fontSize: '10px', color: '#cbd5e1' });
     this.journalPanel.add(this.journalHint);
   }
 
@@ -228,6 +246,9 @@ export class UIScene extends Phaser.Scene {
     const selectedStep = selected.quest.steps.find((step) => step.id === this.journalSelectedStepId) ?? current ?? selected.quest.steps[0];
     this.journalSelectedStepId = selectedStep?.id ?? '';
     this.journalProgress.setText(`${completed}/${selected.quest.steps.length} · ${this.i18n.localized(selected.title)}`);
+    const summary = selected.journal?.summary ? this.i18n.localized(selected.journal.summary) : this.i18n.localized(selected.quest.title);
+    const reward = selected.journal?.reward ? '\n' + this.i18n.localized(selected.journal.reward) : '';
+    this.journalSummary.setText(summary + reward);
     this.journalText.setText(selected.quest.steps.map((step) => {
       const done = selectedQuest?.hasCompleted(step.id) ?? false;
       const active = selected.id === this.level.id && step.id === current?.id;
@@ -235,8 +256,10 @@ export class UIScene extends Phaser.Scene {
       return (done ? '✓ ' : focused ? '◆ ' : active ? '▶ ' : '○ ') + this.i18n.stepLabel(step.id);
     }).join('\n'));
     this.journalDetail.setText(selectedStep
-      ? this.i18n.stepLabel(selectedStep.id) + (selectedStep.kind === 'git-command' ? '\n' + this.i18n.commandHint(selectedStep.operation) : '')
+      ? this.i18n.stepLabel(selectedStep.id) + '\n' + this.i18n.objectiveGuidance(selectedStep) + (selectedStep.kind === 'git-command' ? '\n' + this.i18n.commandHint(selectedStep.operation) : '')
       : this.i18n.text('missionDone'));
+    const discoveryCount = this.session.discoveredSecrets[selected.id]?.length ?? 0;
+    this.journalHint.setText(this.i18n.text('discoveries') + ': ' + discoveryCount + ' · ' + (this.i18n.direction === 'rtl' ? 'J · إغلاق' : 'J · Fermer'));
     this.rebuildJournalStepHitAreas(selected.quest.steps);
     this.renderJournalChapters();
   }
@@ -244,7 +267,7 @@ export class UIScene extends Phaser.Scene {
   private rebuildJournalStepHitAreas(steps: LevelDefinition['quest']['steps']): void {
     this.journalStepHitAreas.forEach((hit) => hit.destroy());
     this.journalStepHitAreas = steps.map((step, index) => {
-      const hit = this.add.rectangle(18, 112 + index * 22, 324, 21, 0x000000, 0)
+      const hit = this.add.rectangle(18, 148 + index * 22, 324, 21, 0x000000, 0)
         .setOrigin(0)
         .setInteractive({ useHandCursor: true });
       hit.on('pointerdown', () => {
@@ -526,8 +549,8 @@ export class UIScene extends Phaser.Scene {
       : this.layout.current.compact ? this.layout.current.width - this.layout.current.margin * 2 : 360;
     this.questTracker.setQuest(this.level, quest, this.i18n, questWidth, this.layout.current.compact);
     this.xpBar.setBarWidth(this.layout.current.compact ? 86 : 118).setValue(this.session.xp.value);
-    this.inventoryBar.setItems(this.session.inventory.list(), this.i18n);
-    this.inventoryScreen.setItems(this.session.inventory.list(), this.i18n);
+    this.inventoryBar.setItems(this.session.inventory.list(), this.i18n, this.session.inventory.quantitiesJSON());
+    this.inventoryScreen.setItems(this.session.inventory.list(), this.i18n, this.session.inventory.quantitiesJSON());
     this.commandHint.setHint(this.i18n, step?.kind === 'git-command' ? step.operation : undefined);
     const completedSteps = this.level.quest.steps.filter((questStep) => quest.hasCompleted(questStep.id)).length;
     this.journalText?.setText(this.level.quest.steps.map((questStep) => {
@@ -573,7 +596,7 @@ export class UIScene extends Phaser.Scene {
     // cards. Language and journal controls remain available from the title
     // and settings screens, so they do not compete with the level-one scene.
     this.languageButtons.forEach((button) => button.setVisible(!metrics.portrait && !beach));
-    this.journalButton?.setVisible(!metrics.portrait && !beach);
+    this.journalButton?.setVisible(true);
     this.topBar.setSize(metrics.width, beach ? 4 : metrics.topBarHeight + (forest ? 6 : 0));
     this.topBarAccent.setSize(metrics.width, 3);
     const sideWidth = Math.min(250, Math.max(140, metrics.width * 0.27));
@@ -612,9 +635,17 @@ export class UIScene extends Phaser.Scene {
     if (metrics.compact && this.prompt.text === this.i18n.text('controls')) this.prompt.setVisible(false);
     if (!metrics.compact) this.prompt.setVisible(true);
     this.commandHint.setHintWidth(Math.min(520, metrics.width - margin * 2));
+    const compassWidth = this.compass?.panelWidth ?? 190;
+    const compassX = rtl ? margin : metrics.width - margin - compassWidth;
+    const compassY = metrics.portrait ? metrics.topBarHeight + 42 : metrics.compact ? metrics.topBarHeight + 6 : metrics.topBarHeight + 92;
+    this.compass?.setPosition(compassX, compassY);
+    const miniMapWidth = this.miniMap?.panelWidth ?? 182;
+    const miniMapX = rtl ? metrics.width - margin - miniMapWidth : margin;
+    const miniMapY = metrics.portrait ? metrics.topBarHeight + 44 : metrics.compact ? metrics.topBarHeight + 54 : metrics.topBarHeight + 98;
+    this.miniMap?.setPosition(miniMapX, miniMapY);
     this.toast.setPosition(metrics.width / 2, metrics.topBarHeight + 24).setWordWrapWidth(Math.max(180, metrics.width - margin * 2));
     const journalWidth = Math.min(380, metrics.width - margin * 2);
-    const journalHeight = Math.min(330, Math.max(250, metrics.height - metrics.topBarHeight - margin * 2));
+    const journalHeight = Math.min(370, Math.max(250, metrics.height - metrics.topBarHeight - margin * 2));
     const journalX = rtl ? margin : metrics.width - margin - journalWidth;
     this.journalPanel?.setPosition(journalX, metrics.topBarHeight + margin);
     this.journalBackground?.setSize(journalWidth, journalHeight);
@@ -640,9 +671,12 @@ export class UIScene extends Phaser.Scene {
         button.setPosition(x, 86);
       });
     }
-    this.journalText?.setPosition(rtl ? journalWidth - 18 : 18, 112).setOrigin(rtl ? 1 : 0, 0).setWordWrapWidth(journalWidth - 36).setStyle({ align: rtl ? 'right' : 'left' });
-    this.journalStepHitAreas.forEach((hit, index) => hit.setPosition(18, 112 + index * 22).setSize(Math.max(1, journalWidth - 36), 21));
-    this.journalDetail?.setPosition(rtl ? journalWidth - 18 : 18, Math.max(190, journalHeight - 112)).setOrigin(rtl ? 1 : 0, 0).setWordWrapWidth(journalWidth - 36).setStyle({ align: rtl ? 'right' : 'left' });
+    this.journalSummary?.setPosition(rtl ? journalWidth - 18 : 18, 108).setOrigin(rtl ? 1 : 0, 0).setWordWrapWidth(journalWidth - 36).setStyle({ align: rtl ? 'right' : 'left' });
+    this.journalText?.setPosition(rtl ? journalWidth - 18 : 18, 148).setOrigin(rtl ? 1 : 0, 0).setWordWrapWidth(journalWidth - 36).setStyle({ align: rtl ? 'right' : 'left' });
+    this.journalStepHitAreas.forEach((hit, index) => hit.setPosition(18, 148 + index * 22).setSize(Math.max(1, journalWidth - 36), 21));
+    const selectedJournal = this.journalLevels.find((level) => level.id === this.journalSelectedLevelId);
+    const detailY = Math.min(journalHeight - 82, 148 + (selectedJournal?.quest.steps.length ?? 4) * 22 + 8);
+    this.journalDetail?.setPosition(rtl ? journalWidth - 18 : 18, Math.max(182, detailY)).setOrigin(rtl ? 1 : 0, 0).setWordWrapWidth(journalWidth - 36).setStyle({ align: rtl ? 'right' : 'left' });
     this.journalHint?.setPosition(rtl ? journalWidth - 18 : 18, journalHeight - 28).setOrigin(rtl ? 1 : 0, 0).setStyle({ align: rtl ? 'right' : 'left' });
     this.inventoryScreen?.layout(metrics.width, metrics.height, metrics.compact || metrics.portrait);
     const terminalWidth = Math.min(720, metrics.width - margin * 2);
