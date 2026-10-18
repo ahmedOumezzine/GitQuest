@@ -16,6 +16,7 @@ import { InventoryPanel } from '../ui/hud/InventoryPanel';
 import { CommandHint } from '../ui/hud/CommandHint';
 import { Compass } from '../ui/hud/Compass';
 import { MiniMap } from '../ui/hud/MiniMap';
+import { itemDefinition } from '../data/ItemCatalog';
 import { markQaDialogue, markQaQuestStep, markQaState, markQaTouchControls } from '../diagnostics/QaMarker';
 
 export class UIScene extends Phaser.Scene {
@@ -85,7 +86,8 @@ export class UIScene extends Phaser.Scene {
     if (!this.world || !this.i18n || !this.compass) return;
     const navigation = this.world.getObjectiveNavigation();
     this.compass.setTarget(navigation, this.i18n);
-    this.miniMap.updateMap(this.world.getMiniMapData(), navigation?.target, this.i18n);
+    const exactTarget = this.session.inventory.isEquipped('archive-compass') ? navigation?.target : undefined;
+    this.miniMap.updateMap(this.world.getMiniMapData(), exactTarget, this.i18n);
   }
 
   public create(): void {
@@ -140,6 +142,14 @@ export class UIScene extends Phaser.Scene {
     } else {
       markQaTouchControls(false);
     }
+    this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+      if (!pointer.wasTouch || this.terminal.visible || this.dialoguePanel?.visible || this.journalPanel?.visible || this.inventoryScreen?.visible) return;
+      if (this.touchInput?.isTouchPointOverControl(pointer.x, pointer.y)) return;
+      // A tap in the gameplay area is the mobile equivalent of E. The world
+      // still applies its normal proximity and quest validation rules.
+      if (pointer.y <= this.layout.current.topBarHeight + 12) return;
+      this.world?.events.emit('touch-interact');
+    });
     this.createTerminal();
     this.createDialoguePanel();
     this.layout.onResize((metrics) => this.applyLayout(metrics));
@@ -152,7 +162,8 @@ export class UIScene extends Phaser.Scene {
     EventBus.on('nearby', (item: Phaser.GameObjects.GameObject | null) => {
       const kind = (item as (Phaser.GameObjects.GameObject & { interactionKind?: string }) | null)?.interactionKind;
       const active = Boolean(item);
-      this.prompt.setText(active ? '✦ ' + this.i18n.interactionHint(kind) : this.i18n.text('controls'));
+      const touchHint = this.layout.current.compact && this.session.shouldShowTouchControls();
+      this.prompt.setText(active ? '✦ ' + this.i18n.interactionHint(kind, touchHint) : this.i18n.text('controls'));
       this.prompt.setStyle({
         color: active ? '#18233e' : '#fff6df',
         backgroundColor: active ? '#f7d56a' : '#18233e',
@@ -505,6 +516,31 @@ export class UIScene extends Phaser.Scene {
     this.markInventoryQa(this.inventoryScreen.visible);
   }
 
+  private handleInventoryAction(itemId: string): void {
+    const definition = itemDefinition(itemId);
+    if (definition.category === 'consumable') {
+      const reward = this.session.useItem(itemId);
+      if (reward > 0) {
+        this.session.save();
+        this.showToast((this.i18n.locale === 'en' ? 'Item used' : this.i18n.locale === 'ar' ? 'تم استخدام العنصر' : 'Objet utilisé') + ' · +' + reward + ' ' + this.i18n.text('xpReward'));
+        EventBus.emit('reward');
+        this.refresh();
+      }
+      return;
+    }
+    if (definition.category === 'equipment' && definition.equipSlot) {
+      if (this.session.inventory.isEquipped(itemId)) {
+        this.session.inventory.unequip(definition.equipSlot);
+        this.showToast(this.i18n.locale === 'en' ? 'Equipment removed' : this.i18n.locale === 'ar' ? 'تمت إزالة المعدات' : 'Équipement retiré');
+      } else {
+        this.session.inventory.equip(itemId, definition.equipSlot);
+        this.showToast(this.i18n.locale === 'en' ? 'Equipment equipped' : this.i18n.locale === 'ar' ? 'تم تجهيز المعدات' : 'Équipement équipé');
+      }
+      this.session.save();
+      this.refresh();
+    }
+  }
+
   private toggleJournal(): void {
     this.journalPanel.setVisible(!this.journalPanel.visible);
     if (typeof document !== 'undefined') document.documentElement.dataset.gitquestJournal = this.journalPanel.visible ? 'visible' : 'hidden';
@@ -550,7 +586,7 @@ export class UIScene extends Phaser.Scene {
     this.questTracker.setQuest(this.level, quest, this.i18n, questWidth, this.layout.current.compact);
     this.xpBar.setBarWidth(this.layout.current.compact ? 86 : 118).setValue(this.session.xp.value);
     this.inventoryBar.setItems(this.session.inventory.list(), this.i18n, this.session.inventory.quantitiesJSON());
-    this.inventoryScreen.setItems(this.session.inventory.list(), this.i18n, this.session.inventory.quantitiesJSON());
+    this.inventoryScreen.setItems(this.session.inventory.list(), this.i18n, this.session.inventory.quantitiesJSON(), this.session.inventory.equippedJSON(), (itemId) => this.handleInventoryAction(itemId));
     this.commandHint.setHint(this.i18n, step?.kind === 'git-command' ? step.operation : undefined);
     const completedSteps = this.level.quest.steps.filter((questStep) => quest.hasCompleted(questStep.id)).length;
     this.journalText?.setText(this.level.quest.steps.map((questStep) => {
@@ -638,11 +674,11 @@ export class UIScene extends Phaser.Scene {
     const compassWidth = this.compass?.panelWidth ?? 190;
     const compassX = rtl ? margin : metrics.width - margin - compassWidth;
     const compassY = metrics.portrait ? metrics.topBarHeight + 42 : metrics.compact ? metrics.topBarHeight + 6 : metrics.topBarHeight + 92;
-    this.compass?.setPosition(compassX, compassY);
+    this.compass?.setPosition(compassX, compassY).setVisible(!metrics.compact);
     const miniMapWidth = this.miniMap?.panelWidth ?? 182;
     const miniMapX = rtl ? metrics.width - margin - miniMapWidth : margin;
     const miniMapY = metrics.portrait ? metrics.topBarHeight + 44 : metrics.compact ? metrics.topBarHeight + 54 : metrics.topBarHeight + 98;
-    this.miniMap?.setPosition(miniMapX, miniMapY);
+    this.miniMap?.setPosition(miniMapX, miniMapY).setVisible(!metrics.compact);
     this.toast.setPosition(metrics.width / 2, metrics.topBarHeight + 24).setWordWrapWidth(Math.max(180, metrics.width - margin * 2));
     const journalWidth = Math.min(380, metrics.width - margin * 2);
     const journalHeight = Math.min(370, Math.max(250, metrics.height - metrics.topBarHeight - margin * 2));

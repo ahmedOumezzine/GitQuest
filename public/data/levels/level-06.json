@@ -10,7 +10,8 @@
   "objects": [
     { "id": "castle-crystal", "kind": "crystal", "position": { "x": 115, "y": 390 }, "xp": 10, "itemId": "memory-shard", "optional": true, "secret": true },
     { "id": "castle-chest", "kind": "chest", "position": { "x": 790, "y": 255 }, "itemId": "pass-key" },
-    { "id": "castle-scroll", "kind": "scroll", "position": { "x": 390, "y": 270 }, "dialogueId": "scroll-06", "itemId": "archive-scroll", "optional": true, "secret": true, "rewardXp": 5 }
+    { "id": "castle-scroll", "kind": "scroll", "position": { "x": 390, "y": 270 }, "dialogueId": "scroll-06", "itemId": "archive-scroll", "optional": true, "secret": true, "rewardXp": 5 },
+    { "id": "castle-secret-passage", "kind": "shortcut", "position": { "x": 340, "y": 470 }, "destination": { "x": 620, "y": 470 }, "itemId": "xp-tonic", "optional": true, "secret": true, "rewardXp": 5 }
   ],
   "dialogues": [
     { "id": "midou-06", "speaker": "Midou", "text": { "fr": "Une fusion rassemble les chemins, mais un conflit demande une décision.", "en": "A merge brings paths together, but a conflict needs a decision.", "ar": "تجمع عملية الدمج المسارات، لكن التعارض يحتاج قراراً." } },

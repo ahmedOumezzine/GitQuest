@@ -46,7 +46,7 @@ export class MiniMap extends ResponsivePanel {
     };
     marker(data.mentor, 0xf7d56a, 3);
     marker(data.gate, 0xd96565, 3);
-    data.objects.forEach((object) => marker(object.point, object.kind === 'crystal' ? 0x9ef0c1 : object.kind === 'scroll' ? 0xb9f6ff : 0xffc857, 2));
+    data.objects.forEach((object) => marker(object.point, object.kind === 'crystal' ? 0x9ef0c1 : object.kind === 'scroll' ? 0xb9f6ff : object.kind === 'shortcut' ? 0xd8a6ff : 0xffc857, 2));
     marker(data.player, 0xffffff, 3);
     if (target) {
       const position = minimapPoint(target.point, data.width, data.height, data.tileWidth, data.tileHeight, this.mapWidth, this.mapHeight);

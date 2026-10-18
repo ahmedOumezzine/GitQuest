@@ -8,13 +8,13 @@ export const TRANSLATIONS: Record<Locale, Record<string, string>> = {
 
 const EXTRA_TRANSLATIONS: Record<Locale, Record<string, string>> = {
   fr: {
-    secretReward: 'Secret découvert', compass: 'Boussole', compassTerminal: 'Terminal · T', compassObject: 'Point d’intérêt', discoveries: 'Découvertes', minimap: 'Carte', minimapLegend: '● toi  ● Midou  ● sortie',
+    secretReward: 'Secret découvert', secretShortcut: 'Passage secret découvert.', tapInteract: 'Touchez pour agir', compass: 'Boussole', compassTerminal: 'Terminal · T', compassObject: 'Point d’intérêt', discoveries: 'Découvertes', minimap: 'Carte', minimapLegend: '● toi  ● Midou  ● sortie',
   },
   en: {
-    secretReward: 'Secret discovered', compass: 'Compass', compassTerminal: 'Terminal · T', compassObject: 'Point of interest', discoveries: 'Discoveries', minimap: 'Map', minimapLegend: '● you  ● Midou  ● exit',
+    secretReward: 'Secret discovered', secretShortcut: 'Secret passage discovered.', tapInteract: 'Tap to interact', compass: 'Compass', compassTerminal: 'Terminal · T', compassObject: 'Point of interest', discoveries: 'Discoveries', minimap: 'Map', minimapLegend: '● you  ● Midou  ● exit',
   },
   ar: {
-    secretReward: 'تم اكتشاف سر', compass: 'البوصلة', compassTerminal: 'الطرفية · T', compassObject: 'نقطة اهتمام', discoveries: 'الاكتشافات', minimap: 'الخريطة', minimapLegend: '● أنت  ● ميدو  ● الخروج',
+    secretReward: 'تم اكتشاف سر', secretShortcut: 'تم اكتشاف ممر سري.', tapInteract: 'اضغط للتفاعل', compass: 'البوصلة', compassTerminal: 'الطرفية · T', compassObject: 'نقطة اهتمام', discoveries: 'الاكتشافات', minimap: 'الخريطة', minimapLegend: '● أنت  ● ميدو  ● الخروج',
   },
 };
 
@@ -74,9 +74,9 @@ export class I18nManager {
     }[id] ?? id);
   }
 
-  public interactionHint(kind?: string): string {
-    const key = kind === 'mentor' ? 'interactMidou' : kind === 'crystal' ? 'interactCrystal' : kind === 'chest' ? 'interactChest' : kind === 'scroll' ? 'interactScroll' : kind === 'gate' ? 'interactGate' : 'interact';
-    return this.text(key) + ' · E';
+  public interactionHint(kind?: string, touch = false): string {
+    const key = kind === 'mentor' ? 'interactMidou' : kind === 'crystal' ? 'interactCrystal' : kind === 'chest' ? 'interactChest' : kind === 'scroll' ? 'interactScroll' : kind === 'shortcut' ? 'secretShortcut' : kind === 'gate' ? 'interactGate' : 'interact';
+    return this.text(key) + ' · ' + (touch ? this.text('tapInteract') : 'E');
   }
 
   public commandHint(operation?: GitOperation): string {

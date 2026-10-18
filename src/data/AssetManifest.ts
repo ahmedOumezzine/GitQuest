@@ -170,6 +170,8 @@ const level01AssetKeys = new Set([
   'scroll',
 ]);
 
+const persistentItemIconKeys = new Set(['key', 'crystal', 'scroll', 'shrine-glow', 'chest']);
+
 const levelAssetPrefixes: Record<string, string> = {
   'level-02': 'forest-',
   'level-03': 'cave-',
@@ -198,7 +200,7 @@ export function assetsForLevel(levelId: string): { images: AssetEntry[]; spriteS
   const prefix = levelAssetPrefixes[levelId];
   const images = imageAssets.filter((asset) => {
     if (levelId === 'level-01') return level01AssetKeys.has(asset.key);
-    return asset.key === levelBackgroundKeys[levelId] || Boolean(prefix && asset.key.startsWith(prefix));
+    return persistentItemIconKeys.has(asset.key) || asset.key === levelBackgroundKeys[levelId] || Boolean(prefix && asset.key.startsWith(prefix));
   });
   return { images, spriteSheets: [...genericCharacterSpriteSheets, ...enhancedCharacterSpriteSheets] };
 }

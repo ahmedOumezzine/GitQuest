@@ -12,11 +12,14 @@ export class InventoryPanel extends Phaser.GameObjects.Container {
   private readonly title: Phaser.GameObjects.Text;
   private readonly subtitle: Phaser.GameObjects.Text;
   private readonly hint: Phaser.GameObjects.Text;
+  private readonly action: Phaser.GameObjects.Text;
   private readonly grid: Phaser.GameObjects.Container;
   private items: string[] = [];
   private quantities: Record<string, number> = {};
+  private equipped: Record<string, string> = {};
   private selectedItem = '';
   private i18n?: I18nManager;
+  private onAction?: (itemId: string) => void;
   private cardWidth = 520;
   private cardHeight = 300;
 
@@ -35,17 +38,22 @@ export class InventoryPanel extends Phaser.GameObjects.Container {
     this.subtitle = scene.add.text(24, 58, '', { fontFamily: UITheme.fontFamily, fontSize: '13px', color: UITheme.colors.textMuted });
     this.grid = scene.add.container(24, 96);
     this.hint = scene.add.text(24, this.cardHeight - 34, '', { fontFamily: UITheme.fontFamily, fontSize: '12px', color: UITheme.colors.textMuted });
-    this.add([this.dimmer, this.shadow, this.background, this.accent, this.title, this.subtitle, this.grid, this.hint]);
+    this.action = scene.add.text(0, 0, '', { fontFamily: UITheme.fontFamily, fontSize: '11px', color: '#18233e', backgroundColor: '#f7d56a', padding: { x: 8, y: 5 } }).setOrigin(0, 0).setInteractive({ useHandCursor: true });
+    this.action.on('pointerdown', () => { if (this.selectedItem) this.onAction?.(this.selectedItem); });
+    this.add([this.dimmer, this.shadow, this.background, this.accent, this.title, this.subtitle, this.grid, this.action, this.hint]);
   }
 
-  public setItems(items: string[], i18n: I18nManager, quantities: Record<string, number> = {}): this {
+  public setItems(items: string[], i18n: I18nManager, quantities: Record<string, number> = {}, equipped: Record<string, string> = {}, onAction?: (itemId: string) => void): this {
     this.items = [...items];
     this.quantities = { ...quantities };
+    this.equipped = { ...equipped };
     this.i18n = i18n;
+    this.onAction = onAction;
     this.title.setText(i18n.text('inventory'));
     if (!this.items.includes(this.selectedItem)) this.selectedItem = this.items[0] ?? '';
     this.refreshSubtitle();
     this.hint.setText(i18n.direction === 'rtl' ? 'I / Esc · إغلاق' : 'I / Esc · Fermer');
+    this.refreshAction(equipped);
     this.renderGrid();
     return this;
   }
@@ -72,6 +80,22 @@ export class InventoryPanel extends Phaser.GameObjects.Container {
     this.subtitle.setText(this.selectedItem ? count + '\n' + this.itemDescription(this.selectedItem, this.i18n) : count);
   }
 
+  private refreshAction(equipped: Record<string, string> = {}): void {
+    if (!this.i18n || !this.selectedItem) {
+      this.action.setVisible(false);
+      return;
+    }
+    const definition = itemDefinition(this.selectedItem);
+    if (definition.category === 'consumable') {
+      this.action.setText(this.i18n.locale === 'en' ? 'Use' : this.i18n.locale === 'ar' ? 'استخدم' : 'Utiliser').setVisible(true);
+    } else if (definition.category === 'equipment' && definition.equipSlot) {
+      const active = equipped[definition.equipSlot] === this.selectedItem;
+      this.action.setText(active ? (this.i18n.locale === 'en' ? 'Unequip' : this.i18n.locale === 'ar' ? 'إزالة' : 'Retirer') : (this.i18n.locale === 'en' ? 'Equip' : this.i18n.locale === 'ar' ? 'تجهيز' : 'Équiper')).setVisible(true);
+    } else {
+      this.action.setVisible(false);
+    }
+  }
+
   private renderGrid(): void {
     const i18n = this.i18n;
     if (!i18n) return;
@@ -96,6 +120,7 @@ export class InventoryPanel extends Phaser.GameObjects.Container {
         slot.on('pointerdown', () => {
           this.selectedItem = item;
           this.refreshSubtitle();
+          this.refreshAction(this.equipped);
           this.renderGrid();
         });
         const definition = itemDefinition(item);
@@ -125,6 +150,7 @@ export class InventoryPanel extends Phaser.GameObjects.Container {
     this.subtitle.setPosition(x + 24, y + 54).setFontSize(compact ? '10px' : '12px').setWordWrapWidth(Math.max(160, this.cardWidth - 48));
     this.grid.setPosition(x + 24, y + (compact ? 86 : 96));
     this.renderGrid();
+    this.action.setPosition(x + 24, y + this.cardHeight - 66).setFontSize(compact ? '10px' : '11px');
     this.hint.setPosition(x + 24, y + this.cardHeight - 30).setFontSize(compact ? '10px' : '12px');
     return this;
   }

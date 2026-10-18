@@ -10,7 +10,8 @@
   "objects": [
     { "id": "cave-crystal", "kind": "crystal", "position": { "x": 130, "y": 380 }, "xp": 10, "itemId": "memory-shard", "optional": true, "secret": true },
     { "id": "cave-chest", "kind": "chest", "position": { "x": 760, "y": 170 }, "itemId": "pass-key" },
-    { "id": "cave-scroll", "kind": "scroll", "position": { "x": 480, "y": 390 }, "dialogueId": "scroll-03", "itemId": "archive-scroll", "optional": true, "secret": true, "rewardXp": 5 }
+    { "id": "cave-scroll", "kind": "scroll", "position": { "x": 480, "y": 390 }, "dialogueId": "scroll-03", "itemId": "archive-scroll", "optional": true, "secret": true, "rewardXp": 5 },
+    { "id": "cave-secret-passage", "kind": "shortcut", "position": { "x": 340, "y": 470 }, "destination": { "x": 620, "y": 470 }, "itemId": "xp-tonic", "optional": true, "secret": true, "rewardXp": 5 }
   ],
   "dialogues": [
     { "id": "midou-03", "speaker": "Midou", "text": { "fr": "Un commit est un souvenir stable de ton travail.", "en": "A commit is a stable memory of your work.", "ar": "الالتزام هو ذكرى ثابتة لعملك." } },

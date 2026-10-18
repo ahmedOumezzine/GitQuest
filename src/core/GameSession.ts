@@ -4,6 +4,7 @@ import { XPManager } from '../managers/XPManager';
 import { QuestManager } from '../managers/QuestManager';
 import { SaveManager, type SaveError } from '../managers/SaveManager';
 import { GitSimulator } from '../systems/GitSimulator';
+import { itemDefinition } from '../data/ItemCatalog';
 
 export class GameSession {
   public readonly inventory = new InventoryManager();
@@ -63,6 +64,13 @@ export class GameSession {
     if (this.discoveredSecrets[levelId].includes(objectId)) return false;
     this.discoveredSecrets[levelId].push(objectId);
     return true;
+  }
+  public useItem(itemId: string): number {
+    const definition = itemDefinition(itemId);
+    if (definition.category !== 'consumable' || !this.inventory.remove(itemId)) return 0;
+    const reward = definition.useXp ?? 0;
+    if (reward > 0) this.xp.add(reward);
+    return reward;
   }
   public reset(): void {
     this.levelId = 'level-01';

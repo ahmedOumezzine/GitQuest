@@ -10,6 +10,8 @@ Les fonctionnalités ajoutées sont data-driven et restent compatibles avec les 
 
 Une passe corrective complémentaire a ensuite ajouté une mini-carte issue des données Tiled et des objets persistants pour les découvertes optionnelles.
 
+Une seconde passe a ajouté les mécaniques RPG avancées demandées : équipement, consommables et passages secrets.
+
 ## Fonctionnalités implémentées
 
 ### Inventaire visuel et extensible
@@ -43,6 +45,15 @@ Une passe corrective complémentaire a ensuite ajouté une mini-carte issue des 
 - Ces objets possèdent un nom, une description, une icône et des traductions FR/EN/AR via `ItemCatalog`.
 - Les objets restent idempotents : leur collecte, leur XP et leur découverte ne sont pas répétés après sauvegarde ou actualisation.
 
+### Équipement, consommables et passages secrets
+
+- `InventoryManager` gère maintenant les équipements par emplacement et persiste leur état dans la sauvegarde.
+- La Boussole des archives est un équipement de type `trinket`. Une fois équipée, elle révèle la cible exacte sur la mini-carte.
+- Le Tonique de concentration est un consommable : son utilisation retire une unité et accorde 5 XP une seule fois.
+- Le panneau d’inventaire propose les actions `Équiper`, `Retirer` ou `Utiliser` selon le type d’objet.
+- Chaque niveau contient un objet `shortcut` localisé dans ses données JSON, avec position, destination, récompense et objet associé.
+- Ces passages secrets téléportent le joueur vers une autre zone jouable, restent réutilisables sans doubler les récompenses et sont enregistrés dans les secrets découverts.
+
 ### Interactions optionnelles et secrets
 
 - Les objets de niveau peuvent déclarer `optional`, `secret` et `rewardXp`.
@@ -67,6 +78,7 @@ Une passe corrective complémentaire a ensuite ajouté une mini-carte issue des 
 - `src/ui/hud/CompassMath.ts`
 - `src/ui/hud/MiniMap.ts`
 - `src/ui/hud/MiniMapMath.ts`
+- `src/data/ItemCatalog.ts` contient les définitions d’équipement et de consommable.
 - `tests/Compass.test.ts`
 - `tests/MiniMapMath.test.ts`
 - `tests/ExplorationData.test.ts`
@@ -91,7 +103,7 @@ Une passe corrective complémentaire a ensuite ajouté une mini-carte issue des 
 
 | Vérification | Résultat |
 |---|---|
-| `npm test` | PASS — 62/62 tests |
+| `npm test` | PASS — 64/64 tests |
 | `npm run typecheck` | PASS |
 | `npm run build` | PASS |
 | `npm run qa:browser` | PASS — menu, paramètres, RTL, niveaux 1 à 6, commandes Git, récompenses, portes, victoire, sauvegarde et reprise |
@@ -109,6 +121,9 @@ Le build signale uniquement l’avertissement de taille du bundle Phaser minifi�
 | Mini-carte et boussole | PASS | `Compass`, `MiniMap`, tests mathématiques, QA navigateur |
 | Interactions optionnelles | PASS | Champs JSON `optional`, parcours navigateur et persistance |
 | Secrets, objets et récompenses d’exploration | PASS | `secret`, `itemId`, `rewardXp`, test d’idempotence et sauvegarde |
+| Équipement persistant | PASS | Équipement par emplacement, sauvegarde et bouton d’inventaire |
+| Consommable utilisable | PASS | Tonique XP, retrait de quantité et test anti-double utilisation |
+| Passage alternatif / zone secrète | PASS | Six objets `shortcut` avec destinations et récompenses data-driven |
 | Récompenses non répétées | PASS | État de session, objets collectés et secrets persistés |
 | Fonctionnement sur mobile | PASS pour le parcours automatisé | `qa:browser:touch`, 58 FPS mesurés |
 | Inspection visuelle détaillée de chaque chapitre du journal sur les trois formats | PARTIEL | À compléter par une revue manuelle ciblée |
@@ -117,7 +132,7 @@ Le build signale uniquement l’avertissement de taille du bundle Phaser minifi�
 
 - L’inventaire ne propose pas encore d’équipement, d’utilisation de consommables ou de raccourcis d’objets : aucune mécanique correspondante n’existait dans le périmètre V1.
 - La mini-carte donne une vue tactique simplifiée, pas une représentation détaillée des décorations ou des collisions pixel par pixel.
-- Les objets peuvent être collectés et consultés dans l’inventaire, mais il n’existe pas encore d’équipement ni de consommables utilisables.
+- Les équipements et consommables présents restent volontairement limités à deux mécaniques de démonstration extensibles : boussole de navigation et tonique XP.
 - Les nouveaux éléments utilisent les composants UI existants et les assets déjà présents ; aucun nouveau pack graphique ou audio n’a été introduit pour cette priorité.
 - Une revue visuelle manuelle reste recommandée pour le journal ouvert dans les trois résolutions, particulièrement en arabe portrait, même si les tests de flux et de responsive passent.
 
@@ -125,4 +140,4 @@ Le build signale uniquement l’avertissement de taille du bundle Phaser minifi�
 
 La priorité 2 est complète pour le périmètre fonctionnel actuel de GitQuest V1 : inventaire extensible, journal enrichi, mini-carte, navigation contextuelle, interactions optionnelles, secrets, récompenses et persistance sont disponibles sans changement de l’architecture data-driven.
 
-La prochaine amélioration logique serait une mini-carte graphique et un système d’objets utilisables, mais ces éléments doivent être traités comme une phase distincte pour éviter d’élargir silencieusement le périmètre validé.
+La prochaine amélioration logique serait d’ajouter d’autres effets d’équipement, des consommables liés à une barre d’énergie et des zones secrètes avec des énigmes dédiées. Le socle data-driven est maintenant en place pour les ajouter sans modifier les scènes de niveau.

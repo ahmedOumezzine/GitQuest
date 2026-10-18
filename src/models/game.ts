@@ -4,7 +4,7 @@ export type LocalizedText = { fr: string; en?: string; ar?: string };
 export type Point = { x: number; y: number };
 export type Rectangle = { x: number; y: number; width: number; height: number };
 
-export type LevelObjectKind = 'crystal' | 'chest' | 'scroll';
+export type LevelObjectKind = 'crystal' | 'chest' | 'scroll' | 'shortcut';
 
 export type ObjectiveTargetKind = 'mentor' | 'shrine' | 'object' | 'gate';
 
@@ -32,6 +32,7 @@ export interface LevelObjectDefinition {
   xp?: number;
   rewardXp?: number;
   itemId?: string;
+  destination?: Point;
   dialogueId?: string;
   optional?: boolean;
   secret?: boolean;

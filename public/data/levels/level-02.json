@@ -10,7 +10,8 @@
   "objects": [
     { "id": "forest-crystal", "kind": "crystal", "position": { "x": 125, "y": 410 }, "xp": 10, "itemId": "memory-shard", "optional": true, "secret": true },
     { "id": "forest-chest", "kind": "chest", "position": { "x": 760, "y": 240 }, "itemId": "pass-key" },
-    { "id": "forest-scroll", "kind": "scroll", "position": { "x": 530, "y": 130 }, "dialogueId": "scroll-02", "itemId": "archive-scroll", "optional": true, "secret": true, "rewardXp": 5 }
+    { "id": "forest-scroll", "kind": "scroll", "position": { "x": 530, "y": 130 }, "dialogueId": "scroll-02", "itemId": "archive-scroll", "optional": true, "secret": true, "rewardXp": 5 },
+    { "id": "forest-secret-passage", "kind": "shortcut", "position": { "x": 330, "y": 470 }, "destination": { "x": 620, "y": 470 }, "itemId": "xp-tonic", "optional": true, "secret": true, "rewardXp": 5 }
   ],
   "dialogues": [
     { "id": "midou-02", "speaker": "Midou", "text": { "fr": "Les fichiers doivent être préparés avant le commit.", "en": "Files must be staged before a commit.", "ar": "يجب تجهيز الملفات قبل الالتزام." } },

@@ -104,7 +104,6 @@ export class WorldScene extends Phaser.Scene {
     markQaState('world');
     markQaLevel(this.level.id);
     this.inputManager = new InputManager(this, () => { if (!this.terminalOpen) this.interact(); }, () => { if (!this.terminalOpen) EventBus.emit('terminal-open'); });
-    this.input.on('pointerdown', () => undefined);
     this.events.on('touch-move', (vector: Point) => { this.touchVector = vector; });
     this.events.on('touch-interact', () => { if (!this.terminalOpen) this.interact(); });
     EventBus.on('terminal-open', this.openTerminal, this);
@@ -169,7 +168,7 @@ export class WorldScene extends Phaser.Scene {
       player: { x: this.player.x, y: this.player.y },
       mentor: { x: this.mentor.x, y: this.mentor.y },
       gate: { x: this.gate.x, y: this.gate.y },
-      objects: this.objects.filter((object) => object.active).map((object) => ({ point: { x: object.x, y: object.y }, kind: (object.objectKind ?? 'chest') as 'crystal' | 'chest' | 'scroll' })),
+      objects: this.objects.filter((object) => object.active).map((object) => ({ point: { x: object.x, y: object.y }, kind: (object.objectKind ?? 'chest') as 'crystal' | 'chest' | 'scroll' | 'shortcut' })),
     };
   }
 
@@ -636,7 +635,8 @@ export class WorldScene extends Phaser.Scene {
     this.physics.add.collider(this.player, obstacles);
     this.objects = this.level.objects.filter((object) => !this.session.hasCollected(this.level.id, object.id)).map((object) => {
       const position = resolveTiledObjectPoint(this.map.objects, object.kind, object.id, object.position);
-      const texture = isCave
+      const shortcutTexture = isBeach ? 'shrine-glow' : isCave ? 'cave-rune' : isHarbor ? 'harbor-buoy' : isMountain ? 'mountain-branch-marker' : isCastle ? 'castle-merge-sigil' : 'forest-staging-shrine';
+      const texture = object.kind === 'shortcut' ? shortcutTexture : isCave
         ? object.kind === 'crystal' ? 'cave-crystal-cyan' : object.kind === 'chest' ? 'cave-archive-chest' : object.kind === 'scroll' ? 'cave-memory-tablet' : object.kind
         : isHarbor
           ? object.kind === 'crystal' ? 'harbor-local-pylon' : object.kind === 'chest' ? 'harbor-crate' : object.kind === 'scroll' ? 'harbor-remote-pylon' : object.kind
@@ -645,7 +645,7 @@ export class WorldScene extends Phaser.Scene {
             : isCastle
               ? object.kind === 'crystal' ? 'castle-crystal' : object.kind === 'chest' ? 'castle-archive-chest' : object.kind === 'scroll' ? 'castle-rune-tablet' : object.kind
             : object.kind;
-      const displaySize = isBeach ? 42 : isCave ? object.kind === 'chest' ? 68 : 54 : isHarbor ? object.kind === 'chest' ? 70 : 58 : isMountain ? object.kind === 'chest' ? 68 : 56 : isCastle ? object.kind === 'chest' ? 72 : 58 : 32;
+      const displaySize = object.kind === 'shortcut' ? 58 : isBeach ? 42 : isCave ? object.kind === 'chest' ? 68 : 54 : isHarbor ? object.kind === 'chest' ? 70 : 58 : isMountain ? object.kind === 'chest' ? 68 : 56 : isCastle ? object.kind === 'chest' ? 72 : 58 : 32;
       const sprite = this.physics.add.staticImage(position.x, position.y, texture).setDisplaySize(displaySize, displaySize).setDepth(3) as Phaser.Physics.Arcade.Image & { objectId?: string; objectKind?: string; interactionKind?: string };
       sprite.objectId = object.id;
       sprite.objectKind = object.kind;
@@ -839,7 +839,20 @@ export class WorldScene extends Phaser.Scene {
     const object = this.nearby as typeof this.objects[number];
     const definition = this.level.objects.find((item) => item.id === object.objectId);
     if (!definition) return;
-    if (definition.kind === 'chest') {
+    if (definition.kind === 'shortcut') {
+      const firstDiscovery = definition.secret ? this.session.discoverSecret(this.level.id, definition.id) : false;
+      if (firstDiscovery) {
+        if (definition.itemId) this.session.inventory.add(definition.itemId);
+        if (definition.rewardXp) this.session.xp.add(definition.rewardXp);
+        this.showRewardEffect(object.x, object.y - 24, '+' + (definition.rewardXp ?? 0) + ' XP', '#b9f6ff');
+        EventBus.emit('reward');
+      }
+      if (definition.destination) {
+        this.player.setPosition(definition.destination.x, definition.destination.y);
+        EventBus.emit('toast', new I18nManager(this.session.locale).text('secretShortcut'));
+      }
+      this.persist();
+    } else if (definition.kind === 'chest') {
       if (this.quest.acceptCollection(definition.id)) {
         this.session.inventory.add(definition.itemId ?? this.level.key.itemId);
         this.session.collectObject(this.level.id, definition.id);

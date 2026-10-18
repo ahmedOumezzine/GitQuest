@@ -98,11 +98,11 @@ export class InputManager {
   private createTouchAction(label: string, caption: string, fill: number, textColor: number, hitArea: Phaser.Geom.Rectangle): Phaser.GameObjects.Container {
     const button = this.scene.add.container(0, 0).setDepth(30);
     const accent = label === 'E' ? 0xfff0a8 : 0x9bb6e8;
-    const halo = this.scene.add.circle(0, 0, 45, fill, 0.18).setStrokeStyle(2, accent, 0.55);
-    const circle = this.scene.add.circle(0, 0, 38, fill, 0.98).setStrokeStyle(3, accent, 1);
-    const innerRing = this.scene.add.circle(0, 0, 30, fill, 0).setStrokeStyle(1, 0xffffff, 0.24);
-    const text = this.scene.add.text(0, 0, label, { fontFamily: 'Courier New, monospace', fontSize: '24px', color: Phaser.Display.Color.IntegerToColor(textColor).rgba, stroke: '#10172b', strokeThickness: 2 }).setOrigin(0.5);
-    const labelText = this.scene.add.text(0, 57, caption, { fontFamily: 'Courier New, monospace', fontSize: '11px', color: '#fff6df', backgroundColor: '#10172b', padding: { x: 7, y: 4 }, stroke: '#10172b', strokeThickness: 1, align: 'center' }).setName('touch-caption').setOrigin(0.5);
+    const halo = this.scene.add.circle(0, 0, 52, fill, 0.18).setStrokeStyle(2, accent, 0.55);
+    const circle = this.scene.add.circle(0, 0, 44, fill, 0.98).setStrokeStyle(3, accent, 1);
+    const innerRing = this.scene.add.circle(0, 0, 35, fill, 0).setStrokeStyle(1, 0xffffff, 0.24);
+    const text = this.scene.add.text(0, 0, label, { fontFamily: 'Courier New, monospace', fontSize: '26px', color: Phaser.Display.Color.IntegerToColor(textColor).rgba, stroke: '#10172b', strokeThickness: 2 }).setOrigin(0.5);
+    const labelText = this.scene.add.text(0, 63, caption, { fontFamily: 'Courier New, monospace', fontSize: '10px', color: '#fff6df', backgroundColor: '#10172b', padding: { x: 6, y: 3 }, stroke: '#10172b', strokeThickness: 1, align: 'center' }).setName('touch-caption').setOrigin(0.5);
     button.add([halo, circle, innerRing, text, labelText]);
     button.setSize(84, 84).setInteractive(hitArea, Phaser.Geom.Rectangle.Contains);
     return button;
@@ -142,6 +142,14 @@ export class InputManager {
     const terminalLabel = this.touchTerminal?.getByName('touch-caption') as Phaser.GameObjects.Text | undefined;
     actionLabel?.setText(labels.interact);
     terminalLabel?.setText(labels.terminal);
+  }
+
+  /** Distinguishes a gameplay tap from a tap on an on-screen control. */
+  public isTouchPointOverControl(x: number, y: number): boolean {
+    return [this.touchPad, this.touchAction, this.touchTerminal].some((control) => {
+      if (!control || !control.visible) return false;
+      return control.getBounds().contains(x, y);
+    });
   }
 
   private onTouchMove?: (vector: Point) => void;

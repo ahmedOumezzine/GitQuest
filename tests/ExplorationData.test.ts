@@ -12,5 +12,7 @@ test('les six chapitres déclarent un résumé et des découvertes optionnelles'
     assert.ok(secrets.some((object) => object.kind === 'crystal'));
     assert.ok(secrets.some((object) => object.kind === 'scroll'));
     assert.ok(secrets.every((object) => object.itemId), `${level.id} doit donner un objet aux découvertes`);
+    const shortcut = secrets.find((object) => object.kind === 'shortcut');
+    assert.ok(shortcut?.destination, `${level.id} doit proposer un passage alternatif`);
   }
 });

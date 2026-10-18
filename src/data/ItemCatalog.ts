@@ -5,6 +5,9 @@ export interface ItemDefinition {
   iconKey: string;
   name: LocalizedText;
   description: LocalizedText;
+  category: 'key' | 'collectible' | 'equipment' | 'consumable';
+  equipSlot?: string;
+  useXp?: number;
 }
 
 export const ITEM_CATALOG: Record<string, ItemDefinition> = {
@@ -17,6 +20,7 @@ export const ITEM_CATALOG: Record<string, ItemDefinition> = {
       en: 'Opens the gate to the next region.',
       ar: 'يفتح البوابة المؤدية إلى المنطقة التالية.',
     },
+    category: 'key',
   },
   'memory-shard': {
     id: 'memory-shard',
@@ -27,6 +31,7 @@ export const ITEM_CATALOG: Record<string, ItemDefinition> = {
       en: 'A secret fragment found while exploring.',
       ar: 'قطعة سرية عُثر عليها أثناء الاستكشاف.',
     },
+    category: 'collectible',
   },
   'archive-scroll': {
     id: 'archive-scroll',
@@ -37,6 +42,31 @@ export const ITEM_CATALOG: Record<string, ItemDefinition> = {
       en: 'A teaching note preserved by the island.',
       ar: 'مذكرة تعليمية حفظتها الجزيرة.',
     },
+    category: 'collectible',
+  },
+  'archive-compass': {
+    id: 'archive-compass',
+    iconKey: 'shrine-glow',
+    name: { fr: 'Boussole des archives', en: 'Archive compass', ar: 'بوصلة الأرشيف' },
+    description: {
+      fr: 'Équipement : révèle la cible exacte sur la mini-carte.',
+      en: 'Equipment: reveals the exact target on the mini-map.',
+      ar: 'معدات: تكشف الهدف الدقيق على الخريطة المصغرة.',
+    },
+    category: 'equipment',
+    equipSlot: 'trinket',
+  },
+  'xp-tonic': {
+    id: 'xp-tonic',
+    iconKey: 'crystal',
+    name: { fr: 'Tonique de concentration', en: 'Focus tonic', ar: 'شراب التركيز' },
+    description: {
+      fr: 'Consommable : accorde immédiatement 5 XP.',
+      en: 'Consumable: immediately grants 5 XP.',
+      ar: 'عنصر قابل للاستهلاك: يمنحك 5 نقاط خبرة فورًا.',
+    },
+    category: 'consumable',
+    useXp: 5,
   },
 };
 
@@ -46,5 +76,6 @@ export function itemDefinition(itemId: string): ItemDefinition {
     iconKey: 'chest',
     name: { fr: itemId, en: itemId, ar: itemId },
     description: { fr: 'Objet découvert sur l’île.', en: 'Item discovered on the island.', ar: 'عنصر تم اكتشافه في الجزيرة.' },
+    category: 'collectible',
   };
 }

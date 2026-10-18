@@ -10,7 +10,8 @@
   "objects": [
     { "id": "mountain-crystal", "kind": "crystal", "position": { "x": 130, "y": 405 }, "xp": 10, "itemId": "memory-shard", "optional": true, "secret": true },
     { "id": "mountain-chest", "kind": "chest", "position": { "x": 720, "y": 190 }, "itemId": "pass-key" },
-    { "id": "mountain-scroll", "kind": "scroll", "position": { "x": 510, "y": 410 }, "dialogueId": "scroll-05", "itemId": "archive-scroll", "optional": true, "secret": true, "rewardXp": 5 }
+    { "id": "mountain-scroll", "kind": "scroll", "position": { "x": 510, "y": 410 }, "dialogueId": "scroll-05", "itemId": "archive-scroll", "optional": true, "secret": true, "rewardXp": 5 },
+    { "id": "mountain-secret-passage", "kind": "shortcut", "position": { "x": 340, "y": 470 }, "destination": { "x": 620, "y": 470 }, "itemId": "xp-tonic", "optional": true, "secret": true, "rewardXp": 5 }
   ],
   "dialogues": [
     { "id": "midou-05", "speaker": "Midou", "text": { "fr": "Une branche est un chemin parallèle pour expérimenter.", "en": "A branch is a parallel path for experiments.", "ar": "الفرع هو مسار مواز للتجارب." } },

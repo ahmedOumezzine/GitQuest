@@ -20,6 +20,15 @@ test('les secrets d’exploration sont uniques et séparés des objectifs princi
   assert.equal(session.hasCollected('level-01', 'origin-scroll'), false);
 });
 
+test('un consommable donne son XP puis ne peut pas être utilisé deux fois', () => {
+  const session = new GameSession();
+  session.inventory.add('xp-tonic');
+  assert.equal(session.useItem('xp-tonic'), 5);
+  assert.equal(session.xp.value, 5);
+  assert.equal(session.useItem('xp-tonic'), 0);
+  assert.equal(session.xp.value, 5);
+});
+
 test('les commandes tactiles sont désactivées par défaut et forçables depuis les paramètres', () => {
   const session = new GameSession();
   assert.equal(session.shouldShowTouchControls(), false);

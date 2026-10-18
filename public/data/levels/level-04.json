@@ -10,7 +10,8 @@
   "objects": [
     { "id": "harbor-crystal", "kind": "crystal", "position": { "x": 130, "y": 390 }, "xp": 10, "itemId": "memory-shard", "optional": true, "secret": true },
     { "id": "harbor-chest", "kind": "chest", "position": { "x": 740, "y": 330 }, "itemId": "pass-key" },
-    { "id": "harbor-scroll", "kind": "scroll", "position": { "x": 500, "y": 155 }, "dialogueId": "scroll-04", "itemId": "archive-scroll", "optional": true, "secret": true, "rewardXp": 5 }
+    { "id": "harbor-scroll", "kind": "scroll", "position": { "x": 500, "y": 155 }, "dialogueId": "scroll-04", "itemId": "archive-scroll", "optional": true, "secret": true, "rewardXp": 5 },
+    { "id": "harbor-secret-passage", "kind": "shortcut", "position": { "x": 340, "y": 470 }, "destination": { "x": 620, "y": 470 }, "itemId": "xp-tonic", "optional": true, "secret": true, "rewardXp": 5 }
   ],
   "dialogues": [
     { "id": "midou-04", "speaker": "Midou", "text": { "fr": "Push envoie tes commits ; pull les ramène.", "en": "Push sends commits; pull brings them back.", "ar": "يرسل push الالتزامات ويعيدها pull." } },

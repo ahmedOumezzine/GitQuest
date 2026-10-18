@@ -68,6 +68,7 @@ test('les étapes Git et les interactions HUD sont localisées dans les trois la
     const i18n = new I18nManager(locale);
     for (const stepId of stepIds) assert.ok(i18n.stepLabel(stepId).length > 0, `${locale}.${stepId}`);
     assert.match(i18n.interactionHint('mentor'), /E/);
+    assert.notEqual(i18n.interactionHint('mentor', true), i18n.interactionHint('mentor'));
     assert.ok(i18n.interactionHint('gate').length > 0);
   }
 });

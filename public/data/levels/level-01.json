@@ -10,7 +10,8 @@
   "objects": [
     { "id": "memory-crystal", "kind": "crystal", "position": { "x": 155, "y": 405 }, "xp": 10, "itemId": "memory-shard", "optional": true, "secret": true },
     { "id": "origin-chest", "kind": "chest", "position": { "x": 780, "y": 390 }, "itemId": "pass-key" },
-    { "id": "origin-scroll", "kind": "scroll", "position": { "x": 300, "y": 250 }, "dialogueId": "scroll-01", "itemId": "archive-scroll", "optional": true, "secret": true, "rewardXp": 5 }
+    { "id": "origin-scroll", "kind": "scroll", "position": { "x": 300, "y": 250 }, "dialogueId": "scroll-01", "itemId": "archive-scroll", "optional": true, "secret": true, "rewardXp": 5 },
+    { "id": "origin-secret-passage", "kind": "shortcut", "position": { "x": 500, "y": 700 }, "destination": { "x": 940, "y": 700 }, "itemId": "archive-compass", "optional": true, "secret": true, "rewardXp": 15 }
   ],
   "dialogues": [
     { "id": "midou-01", "speaker": "Midou", "text": { "fr": "Commence par créer un dépôt avec git init.", "en": "Start by creating a repository with git init.", "ar": "ابدأ بإنشاء مستودع باستخدام git init." } },
