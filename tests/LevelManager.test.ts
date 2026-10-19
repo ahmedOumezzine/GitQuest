@@ -88,6 +88,9 @@ test('la Forêt des Fichiers possède un terrain Tiled forestier et ses landmark
   assert.equal(ground?.data?.length, map.width * map.height);
   assert.equal(map.tilesets?.[0]?.source, '../../assets/tilesets/forest-tileset.tsx');
   assert.ok(['forest-tree', 'forest-root', 'forest-shrine', 'forest-canopy'].every((type) => decorations.some((object) => object.type === type)));
+  const objects = map.layers.find((layer) => layer.name === 'Objects')?.objects ?? [];
+  const octo = objects.find((object) => object.name === 'professor-octo');
+  assert.deepEqual(octo, { id: 33, name: 'professor-octo', type: 'npc', x: 560, y: 300, width: 0, height: 0, properties: [{ name: 'role', type: 'string', value: 'teacher' }] });
 });
 
 test('la Grotte des Souvenirs possède un terrain Tiled rocheux et ses repères de commit', async () => {

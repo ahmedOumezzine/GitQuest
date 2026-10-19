@@ -85,7 +85,7 @@ Ces images restent disponibles pour les écrans de présentation, mais le niveau
 | `sprites/professor-octo-v1.png` | sprite raster transparent de face, immobile dans la Plage des Origines | génération originale avec l’outil imagegen intégré, 18 octobre 2026 ; aucun tiers ni URL externe ; licence de distribution finale à confirmer |
 | `portraits/professor-octo-portrait-v1.png` | portrait raster transparent de dialogue pour les futures leçons | génération originale avec l’outil imagegen intégré, 18 octobre 2026 ; aucun tiers ni URL externe ; licence de distribution finale à confirmer |
 
-Les deux images partagent la même identité visuelle : chouette brune et crème, lunettes rondes, cape bleu nuit et livre marqué d’un symbole Git discret. Le sprite est chargé uniquement au niveau 1 ; le portrait est préparé pour les dialogues futurs et n’ajoute encore aucune interaction. Les deux fichiers possèdent un canal alpha réel et ne contiennent aucun fond opaque, texte ou filigrane. La licence de distribution commerciale reste à confirmer.
+Les deux images partagent la même identité visuelle : chouette brune et crème, lunettes rondes, cape bleu nuit et livre marqué d’un symbole Git discret. Le sprite et le portrait sont réutilisés au niveau 2 pour l’accueil provisoire de Professeur Octo ; le cours complet et le quiz restent réservés au niveau 1. Les deux fichiers possèdent un canal alpha réel et ne contiennent aucun fond opaque, texte ou filigrane. La licence de distribution commerciale reste à confirmer.
 
 ## Niveau 1 — terrain et spritesheets directionnelles `level-01` — passe finale
 

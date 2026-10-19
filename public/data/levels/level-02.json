@@ -5,8 +5,8 @@
   "journal": { "summary": { "fr": "Les fichiers sauvages doivent être ajoutés à l’index du dépôt.", "en": "Wild files must be added to the repository index.", "ar": "يجب إضافة الملفات البرية إلى فهرس المستودع." }, "reward": { "fr": "Récompense : clé de passage et accès à la grotte.", "en": "Reward: passage key and access to the cave.", "ar": "المكافأة: مفتاح العبور والوصول إلى الكهف." } },
   "map": { "path": "/data/maps/level-02.json" },
   "theme": { "sky": "#355b4a", "ground": "#6f9a58", "accent": "#b4e26c" },
-  "playerSpawn": { "x": 70, "y": 270 },
-  "mentor": { "x": 105, "y": 180 },
+  "playerSpawn": { "x": 350, "y": 300 },
+  "mentor": { "x": 240, "y": 180 },
   "objects": [
     { "id": "forest-crystal", "kind": "crystal", "position": { "x": 125, "y": 410 }, "xp": 10, "itemId": "memory-shard", "optional": true, "secret": true },
     { "id": "forest-chest", "kind": "chest", "position": { "x": 760, "y": 240 }, "itemId": "pass-key" },

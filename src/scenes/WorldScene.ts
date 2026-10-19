@@ -376,8 +376,19 @@ export class WorldScene extends Phaser.Scene {
     };
     const selected = config[type];
     if (!selected) return;
-    const sprite = this.add.image(x, y, selected.key).setOrigin(0, 0).setDisplaySize(selected.width, selected.height).setDepth(selected.depth).setAlpha(selected.alpha ?? 1);
+    // Tiled stores the top-left anchor, while the visual weight of a forest
+    // prop belongs to its foot. Keep the authored anchor untouched, but sort
+    // the sprite from its lower edge so roots, ruins and understory props sit
+    // naturally in front of the ground and behind the actors.
+    const visualDepth = type === 'forest-canopy'
+      ? selected.depth
+      : selected.depth + Math.min(0.08, Math.max(0, y + selected.height) / 10000);
+    const sprite = this.add.image(x, y, selected.key).setOrigin(0, 0).setDisplaySize(selected.width, selected.height).setDepth(visualDepth).setAlpha(selected.alpha ?? 1);
     this.decorations.push(sprite);
+    if (['forest-trees', 'forest-tree', 'forest-root', 'forest-fern', 'forest-flower', 'forest-mushroom', 'forest-rock', 'forest-ruin', 'forest-crate', 'forest-shrine'].includes(type)) {
+      this.add.ellipse(x + selected.width * 0.5, y + selected.height - 5, Math.min(selected.width * 0.72, 110), Math.min(selected.height * 0.16, 18), 0x102f2a, 0.18)
+        .setDepth(visualDepth - 0.08);
+    }
     if (type === 'forest-canopy' || type === 'forest-fern' || type === 'forest-flower') {
       this.tweens.add({ targets: sprite, y: y + 2, duration: type === 'forest-canopy' ? 2600 : 1500, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
     }
@@ -586,7 +597,9 @@ export class WorldScene extends Phaser.Scene {
     if (this.level?.id !== 'level-02') return;
     const portrait = this.scale.height > this.scale.width * 1.35;
     const compact = this.scale.width < 760 || this.scale.height < 500;
-    this.cameras.main.setZoom(portrait ? 1.6 : compact ? 1.05 : 1.35);
+    const worldWidth = this.map.width * this.map.tileWidth;
+    const desktop = Math.min(2.05, Math.max(1.35, this.scale.width / worldWidth));
+    this.cameras.main.setZoom(portrait ? 1.6 : compact ? 1.05 : desktop);
   }
 
   private applyCaveCameraZoom(): void {
@@ -656,6 +669,7 @@ export class WorldScene extends Phaser.Scene {
     const isHarbor = style.decorationProfile === 'harbor';
     const isMountain = style.decorationProfile === 'mountain';
     const isCastle = style.decorationProfile === 'castle';
+    const professorOctoObject = this.map.objects.find((item) => item.name === 'professor-octo' && item.type === 'npc');
     const playerTexture = isEnhancedRegion ? 'level-01-player-sheet-v1' : 'player-sheet';
     const playerSize = isEnhancedRegion ? 82 : 32;
     const playerSpawn = this.resolveSafeSpawn(resolveTiledObjectPoint(this.map.objects, 'spawn', 'player-spawn', this.level.playerSpawn));
@@ -746,8 +760,8 @@ export class WorldScene extends Phaser.Scene {
       this.mentorShadow = this.add.ellipse(mentorSpawn.x, mentorSpawn.y + 22, 32, 11, 0x102033, 0.42).setDepth(3.5);
       const i18n = new I18nManager(this.session.locale);
       this.mentorLabel = this.add.text(mentorSpawn.x, mentorSpawn.y - 48, i18n.text('midouName'), { fontFamily: 'monospace', fontSize: '13px', color: '#fff4c7', stroke: '#18233e', strokeThickness: 4 }).setOrigin(0.5, 1).setDepth(6).setVisible(false);
-      if (isBeach) {
-        const professorSpawn = this.resolveSafeSpawn(resolveTiledObjectPoint(this.map.objects, 'npc', 'professor-octo', { x: 560, y: 400 }));
+      if (professorOctoObject && (isBeach || this.level.id === 'level-02')) {
+        const professorSpawn = this.resolveSafeSpawn(resolveTiledObjectPoint(this.map.objects, 'npc', 'professor-octo', { x: 560, y: 300 }));
         this.professorOcto = this.add.image(professorSpawn.x, professorSpawn.y, 'professor-octo-v1')
           .setDisplaySize(78, 78)
           .setOrigin(0.5, 0.82)

@@ -180,6 +180,7 @@ export class UIScene extends Phaser.Scene {
         this.professorOctoCourse = new ProfessorOctoCoursePanel(this, this.i18n, (reason) => this.closeProfessorOctoCourse(reason));
         this.add.existing(this.professorOctoCourse);
       }
+      this.professorOctoCourse.setLevel(level.id);
       this.refresh();
     });
     EventBus.on('nearby', (item: Phaser.GameObjects.GameObject | null) => {
@@ -601,7 +602,7 @@ export class UIScene extends Phaser.Scene {
     this.objective.setFontSize(levelOne || forest ? portrait ? '12px' : '14px' : '12px');
     this.stats.setFontSize(levelOne || forest ? portrait ? '13px' : '15px' : '13px');
     this.prompt.setFontSize(levelOne || forest ? portrait ? '13px' : '14px' : '12px');
-    this.topBar.setFillStyle(levelOne || forest ? 0x10172b : UITheme.colors.panel, levelOne ? 0.08 : forest ? 0.9 : 0.94);
+    this.topBar.setFillStyle(levelOne || forest ? 0x10172b : UITheme.colors.panel, levelOne ? 0.08 : forest ? 0.72 : 0.94);
     const rtl = this.i18n.direction === 'rtl';
     this.levelTitle.setOrigin(rtl ? 1 : 0, 0);
     this.objective.setOrigin(rtl ? 1 : 0, 0).setStyle({ align: rtl ? 'right' : 'left' });
@@ -815,7 +816,10 @@ export class UIScene extends Phaser.Scene {
     if (!this.professorOctoCourse?.visible) return;
     this.professorOctoCourse.hide();
     markQaState('world');
-    if (reason === 'practice') this.showToast(this.i18n.text('coursePracticeHint'), 3600);
+    if (reason === 'practice') {
+      const practiceKey = this.level?.id === 'level-02' ? 'courseForestPracticeHint' : 'coursePracticeHint';
+      this.showToast(this.i18n.text(practiceKey), 3600);
+    }
     EventBus.emit('professor-octo-course-close');
   }
 }

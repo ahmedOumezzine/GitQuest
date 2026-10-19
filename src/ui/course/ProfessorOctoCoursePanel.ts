@@ -3,7 +3,7 @@ import type { I18nManager } from '../../managers/I18nManager';
 import type { LayoutMetrics } from '../layout/ResponsiveLayoutManager';
 import { UITheme } from '../theme/UITheme';
 import { getProfessorOctoCoursePages, type ProfessorOctoCoursePage } from './ProfessorOctoCourseContent';
-import { getProfessorOctoQuizQuestions } from './ProfessorOctoQuizContent';
+import { getProfessorOctoQuizQuestions, hasProfessorOctoQuiz } from './ProfessorOctoQuizContent';
 import { ProfessorOctoQuizSession, type ProfessorOctoQuizAnswerResult } from './ProfessorOctoQuizLogic';
 
 export type ProfessorOctoCourseCloseReason = 'close' | 'practice';
@@ -34,6 +34,7 @@ export class ProfessorOctoCoursePanel extends Phaser.GameObjects.Container {
   private readonly quizAnswerButtons: Phaser.GameObjects.Text[];
   private readonly quizFeedback: Phaser.GameObjects.Text;
   private readonly quizPracticeButton: Phaser.GameObjects.Text;
+  private readonly quizPracticeHitTarget: Phaser.GameObjects.Rectangle;
   private readonly progress: Phaser.GameObjects.Text;
   private readonly previousButton: Phaser.GameObjects.Text;
   private readonly nextButton: Phaser.GameObjects.Text;
@@ -41,6 +42,8 @@ export class ProfessorOctoCoursePanel extends Phaser.GameObjects.Container {
   private readonly divider: Phaser.GameObjects.Rectangle;
   private pageIndex = 0;
   private pages: ProfessorOctoCoursePage[] = [];
+  private levelId = 'level-01';
+  private quizEnabled = true;
   private panelWidth = 760;
   private panelHeight = 370;
   private portraitLayout = false;
@@ -116,6 +119,8 @@ export class ProfessorOctoCoursePanel extends Phaser.GameObjects.Container {
     this.nextButton = this.makeButton(scene, '', 0, 0, UITheme.colors.button, 13);
     this.quizButton = this.makeButton(scene, '', 0, 0, UITheme.colors.button, 12).setVisible(false);
     this.quizPracticeButton = this.makeButton(scene, '', 0, 0, UITheme.colors.button, 12).setVisible(false);
+    this.quizPracticeHitTarget = scene.add.rectangle(0, 0, 220, 54, 0x000000, 0)
+      .setOrigin(0.5).setVisible(false).setInteractive();
     this.quizAnswerButtons = [0, 1, 2].map(() => this.makeButton(scene, '', 0, 0, UITheme.colors.button, 12).setVisible(false));
     this.quizFeedback = scene.add.text(220, 330, '', {
       fontFamily: UITheme.fontFamily, fontSize: '13px', color: UITheme.colors.text,
@@ -126,11 +131,14 @@ export class ProfessorOctoCoursePanel extends Phaser.GameObjects.Container {
       this.lessonTitle, this.progress, this.close, this.pageTitle, this.divider, this.pageText,
       this.commandLabel, this.commandBlock, this.commandText, this.stepsText, this.resultLabel,
       this.resultBlock, this.resultText, this.quizButton, ...this.quizAnswerButtons, this.quizFeedback,
-      this.quizPracticeButton, this.previousButton, this.nextButton]);
+      this.quizPracticeButton, this.quizPracticeHitTarget, this.previousButton, this.nextButton]);
 
     this.close.on('pointerdown', () => this.onClose('close'));
     this.quizButton.on('pointerdown', () => this.openQuiz());
-    this.quizPracticeButton.on('pointerdown', () => this.onClose('practice'));
+    this.quizPracticeButton.on('pointerdown', this.handlePracticeButton, this);
+    this.quizPracticeButton.on('pointerup', this.handlePracticeButton, this);
+    this.quizPracticeHitTarget.on('pointerdown', this.handlePracticeButton, this);
+    this.quizPracticeHitTarget.on('pointerup', this.handlePracticeButton, this);
     this.quizAnswerButtons.forEach((button, index) => button.on('pointerdown', () => this.answerQuiz(index)));
     this.previousButton.on('pointerdown', () => this.handlePreviousAction());
     this.nextButton.on('pointerdown', () => this.handleNextAction());
@@ -143,6 +151,8 @@ export class ProfessorOctoCoursePanel extends Phaser.GameObjects.Container {
     scene.input.keyboard?.on('keydown-A', () => this.answerQuiz(0), this);
     scene.input.keyboard?.on('keydown-B', () => this.answerQuiz(1), this);
     scene.input.keyboard?.on('keydown-C', () => this.answerQuiz(2), this);
+    scene.input.keyboard?.on('keydown-Q', this.handleQuizShortcut, this);
+    scene.input.keyboard?.on('keydown-P', this.handlePracticeShortcut, this);
     scene.events.once(Phaser.Scenes.Events.SHUTDOWN, this.handleShutdown, this);
     this.refreshLocale();
   }
@@ -154,6 +164,8 @@ export class ProfessorOctoCoursePanel extends Phaser.GameObjects.Container {
     this.scene.input.keyboard?.off('keydown-ENTER', this.handleEnter, this);
     this.scene.input.keyboard?.off('keydown-UP', this.moveQuizSelectionUp, this);
     this.scene.input.keyboard?.off('keydown-DOWN', this.moveQuizSelectionDown, this);
+    this.scene.input.keyboard?.off('keydown-Q', this.handleQuizShortcut, this);
+    this.scene.input.keyboard?.off('keydown-P', this.handlePracticeShortcut, this);
     super.destroy(fromScene);
   }
 
@@ -163,7 +175,7 @@ export class ProfessorOctoCoursePanel extends Phaser.GameObjects.Container {
     this.quizAnswer = undefined;
     this.quizSelection = 0;
     this.pageIndex = 0;
-    this.pages = getProfessorOctoCoursePages(this.i18n);
+    this.pages = getProfessorOctoCoursePages(this.i18n, this.levelId);
     this.layoutForCurrentViewport();
     this.setVisible(true);
   }
@@ -174,16 +186,30 @@ export class ProfessorOctoCoursePanel extends Phaser.GameObjects.Container {
 
   public refreshLocale(): void {
     this.rtl = this.i18n.direction === 'rtl';
-    this.pages = getProfessorOctoCoursePages(this.i18n);
-    this.lessonTitle.setText(this.i18n.text('courseLessonTitle'));
+    this.pages = getProfessorOctoCoursePages(this.i18n, this.levelId);
+    this.lessonTitle.setText(this.i18n.text(this.levelId === 'level-02' ? 'courseForestPanelTitle' : 'courseLessonTitle'));
     this.professorName.setText(this.i18n.text('professorOctoName'));
     this.commandLabel.setText(this.i18n.text('courseCommandLabel'));
     this.resultLabel.setText(this.i18n.text('courseExampleLabel'));
     this.close.setText(this.i18n.text('courseClose'));
     this.quizButton.setText(this.i18n.text('quizOpen'));
     this.quizPracticeButton.setText(this.i18n.text('quizPractice'));
-    this.refreshContent();
+    this.refreshView();
     this.layoutForCurrentViewport();
+  }
+
+  public setLevel(levelId: string): void {
+    this.levelId = levelId;
+    this.quizEnabled = hasProfessorOctoQuiz(levelId);
+    this.pages = getProfessorOctoCoursePages(this.i18n, levelId);
+    this.lessonTitle.setText(this.i18n.text(levelId === 'level-02' ? 'courseForestPanelTitle' : 'courseLessonTitle'));
+    if (this.visible) {
+      this.pageIndex = 0;
+      this.view = 'course';
+      this.quiz = undefined;
+      this.quizAnswer = undefined;
+      this.layoutForCurrentViewport();
+    }
   }
 
   public layout(metrics: LayoutMetrics): void {
@@ -193,12 +219,14 @@ export class ProfessorOctoCoursePanel extends Phaser.GameObjects.Container {
         ? Math.min(760, metrics.width - metrics.margin * 2)
         : Math.min(820, metrics.width - metrics.margin * 2);
     const densePage = Boolean(this.pages[this.pageIndex]?.steps);
+    const contentHeavyPage = this.view === 'course' && this.levelId === 'level-02' && this.pageIndex >= 1 && this.pageIndex <= 4;
+    const pageFive = contentHeavyPage && this.pageIndex === 4;
     const quizView = this.view !== 'course';
     this.panelHeight = metrics.portrait
-      ? Math.min(600, metrics.height - 150)
+      ? Math.min(pageFive ? 760 : contentHeavyPage ? 680 : 600, metrics.height - 24)
       : metrics.compact
-        ? quizView || densePage ? 340 : 300
-        : quizView || densePage ? 410 : 370;
+        ? Math.min(contentHeavyPage ? 360 : quizView || densePage ? 340 : 300, metrics.height - 24)
+        : pageFive ? 570 : contentHeavyPage ? 500 : quizView || densePage ? 410 : 370;
     this.portraitLayout = metrics.portrait;
     this.panel.setSize(this.panelWidth, this.panelHeight);
     this.header.setSize(Math.max(1, this.panelWidth - 8), metrics.portrait ? 54 : 52);
@@ -228,6 +256,7 @@ export class ProfessorOctoCoursePanel extends Phaser.GameObjects.Container {
       this.close.setPosition(this.panelWidth / 2, this.panelHeight - 2).setOrigin(0.5, 1);
       this.quizButton.setPosition(centerX, this.panelHeight - 105).setOrigin(0.5, 0.5);
       this.quizPracticeButton.setPosition(centerX, this.panelHeight - 60).setOrigin(0.5, 0.5);
+      this.quizPracticeHitTarget.setPosition(centerX, this.panelHeight - 60).setSize(Math.min(this.panelWidth - 36, 260), 56);
       this.quizFeedback.setPosition(this.rtl ? this.panelWidth - 18 : 18, 480).setOrigin(this.rtl ? 1 : 0, 0).setWordWrapWidth(this.panelWidth - 36).setStyle({ align: this.rtl ? 'right' : 'left' });
       this.quizAnswerButtons.forEach((button, index) => {
         button.setPosition(this.rtl ? this.panelWidth - 18 : 18, 350 + index * 46)
@@ -256,11 +285,11 @@ export class ProfessorOctoCoursePanel extends Phaser.GameObjects.Container {
       const resultLabelY = compact ? 240 : 274;
       const resultBlockY = compact ? 258 : 292;
       this.commandLabel.setPosition(this.rtl ? this.panelWidth - 24 : contentX, commandY).setOrigin(this.rtl ? 1 : 0, 0).setVisible(false);
-      this.commandBlock.setPosition(this.rtl ? 24 : contentX, commandBlockY).setSize(contentWidth, 46).setVisible(false);
+      this.commandBlock.setPosition(contentX, commandBlockY).setSize(contentWidth, 46).setVisible(false);
       this.commandText.setPosition(this.rtl ? this.panelWidth / 2 : contentX + contentWidth / 2, commandBlockY + 23).setVisible(false);
       this.stepsText.setPosition(this.rtl ? this.panelWidth - 24 : contentX, stepsY).setOrigin(this.rtl ? 1 : 0, 0).setWordWrapWidth(contentWidth).setFontSize(compact ? '12px' : '14px').setStyle({ align: this.rtl ? 'right' : 'left' }).setVisible(false);
       this.resultLabel.setPosition(this.rtl ? this.panelWidth - 24 : contentX, resultLabelY).setOrigin(this.rtl ? 1 : 0, 0).setVisible(false);
-      this.resultBlock.setPosition(this.rtl ? 24 : contentX, resultBlockY).setSize(contentWidth, compact ? 42 : 50).setVisible(false);
+      this.resultBlock.setPosition(contentX, resultBlockY).setSize(contentWidth, compact ? 42 : 50).setVisible(false);
       this.resultText.setPosition(this.rtl ? this.panelWidth - 36 : contentX + 16, resultBlockY + 9).setOrigin(this.rtl ? 1 : 0, 0).setWordWrapWidth(Math.max(120, contentWidth - 32)).setFontSize(compact ? '10px' : '12px').setStyle({ align: this.rtl ? 'right' : 'left' }).setVisible(false);
       const compactDenseNavY = compact && densePage ? this.panelHeight - 20 : this.panelHeight - 28;
       this.previousButton.setPosition(this.rtl ? this.panelWidth - 22 : contentX, compactDenseNavY).setOrigin(this.rtl ? 1 : 0, 0.5);
@@ -270,6 +299,7 @@ export class ProfessorOctoCoursePanel extends Phaser.GameObjects.Container {
       const quizActionY = this.panelHeight - (compact ? 58 : 64);
       this.quizButton.setPosition(this.panelWidth / 2, this.panelHeight - (compact ? 62 : 76)).setOrigin(0.5, 0.5);
       this.quizPracticeButton.setPosition(this.rtl ? 24 : this.panelWidth - 20, quizActionY).setOrigin(this.rtl ? 0 : 1, 0.5);
+      this.quizPracticeHitTarget.setPosition(this.rtl ? 90 : this.panelWidth - 110, quizActionY).setSize(220, 56);
       this.quizFeedback.setPosition(this.rtl ? this.panelWidth - 24 : contentX, compact ? 270 : 336).setOrigin(this.rtl ? 1 : 0, 0).setWordWrapWidth(contentWidth).setFontSize(compact ? '11px' : '13px').setStyle({ align: this.rtl ? 'right' : 'left' });
       this.quizAnswerButtons.forEach((button, index) => {
         button.setPosition(this.rtl ? this.panelWidth - 24 : contentX, quizAnswerStart + index * (compact ? 40 : 46))
@@ -284,6 +314,7 @@ export class ProfessorOctoCoursePanel extends Phaser.GameObjects.Container {
         this.previousButton.setPosition(this.rtl ? this.panelWidth - 18 : 18, this.panelHeight - 160).setOrigin(this.rtl ? 1 : 0, 0.5);
         this.nextButton.setPosition(this.rtl ? this.panelWidth - 18 : 18, this.panelHeight - 110).setOrigin(this.rtl ? 1 : 0, 0.5);
         this.quizPracticeButton.setPosition(this.panelWidth / 2, this.panelHeight - 60).setOrigin(0.5, 0.5);
+        this.quizPracticeHitTarget.setPosition(this.panelWidth / 2, this.panelHeight - 60).setSize(Math.min(this.panelWidth - 36, 260), 56);
         this.close.setPosition(this.panelWidth / 2, this.panelHeight - 2).setOrigin(0.5, 1);
       } else {
         const actionY = this.panelHeight - (metrics.compact ? 58 : 64);
@@ -292,6 +323,7 @@ export class ProfessorOctoCoursePanel extends Phaser.GameObjects.Container {
         this.previousButton.setPosition(this.rtl ? this.panelWidth - contentX : contentX, actionY).setOrigin(this.rtl ? 1 : 0, 0.5);
         this.nextButton.setPosition(this.rtl ? this.panelWidth - retryX : retryX, actionY).setOrigin(0.5, 0.5);
         this.quizPracticeButton.setPosition(this.rtl ? 24 : this.panelWidth - 20, actionY).setOrigin(this.rtl ? 0 : 1, 0.5);
+        this.quizPracticeHitTarget.setPosition(this.rtl ? 90 : this.panelWidth - 110, actionY).setSize(220, 56);
         this.close.setPosition(this.rtl ? 20 : this.panelWidth - 20, this.panelHeight - 2).setOrigin(this.rtl ? 0 : 1, 1);
       }
     }
@@ -323,6 +355,9 @@ export class ProfessorOctoCoursePanel extends Phaser.GameObjects.Container {
     this.pageTitle.setText(page.title);
     this.pageText.setText(page.text);
     this.commandText.setText(page.command ?? 'git init');
+    const multilineCommand = Boolean(page.command?.includes('\n'));
+    this.commandBlock.setSize(this.commandBlock.width, multilineCommand ? 64 : 46);
+    this.commandText.setFontSize(multilineCommand ? '15px' : '19px').setLineSpacing(4);
     this.stepsText.setText(page.steps ?? '');
     this.resultText.setText(page.result ?? '');
     this.commandLabel.setVisible(Boolean(page.command));
@@ -332,17 +367,55 @@ export class ProfessorOctoCoursePanel extends Phaser.GameObjects.Container {
     this.resultLabel.setVisible(Boolean(page.result));
     this.resultBlock.setVisible(Boolean(page.result));
     this.resultText.setVisible(Boolean(page.result));
-    this.quizButton.setVisible(this.pageIndex === this.pages.length - 1);
+    this.relayoutCourseContent(page);
+    this.quizButton.setVisible(this.quizEnabled && this.pageIndex === this.pages.length - 1);
     this.quizPracticeButton.setVisible(false);
+    this.quizPracticeHitTarget.setVisible(false);
     this.quizFeedback.setVisible(false);
     this.quizAnswerButtons.forEach((button) => button.setVisible(false));
     this.progress.setText(`${this.pageIndex + 1} / ${this.pages.length}`);
     this.previousButton.setText(this.i18n.text('coursePrevious'));
-    this.nextButton.setText(page.action === 'practice' ? this.i18n.text('coursePractice') : this.i18n.text('courseNext'));
+    this.nextButton.setText(page.action === 'practice' ? this.i18n.text('coursePractice') : page.action === 'close' ? this.i18n.text('courseFinish') : this.i18n.text('courseNext'));
     if (this.pageIndex === 0) {
       this.previousButton.setAlpha(0.42).disableInteractive();
     } else {
       this.previousButton.setAlpha(1).setInteractive({ useHandCursor: true });
+    }
+  }
+
+  private relayoutCourseContent(page: ProfessorOctoCoursePage): void {
+    const portrait = this.portraitLayout;
+    const compact = !portrait && (this.scene.scale.width < 760 || this.scene.scale.height < 500);
+    const contentX = portrait ? 18 : compact ? 168 : 220;
+    const contentWidth = portrait ? this.panelWidth - 36 : this.panelWidth - contentX - 24;
+    const textY = portrait ? 284 : compact ? 124 : 148;
+    const align = this.rtl ? 'right' : 'left';
+    const anchorX = this.rtl ? this.panelWidth - (portrait ? 18 : 24) : contentX;
+    this.pageText.setPosition(anchorX, textY).setWordWrapWidth(contentWidth).setStyle({ align });
+
+    let cursorY = textY + this.pageText.height + (compact ? 8 : 12);
+    if (page.command) {
+      const multiline = page.command.includes('\n');
+      const blockHeight = multiline ? 64 : 46;
+      this.commandLabel.setPosition(anchorX, cursorY).setOrigin(this.rtl ? 1 : 0, 0);
+      const blockY = cursorY + 18;
+      this.commandBlock.setPosition(contentX, blockY).setSize(contentWidth, blockHeight);
+      this.commandText.setPosition(this.rtl ? this.panelWidth / 2 : contentX + contentWidth / 2, blockY + blockHeight / 2)
+        .setFontSize(multiline ? (compact ? '12px' : '15px') : (compact ? '16px' : '19px'))
+        .setLineSpacing(4);
+      cursorY = blockY + blockHeight + (compact ? 8 : 10);
+    }
+    if (page.steps) {
+      this.stepsText.setPosition(anchorX, cursorY).setOrigin(this.rtl ? 1 : 0, 0).setWordWrapWidth(contentWidth).setStyle({ align });
+      cursorY += this.stepsText.height + (compact ? 6 : 10);
+    }
+    if (page.result) {
+      this.resultLabel.setPosition(anchorX, cursorY).setOrigin(this.rtl ? 1 : 0, 0);
+      const resultY = cursorY + 18;
+      this.resultText.setWordWrapWidth(Math.max(120, contentWidth - 32)).setStyle({ align });
+      const resultHeight = Math.max(compact ? 42 : portrait ? 54 : 50, this.resultText.height + (compact ? 12 : 16));
+      this.resultBlock.setPosition(contentX, resultY).setSize(contentWidth, resultHeight);
+      this.resultText.setPosition(this.rtl ? this.panelWidth - 36 : contentX + 16, resultY + 8).setOrigin(this.rtl ? 1 : 0, 0);
     }
   }
 
@@ -365,6 +438,7 @@ export class ProfessorOctoCoursePanel extends Phaser.GameObjects.Container {
       this.progress.setText(`${quiz.currentIndex + 1} / ${quiz.questionCount}`);
       this.previousButton.setVisible(false).disableInteractive();
       this.quizPracticeButton.setVisible(false);
+      this.quizPracticeHitTarget.setVisible(false);
       this.quizAnswerButtons.forEach((button, index) => {
         const selected = this.quizAnswer?.selectedIndex === index;
         const correct = this.quizAnswer?.correctIndex === index;
@@ -387,8 +461,10 @@ export class ProfessorOctoCoursePanel extends Phaser.GameObjects.Container {
       return;
     }
     const scoreMessage = quiz.score === quiz.questionCount
-      ? this.i18n.text('quizExcellent')
-      : quiz.score === 0 ? this.i18n.text('quizZero') : this.i18n.text('quizGood');
+      ? this.i18n.text(this.levelId === 'level-02' ? 'quizForestExcellent' : 'quizExcellent')
+      : quiz.score === 0
+        ? this.i18n.text(this.levelId === 'level-02' ? 'quizForestZero' : 'quizZero')
+        : this.i18n.text(this.levelId === 'level-02' ? 'quizForestGood' : 'quizGood');
     this.pageTitle.setText(this.i18n.text('quizTitle'));
     this.pageText.setText(this.i18n.text('quizScore') + ': ' + quiz.score + ' / ' + quiz.questionCount + '\n' + scoreMessage);
     this.progress.setText(`${quiz.score} / ${quiz.questionCount}`);
@@ -397,6 +473,7 @@ export class ProfessorOctoCoursePanel extends Phaser.GameObjects.Container {
     this.previousButton.setVisible(true).setText(this.i18n.text('quizReview')).setAlpha(1).setInteractive({ useHandCursor: true });
     this.nextButton.setVisible(true).setText(this.i18n.text('quizRetry')).setInteractive({ useHandCursor: true });
     this.quizPracticeButton.setVisible(true).setText(this.i18n.text('quizPractice')).setInteractive({ useHandCursor: true });
+    this.quizPracticeHitTarget.setVisible(true);
     this.close.setVisible(true);
   }
 
@@ -413,7 +490,7 @@ export class ProfessorOctoCoursePanel extends Phaser.GameObjects.Container {
   private openQuiz(): void {
     if (!this.visible) return;
     this.view = 'quiz';
-    this.quiz = new ProfessorOctoQuizSession(getProfessorOctoQuizQuestions(this.i18n));
+    this.quiz = new ProfessorOctoQuizSession(getProfessorOctoQuizQuestions(this.i18n, this.levelId));
     this.quizSelection = 0;
     this.quizAnswer = undefined;
     this.layoutForCurrentViewport();
@@ -452,7 +529,7 @@ export class ProfessorOctoCoursePanel extends Phaser.GameObjects.Container {
 
   private retryQuiz(): void {
     this.view = 'quiz';
-    this.quiz ??= new ProfessorOctoQuizSession(getProfessorOctoQuizQuestions(this.i18n));
+    this.quiz ??= new ProfessorOctoQuizSession(getProfessorOctoQuizQuestions(this.i18n, this.levelId));
     this.quiz.restart();
     this.quizSelection = 0;
     this.quizAnswer = undefined;
@@ -490,6 +567,18 @@ export class ProfessorOctoCoursePanel extends Phaser.GameObjects.Container {
     else this.handleNextAction();
   }
 
+  private handleQuizShortcut(): void {
+    if (this.visible && this.view === 'course' && this.quizEnabled && this.pageIndex === this.pages.length - 1) this.openQuiz();
+  }
+
+  private handlePracticeShortcut(): void {
+    if (this.visible && this.view === 'result') this.onClose('practice');
+  }
+
+  private handlePracticeButton(): void {
+    if (this.visible && (this.view === 'course' || this.view === 'result')) this.onClose('practice');
+  }
+
   private previousPage(): void {
     if (!this.visible || this.pageIndex <= 0) return;
     this.pageIndex -= 1;
@@ -503,7 +592,7 @@ export class ProfessorOctoCoursePanel extends Phaser.GameObjects.Container {
       this.layoutForCurrentViewport();
       return;
     }
-    this.onClose('practice');
+    this.onClose(this.pages[this.pageIndex]?.action === 'practice' ? 'practice' : 'close');
   }
 
   private handleEscape(): void {

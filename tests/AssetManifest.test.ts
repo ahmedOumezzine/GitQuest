@@ -31,6 +31,8 @@ test('les assets régionaux sont chargés à la demande par niveau', () => {
   const beach = assetsForLevel('level-01');
   assert.ok(forest.images.some((asset) => asset.key === 'level-02-forest'));
   assert.ok(forest.images.some((asset) => asset.key === 'forest-gate-closed'));
+  assert.ok(forest.images.some((asset) => asset.key === 'professor-octo-v1'));
+  assert.ok(forest.images.some((asset) => asset.key === 'professor-octo-portrait-v1'));
   assert.equal(forest.images.some((asset) => asset.key === 'level-03-cave'), false);
   assert.ok(beach.images.some((asset) => asset.key === 'beach-tileset'));
   assert.ok(beach.spriteSheets.some((asset) => asset.key === 'level-01-player-sheet-v1'));
