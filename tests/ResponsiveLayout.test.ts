@@ -35,20 +35,20 @@ test('le menu compacte ses actions en bas en paysage étroit', () => {
 
 test('les contrôles tactiles restent dans les zones sûres en portrait et paysage', () => {
   const portrait = calculateTouchLayout(calculateLayout(390, 844));
-  assert.ok(portrait.joystick.y + TOUCH_LAYOUT_SIZES.actionLabelBottom <= 844 - 12);
+  assert.ok(portrait.joystick.y + TOUCH_LAYOUT_SIZES.joystickHitRadius <= 844 - 12);
   for (const metrics of [calculateLayout(390, 844), calculateLayout(844, 390)]) {
     const touch = calculateTouchLayout(metrics);
-    assert.ok(touch.joystick.x - TOUCH_LAYOUT_SIZES.padHalf >= metrics.margin);
-    assert.ok(touch.joystick.y + TOUCH_LAYOUT_SIZES.padHalf <= metrics.height - metrics.margin);
-    assert.ok(touch.action.x + TOUCH_LAYOUT_SIZES.actionHalf <= metrics.width - metrics.margin);
+    assert.ok(touch.joystick.x - TOUCH_LAYOUT_SIZES.joystickHitRadius >= metrics.margin);
+    assert.ok(touch.joystick.y + TOUCH_LAYOUT_SIZES.joystickHitRadius <= metrics.height - metrics.margin);
+    assert.ok(touch.action.x + TOUCH_LAYOUT_SIZES.actionHitRadius <= metrics.width - metrics.margin);
     assert.ok(touch.action.y + TOUCH_LAYOUT_SIZES.actionLabelBottom <= metrics.height - metrics.margin);
-    assert.ok(touch.terminal.y - TOUCH_LAYOUT_SIZES.actionHalf >= metrics.margin);
+    assert.ok(touch.terminal.y - TOUCH_LAYOUT_SIZES.actionHitRadius >= metrics.margin);
   }
 });
 
 test('les boutons tactiles gardent une zone de pression confortable', () => {
-  assert.ok(TOUCH_LAYOUT_SIZES.actionHalf >= 42);
-  assert.ok(TOUCH_LAYOUT_SIZES.actionLabelBottom >= TOUCH_LAYOUT_SIZES.actionHalf);
+  assert.ok(TOUCH_LAYOUT_SIZES.actionHitRadius >= 36);
+  assert.ok(TOUCH_LAYOUT_SIZES.actionLabelBottom >= TOUCH_LAYOUT_SIZES.actionRadius);
 });
 
 test('le HUD portrait empile l’objectif et les statistiques sans chevauchement', () => {

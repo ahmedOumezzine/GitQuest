@@ -150,17 +150,25 @@ export class UIScene extends Phaser.Scene {
     this.touchInput.setTouchMoveHandler((vector) => this.world?.setTouchVector(vector));
     if (this.session.shouldShowTouchControls()) {
       this.touchInput.bindTouch(
-        [{ label: '◀', x: 68, y: 450, vector: { x: -1, y: 0 } }, { label: '▶', x: 178, y: 450, vector: { x: 1, y: 0 } }, { label: '▲', x: 123, y: 405, vector: { x: 0, y: -1 } }, { label: '▼', x: 123, y: 495, vector: { x: 0, y: 1 } }],
+        [],
         () => this.world?.events.emit('touch-interact'),
         { interact: this.i18n.text('interact'), terminal: this.i18n.text('terminalAction') },
       );
-      markQaTouchControls(true);
-    } else {
-      markQaTouchControls(false);
     }
+    this.syncTouchControls();
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-      if (!pointer.wasTouch || this.terminal.visible || this.dialoguePanel?.visible || this.journalPanel?.visible || this.inventoryScreen?.visible || this.professorOctoCourse?.visible) return;
-      if (this.touchInput?.isTouchPointOverControl(pointer.x, pointer.y)) return;
+      const startedOnTouchControl = this.touchInput?.isTouchPointOverControl(pointer.x, pointer.y, true) ?? false;
+      // Container hit areas are not equally reliable across browsers during
+      // touch emulation. Keep a scene-level fallback for the dialogue panel so
+      // a tap on its readable area always restores the world controls.
+      if (this.dialoguePanel?.visible) {
+        if (startedOnTouchControl) return;
+        if (this.dialoguePanel.getBounds().contains(pointer.x, pointer.y)) this.hideDialogue();
+        return;
+      }
+      if (!pointer.wasTouch) return;
+      if (this.terminal.visible || this.journalPanel?.visible || this.inventoryScreen?.visible || this.professorOctoCourse?.visible) return;
+      if (startedOnTouchControl) return;
       // A tap in the gameplay area is the mobile equivalent of E. The world
       // still applies its normal proximity and quest validation rules.
       if (pointer.y <= this.layout.current.topBarHeight + 12) return;
@@ -431,6 +439,7 @@ export class UIScene extends Phaser.Scene {
 
   private setTerminalVisible(visible: boolean): void {
     this.terminal.setVisible(visible);
+    this.syncTouchControls();
     if (!this.terminalInput) return;
     this.terminalInput.style.display = visible ? 'block' : 'none';
     if (visible) {
@@ -542,16 +551,19 @@ export class UIScene extends Phaser.Scene {
   private showDialogue(text: string): void {
     this.dialogueText.setText(text);
     this.dialoguePanel.setVisible(true);
+    this.syncTouchControls();
     markQaDialogue(true);
   }
 
   private hideDialogue(): void {
     this.dialoguePanel.setVisible(false);
+    this.syncTouchControls();
     markQaDialogue(false);
   }
 
   private toggleInventory(): void {
     this.inventoryScreen.toggle();
+    this.syncTouchControls();
     this.markInventoryQa(this.inventoryScreen.visible);
   }
 
@@ -582,7 +594,22 @@ export class UIScene extends Phaser.Scene {
 
   private toggleJournal(): void {
     this.journalPanel.setVisible(!this.journalPanel.visible);
+    this.syncTouchControls();
     if (typeof document !== 'undefined') document.documentElement.dataset.gitquestJournal = this.journalPanel.visible ? 'visible' : 'hidden';
+  }
+
+  private syncTouchControls(): void {
+    if (!this.touchInput) return;
+    const modalOpen = Boolean(
+      this.terminal?.visible
+      || this.dialoguePanel?.visible
+      || this.journalPanel?.visible
+      || this.inventoryScreen?.visible
+      || this.professorOctoCourse?.visible,
+    );
+    const visible = this.session.shouldShowTouchControls() && !modalOpen;
+    this.touchInput.setTouchControlsVisible(visible);
+    markQaTouchControls(visible);
   }
 
   private markInventoryQa(visible: boolean): void {
@@ -807,6 +834,7 @@ export class UIScene extends Phaser.Scene {
     this.journalPanel?.setVisible(false);
     this.inventoryScreen?.close();
     this.professorOctoCourse.show();
+    this.syncTouchControls();
     this.promptPulse?.stop();
     this.prompt.setVisible(false);
     markQaState('course');
@@ -815,9 +843,13 @@ export class UIScene extends Phaser.Scene {
   private closeProfessorOctoCourse(reason: ProfessorOctoCourseCloseReason = 'close'): void {
     if (!this.professorOctoCourse?.visible) return;
     this.professorOctoCourse.hide();
+    this.syncTouchControls();
     markQaState('world');
     if (reason === 'practice') {
-      const practiceKey = this.level?.id === 'level-02' ? 'courseForestPracticeHint' : 'coursePracticeHint';
+      const practiceKey = this.level?.id === 'level-02'
+        ? 'courseForestPracticeHint'
+        : this.level?.id === 'level-03' ? 'courseCavePracticeHint'
+          : this.level?.id === 'level-04' ? 'courseHarborPracticeHint' : 'coursePracticeHint';
       this.showToast(this.i18n.text(practiceKey), 3600);
     }
     EventBus.emit('professor-octo-course-close');

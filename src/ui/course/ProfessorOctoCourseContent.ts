@@ -9,6 +9,13 @@ export interface ProfessorOctoCoursePage {
   action?: 'practice' | 'close';
 }
 
+export function professorOctoCourseTitleKey(levelId: string): string {
+  if (levelId === 'level-02') return 'courseForestPanelTitle';
+  if (levelId === 'level-03') return 'courseCavePanelTitle';
+  if (levelId === 'level-04') return 'courseHarborPanelTitle';
+  return 'courseLessonTitle';
+}
+
 /**
  * The lesson content is kept outside the scenes so later levels can provide
  * their own small, localized course packs without growing WorldScene.
@@ -27,6 +34,36 @@ export function getProfessorOctoCoursePages(i18n: I18nManager, levelId = 'level-
         result: i18n.text('courseForestPage5Result'),
       },
       { title: i18n.text('courseForestPage6Title'), text: i18n.text('courseForestPage6Text'), action: 'practice' },
+    ];
+  }
+  if (levelId === 'level-03') {
+    return [
+      { title: i18n.text('courseCavePage1Title'), text: i18n.text('courseCavePage1Text') },
+      { title: i18n.text('courseCavePage2Title'), text: i18n.text('courseCavePage2Text') },
+      { title: i18n.text('courseCavePage3Title'), text: i18n.text('courseCavePage3Text'), command: 'git commit -m "Mon premier souvenir"' },
+      { title: i18n.text('courseCavePage4Title'), text: i18n.text('courseCavePage4Text'), command: i18n.text('courseCavePage4Commands') },
+      {
+        title: i18n.text('courseCavePage5Title'),
+        text: i18n.text('courseCavePage5Text'),
+        steps: i18n.text('courseCavePage5Steps'),
+        result: i18n.text('courseCavePage5Result'),
+      },
+      { title: i18n.text('courseCavePage6Title'), text: i18n.text('courseCavePage6Text'), action: 'practice' },
+    ];
+  }
+  if (levelId === 'level-04') {
+    return [
+      { title: i18n.text('courseHarborPage1Title'), text: i18n.text('courseHarborPage1Text') },
+      { title: i18n.text('courseHarborPage2Title'), text: i18n.text('courseHarborPage2Text') },
+      { title: i18n.text('courseHarborPage3Title'), text: i18n.text('courseHarborPage3Text'), command: 'git push origin main' },
+      { title: i18n.text('courseHarborPage4Title'), text: i18n.text('courseHarborPage4Text'), command: 'git pull origin main' },
+      {
+        title: i18n.text('courseHarborPage5Title'),
+        text: i18n.text('courseHarborPage5Text'),
+        steps: i18n.text('courseHarborPage5Steps'),
+        result: i18n.text('courseHarborPage5Result'),
+      },
+      { title: i18n.text('courseHarborPage6Title'), text: i18n.text('courseHarborPage6Text'), action: 'practice' },
     ];
   }
   return [

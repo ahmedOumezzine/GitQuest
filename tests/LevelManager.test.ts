@@ -108,6 +108,12 @@ test('la Grotte des Souvenirs possède un terrain Tiled rocheux et ses repères 
   assert.equal(map.tilesets?.[0]?.source, '../../assets/tilesets/cave-tileset.tsx');
   assert.ok(decorations.some((object) => object.name === 'cave-stalactites'));
   assert.ok(['cave-torch', 'cave-altar'].every((type) => decorations.some((object) => object.type === type)));
+  assert.ok(['cave-stalagmite', 'cave-puddle', 'cave-rune', 'cave-lantern'].every((type) => decorations.some((object) => object.type === type)));
+  const objects = map.layers.find((layer) => layer.name === 'Objects')?.objects ?? [];
+  assert.deepEqual(objects.find((object) => object.name === 'professor-octo'), {
+    id: 33, name: 'professor-octo', type: 'npc', x: 300, y: 260, width: 0, height: 0,
+    properties: [{ name: 'role', type: 'string', value: 'teacher' }],
+  });
 });
 
 test('le Port des Connexions possède un terrain Tiled de quai et ses repères push-pull', async () => {
@@ -124,6 +130,15 @@ test('le Port des Connexions possède un terrain Tiled de quai et ses repères p
   assert.equal(ground?.data?.length, map.width * map.height);
   assert.equal(map.tilesets?.[0]?.source, '../../assets/tilesets/harbor-tileset.tsx');
   assert.ok(['harbor-docks', 'harbor-pylons', 'harbor-altar', 'harbor-lighthouse'].every((name) => decorations.some((object) => object.name === name)));
+  assert.ok(['harbor-rope', 'harbor-foam'].every((name) => decorations.some((object) => object.name === name)));
+  const objects = map.layers.find((layer) => layer.name === 'Objects')?.objects ?? [];
+  assert.deepEqual(objects.find((object) => object.name === 'professor-octo'), {
+    id: 33, name: 'professor-octo', type: 'npc', x: 560, y: 300, width: 0, height: 0,
+    properties: [
+      { name: 'role', type: 'string', value: 'teacher' },
+      { name: 'lesson', type: 'string', value: 'push-pull' },
+    ],
+  });
 });
 
 test('la Montagne des Branches possède un terrain Tiled de sentier et ses repères branch-switch', async () => {

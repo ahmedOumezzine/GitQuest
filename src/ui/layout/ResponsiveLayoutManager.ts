@@ -36,18 +36,27 @@ export interface GameplayHudLayout {
 
 /** Visual and hit-area sizes shared by the responsive layout and its tests. */
 export const TOUCH_LAYOUT_SIZES = {
-  padHalf: 82,
-  actionHalf: 52,
-  actionLabelBottom: 70,
+  joystickRadius: 52,
+  joystickHitRadius: 64,
+  actionRadius: 28,
+  actionHitRadius: 38,
+  actionLabelBottom: 52,
 } as const;
 
 export function calculateTouchLayout(metrics: Pick<LayoutMetrics, 'width' | 'height' | 'margin'>): TouchLayout {
-  // The mobile pad is a 164px square, so keep its center far enough from the
-  // safe-area edges instead of positioning it like the old 108px joystick.
+  // Keep the circular controls inside a safe area. These coordinates are
+  // scene coordinates and are recalculated by ResponsiveLayoutManager after
+  // every resize/orientation change.
   const portrait = metrics.height > metrics.width;
-  const joystick = { x: metrics.margin + 90, y: metrics.height - metrics.margin - (portrait ? 108 : 90) };
-  const action = { x: metrics.width - metrics.margin - TOUCH_LAYOUT_SIZES.actionHalf, y: joystick.y };
-  return { joystick, action, terminal: { x: action.x, y: action.y - 70 } };
+  const joystick = {
+    x: metrics.margin + TOUCH_LAYOUT_SIZES.joystickHitRadius,
+    y: metrics.height - metrics.margin - TOUCH_LAYOUT_SIZES.joystickHitRadius,
+  };
+  const action = {
+    x: metrics.width - metrics.margin - TOUCH_LAYOUT_SIZES.actionHitRadius,
+    y: metrics.height - metrics.margin - TOUCH_LAYOUT_SIZES.actionLabelBottom,
+  };
+  return { joystick, action, terminal: { x: action.x, y: action.y - 84 } };
 }
 
 export function calculateGameplayHudLayout(

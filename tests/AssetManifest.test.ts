@@ -34,6 +34,16 @@ test('les assets régionaux sont chargés à la demande par niveau', () => {
   assert.ok(forest.images.some((asset) => asset.key === 'professor-octo-v1'));
   assert.ok(forest.images.some((asset) => asset.key === 'professor-octo-portrait-v1'));
   assert.equal(forest.images.some((asset) => asset.key === 'level-03-cave'), false);
+  const cave = assetsForLevel('level-03');
+  assert.ok(cave.images.some((asset) => asset.key === 'level-03-cave'));
+  assert.ok(cave.images.some((asset) => asset.key === 'professor-octo-v1'));
+  assert.ok(cave.images.some((asset) => asset.key === 'cave-commit-altar'));
+  const harbor = assetsForLevel('level-04');
+  assert.ok(harbor.images.some((asset) => asset.key === 'level-04-harbor'));
+  assert.ok(harbor.images.some((asset) => asset.key === 'harbor-connection-altar'));
+  assert.ok(harbor.images.some((asset) => asset.key === 'professor-octo-v1'));
+  assert.ok(harbor.images.some((asset) => asset.key === 'professor-octo-portrait-v1'));
+  assert.equal(harbor.images.some((asset) => asset.key === 'level-05-mountain'), false);
   assert.ok(beach.images.some((asset) => asset.key === 'beach-tileset'));
   assert.ok(beach.spriteSheets.some((asset) => asset.key === 'level-01-player-sheet-v1'));
   assert.ok(beach.spriteSheets.some((asset) => asset.key === 'player-sheet'));

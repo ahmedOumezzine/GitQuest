@@ -29,3 +29,20 @@ test('GitSimulator gère les branches, switch et merge', () => {
 test('une commande Git sans init échoue', () => {
   assert.equal(new GitSimulator().execute('git add .').ok, false);
 });
+
+test('push et pull dépendent réellement de l’historique local et distant', () => {
+  const git = new GitSimulator();
+  git.execute('git init');
+  assert.equal(git.execute('git push').ok, false);
+  git.execute('git add .');
+  git.execute('git commit -m "port"');
+  const push = git.execute('git push origin main');
+  assert.equal(push.ok, true);
+  assert.deepEqual(git.remoteCommits, ['c1']);
+  const pull = git.execute('git pull origin main');
+  assert.equal(pull.ok, true);
+  assert.equal(pull.operation, 'pull');
+  const fresh = new GitSimulator();
+  fresh.execute('git init');
+  assert.equal(fresh.execute('git pull origin main').ok, false);
+});

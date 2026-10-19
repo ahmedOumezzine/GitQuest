@@ -586,6 +586,60 @@
           "y": 40,
           "width": 0,
           "height": 0
+        },
+        {
+          "id": 26,
+          "name": "cave-stalagmite-west",
+          "type": "cave-stalagmite",
+          "x": 120,
+          "y": 42,
+          "width": 0,
+          "height": 0
+        },
+        {
+          "id": 27,
+          "name": "cave-puddle-north",
+          "type": "cave-puddle",
+          "x": 260,
+          "y": 238,
+          "width": 0,
+          "height": 0
+        },
+        {
+          "id": 28,
+          "name": "cave-rocks-south",
+          "type": "cave-rocks",
+          "x": 250,
+          "y": 380,
+          "width": 0,
+          "height": 0
+        },
+        {
+          "id": 29,
+          "name": "cave-dust-center",
+          "type": "cave-dust",
+          "x": 520,
+          "y": 250,
+          "width": 0,
+          "height": 0
+        },
+        {
+          "id": 30,
+          "name": "cave-rune-east",
+          "type": "cave-rune",
+          "x": 700,
+          "y": 190,
+          "width": 0,
+          "height": 0
+        },
+        {
+          "id": 31,
+          "name": "cave-lantern-east",
+          "type": "cave-lantern",
+          "x": 820,
+          "y": 120,
+          "width": 0,
+          "height": 0
         }
       ]
     },
@@ -608,7 +662,7 @@
           "name": "wall-b",
           "type": "wall",
           "x": 180,
-        "y": 458,
+          "y": 458,
           "width": 240,
           "height": 28
         },
@@ -625,7 +679,7 @@
           "id": 4,
           "name": "wall-d",
           "type": "wall",
-        "x": 760,
+          "x": 760,
           "y": 330,
           "width": 170,
           "height": 28
@@ -641,8 +695,8 @@
           "id": 30,
           "name": "player-spawn",
           "type": "spawn",
-          "x": 70,
-          "y": 270,
+          "x": 220,
+          "y": 340,
           "width": 0,
           "height": 0
         },
@@ -650,8 +704,8 @@
           "id": 31,
           "name": "midou",
           "type": "npc",
-          "x": 115,
-          "y": 180,
+          "x": 180,
+          "y": 300,
           "width": 0,
           "height": 0
         },
@@ -663,6 +717,22 @@
           "y": 270,
           "width": 0,
           "height": 0
+        },
+        {
+          "id": 33,
+          "name": "professor-octo",
+          "type": "npc",
+          "x": 300,
+          "y": 260,
+          "width": 0,
+          "height": 0,
+          "properties": [
+            {
+              "name": "role",
+              "type": "string",
+              "value": "teacher"
+            }
+          ]
         }
       ]
     }

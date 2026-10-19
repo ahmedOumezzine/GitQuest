@@ -91,11 +91,17 @@ export class GitSimulator {
   }
 
   private push(): GitCommandResult {
+    if (!this.branches[this.currentBranch]?.length) {
+      return this.fail('Aucun commit local à envoyer. Crée un commit avant git push.', 'push');
+    }
     this.remoteCommits = [...this.branches[this.currentBranch]];
     return this.success('Branche ' + this.currentBranch + ' envoyée vers origin.', 'push', true);
   }
 
   private pull(): GitCommandResult {
+    if (!this.remoteCommits.length) {
+      return this.fail('Aucun dépôt distant simulé à récupérer.', 'pull');
+    }
     for (const id of this.remoteCommits) if (!this.branches[this.currentBranch].includes(id)) this.branches[this.currentBranch].push(id);
     return this.success('Déjà à jour avec origin.', 'pull', true);
   }

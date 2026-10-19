@@ -220,7 +220,7 @@ export function assetsForLevel(levelId: string): { images: AssetEntry[]; spriteS
   const images = imageAssets.filter((asset) => {
     if (levelId === 'level-01') return level01AssetKeys.has(asset.key);
     return persistentItemIconKeys.has(asset.key)
-      || (levelId === 'level-02' && professorOctoAssetKeys.has(asset.key))
+      || ((levelId === 'level-02' || levelId === 'level-03' || levelId === 'level-04') && professorOctoAssetKeys.has(asset.key))
       || asset.key === levelBackgroundKeys[levelId]
       || Boolean(prefix && asset.key.startsWith(prefix));
   });

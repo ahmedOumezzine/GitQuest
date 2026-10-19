@@ -257,12 +257,18 @@ export class WorldScene extends Phaser.Scene {
       'cave-tablet': { key: 'cave-memory-tablet', width: 118, height: 132, depth: 3 },
       'cave-altar': { key: 'cave-commit-altar', width: 152, height: 138, depth: 3 },
       'cave-vines': { key: 'cave-vines', width: 150, height: 126, depth: 1, alpha: 0.8 },
+      'cave-stalagmite': { key: 'cave-stalagmite', width: 110, height: 126, depth: 2 },
+      'cave-puddle': { key: 'cave-puddle', width: 150, height: 72, depth: 1, alpha: 0.72 },
+      'cave-rocks': { key: 'cave-rocks', width: 138, height: 92, depth: 2 },
+      'cave-dust': { key: 'cave-dust', width: 180, height: 90, depth: 1, alpha: 0.32 },
+      'cave-rune': { key: 'cave-rune', width: 84, height: 84, depth: 2, alpha: 0.8 },
+      'cave-lantern': { key: 'cave-lantern', width: 76, height: 102, depth: 3 },
     };
     const selected = config[type];
     if (!selected) return;
     const sprite = this.add.image(x, y, selected.key).setOrigin(0, 0).setDisplaySize(selected.width, selected.height).setDepth(selected.depth).setAlpha(selected.alpha ?? 1);
     this.decorations.push(sprite);
-    if (type === 'cave-crystal' || type === 'cave-torch' || type === 'cave-altar') {
+    if (type === 'cave-crystal' || type === 'cave-torch' || type === 'cave-altar' || type === 'cave-lantern' || type === 'cave-rune') {
       this.tweens.add({ targets: sprite, alpha: { from: selected.alpha ?? 1, to: (selected.alpha ?? 1) * 0.78 }, duration: type === 'cave-torch' ? 900 : 1400, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
     }
     if (type === 'cave-altar') {
@@ -284,13 +290,15 @@ export class WorldScene extends Phaser.Scene {
       'harbor-buoy': { key: 'harbor-buoy', width: 78, height: 78, depth: 2 },
       'harbor-rocks': { key: 'harbor-rocks', width: 148, height: 98, depth: 2 },
       'harbor-shells': { key: 'harbor-shells', width: 108, height: 74, depth: 2 },
+      'harbor-rope': { key: 'harbor-rope', width: 164, height: 74, depth: 2 },
+      'harbor-foam': { key: 'harbor-wave-foam', width: 190, height: 78, depth: 1, alpha: 0.38 },
       'harbor-lighthouse': { key: 'harbor-lighthouse', width: 164, height: 176, depth: 2 },
     };
     const selected = config[type];
     if (!selected) return;
     const sprite = this.add.image(x, y, selected.key).setOrigin(0, 0).setDisplaySize(selected.width, selected.height).setDepth(selected.depth).setAlpha(selected.alpha ?? 1);
     this.decorations.push(sprite);
-    if (type === 'decoration' || type === 'harbor-buoy' || type === 'harbor-lantern') {
+    if (type === 'decoration' || type === 'harbor-buoy' || type === 'harbor-lantern' || type === 'harbor-foam') {
       this.tweens.add({ targets: sprite, y: y + 2, alpha: { from: selected.alpha ?? 1, to: (selected.alpha ?? 1) * 0.78 }, duration: type === 'harbor-lantern' ? 1000 : 1800, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
     }
     if (type === 'harbor-altar') {
@@ -760,7 +768,7 @@ export class WorldScene extends Phaser.Scene {
       this.mentorShadow = this.add.ellipse(mentorSpawn.x, mentorSpawn.y + 22, 32, 11, 0x102033, 0.42).setDepth(3.5);
       const i18n = new I18nManager(this.session.locale);
       this.mentorLabel = this.add.text(mentorSpawn.x, mentorSpawn.y - 48, i18n.text('midouName'), { fontFamily: 'monospace', fontSize: '13px', color: '#fff4c7', stroke: '#18233e', strokeThickness: 4 }).setOrigin(0.5, 1).setDepth(6).setVisible(false);
-      if (professorOctoObject && (isBeach || this.level.id === 'level-02')) {
+      if (professorOctoObject && (isBeach || this.level.id === 'level-02' || this.level.id === 'level-03' || this.level.id === 'level-04')) {
         const professorSpawn = this.resolveSafeSpawn(resolveTiledObjectPoint(this.map.objects, 'npc', 'professor-octo', { x: 560, y: 300 }));
         this.professorOcto = this.add.image(professorSpawn.x, professorSpawn.y, 'professor-octo-v1')
           .setDisplaySize(78, 78)

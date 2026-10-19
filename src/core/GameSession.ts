@@ -55,8 +55,12 @@ export class GameSession {
     if (this.touchControlsMode === 'always') return true;
     if (typeof window === 'undefined') return false;
     const coarse = window.matchMedia?.('(pointer: coarse)').matches ?? false;
-    const fine = window.matchMedia?.('(pointer: fine)').matches ?? false;
-    return coarse && !fine;
+    const touchPoints = typeof navigator !== 'undefined' ? navigator.maxTouchPoints : 0;
+    // A touchscreen laptop can expose both a fine mouse pointer and touch.
+    // Width alone is not a reliable device test, so keep controls enabled for
+    // real touch hardware while leaving ordinary desktop mouse/keyboard use
+    // clean by default.
+    return coarse || touchPoints > 0;
   }
   public collectObject(levelId: string, objectId: string): void { this.collectedObjects[levelId] ??= []; if (!this.collectedObjects[levelId].includes(objectId)) this.collectedObjects[levelId].push(objectId); }
   public discoverSecret(levelId: string, objectId: string): boolean {

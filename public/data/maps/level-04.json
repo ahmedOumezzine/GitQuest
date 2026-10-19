@@ -623,6 +623,24 @@
           "width": 0,
           "height": 0
         },
+      {
+        "id": 34,
+        "name": "harbor-rope",
+        "type": "harbor-rope",
+        "x": 520,
+        "y": 92,
+        "width": 0,
+        "height": 0
+      },
+      {
+        "id": 35,
+        "name": "harbor-foam",
+        "type": "harbor-foam",
+        "x": 772,
+        "y": 420,
+        "width": 0,
+        "height": 0
+      },
         {
           "id": 30,
           "name": "harbor-lighthouse",
@@ -700,6 +718,19 @@
           "width": 0,
           "height": 0
         },
+      {
+        "id": 33,
+        "name": "professor-octo",
+        "type": "npc",
+        "x": 560,
+        "y": 300,
+        "width": 0,
+        "height": 0,
+        "properties": [
+          { "name": "role", "type": "string", "value": "teacher" },
+          { "name": "lesson", "type": "string", "value": "push-pull" }
+        ]
+      },
         {
           "id": 32,
           "name": "exit-gate",

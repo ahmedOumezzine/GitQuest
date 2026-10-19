@@ -11,6 +11,7 @@ const emulateTouch = process.env.GITQUEST_QA_TOUCH === '1';
 const requestedLevel = process.env.GITQUEST_QA_LEVEL;
 const requestedScene = process.env.GITQUEST_QA_SCENE;
 const requestedLocale = process.env.GITQUEST_QA_LOCALE;
+let nextTouchId = 10;
 const appUrl = requestedLevel
   ? `http://127.0.0.1:${appPort}/?qa=benchmark&qaLevel=${encodeURIComponent(requestedLevel)}&perf=1`
   : requestedScene === 'victory'
@@ -19,7 +20,7 @@ const appUrl = requestedLevel
 
 const legacyLevels = [
   { id: 'level-02', next: 'level-03', minimumXp: 120, mentor: { x: 240, y: 180 }, crystal: { x: 125, y: 410 }, terminalWaypoints: [{ x: 220, y: 310 }, { x: 478, y: 310 }, { x: 478, y: 136 }], chest: { x: 760, y: 240 }, gate: { x: 900, y: 270 }, commands: [{ operation: 'add', text: 'git add .' }], chestWaypoints: [{ x: 125, y: 430 }, { x: 700, y: 430 }, { x: 700, y: 240 }, { x: 760, y: 240 }], toGate: [{ key: 'ArrowDown', ms: 220 }, { key: 'ArrowRight', ms: 1000 }] },
-  { id: 'level-03', next: 'level-04', minimumXp: 180, mentor: { x: 115, y: 180 }, crystal: { x: 130, y: 380 }, terminalWaypoints: [{ x: 130, y: 300 }, { x: 468, y: 300 }, { x: 468, y: 138 }], chest: { x: 760, y: 170 }, gate: { x: 900, y: 270 }, commands: [{ operation: 'commit', text: 'git commit -m "archive"' }], chestWaypoints: [{ x: 500, y: 380 }, { x: 500, y: 350 }, { x: 560, y: 360 }, { x: 680, y: 360 }, { x: 680, y: 170 }, { x: 760, y: 170 }], toGate: [{ key: 'ArrowDown', ms: 700 }, { key: 'ArrowRight', ms: 1000 }] },
+  { id: 'level-03', next: 'level-04', minimumXp: 180, mentor: { x: 180, y: 300 }, crystal: { x: 130, y: 380 }, terminalWaypoints: [{ x: 130, y: 300 }, { x: 468, y: 300 }, { x: 468, y: 138 }], chest: { x: 760, y: 170 }, gate: { x: 900, y: 270 }, commands: [{ operation: 'commit', text: 'git commit -m "archive"' }], chestWaypoints: [{ x: 500, y: 380 }, { x: 500, y: 350 }, { x: 560, y: 360 }, { x: 680, y: 360 }, { x: 680, y: 170 }, { x: 760, y: 170 }], toGate: [{ key: 'ArrowDown', ms: 700 }, { key: 'ArrowRight', ms: 1000 }] },
   { id: 'level-04', next: 'level-05', minimumXp: 240, mentor: { x: 110, y: 190 }, crystal: { x: 130, y: 390 }, terminalWaypoints: [{ x: 130, y: 330 }, { x: 300, y: 330 }, { x: 464, y: 330 }, { x: 464, y: 213 }], chest: { x: 740, y: 330 }, gate: { x: 900, y: 270 }, commands: [{ operation: 'push', text: 'git push' }, { operation: 'pull', text: 'git pull' }], chestWaypoints: [{ x: 350, y: 390 }, { x: 350, y: 310 }, { x: 740, y: 310 }, { x: 740, y: 330 }], toGate: [{ key: 'ArrowUp', ms: 450 }, { key: 'ArrowRight', ms: 1100 }] },
   { id: 'level-05', next: 'level-06', minimumXp: 300, mentor: { x: 110, y: 180 }, crystal: { x: 130, y: 405 }, terminalWaypoints: [{ x: 440, y: 418 }], chest: { x: 720, y: 190 }, gate: { x: 900, y: 270 }, commands: [{ operation: 'branch', text: 'git branch feature' }, { operation: 'switch', text: 'git switch feature' }], chestWaypoints: [{ x: 130, y: 430 }, { x: 580, y: 430 }, { x: 580, y: 190 }, { x: 720, y: 190 }], gateWaypoints: [{ x: 760, y: 190 }, { x: 900, y: 190 }, { x: 900, y: 270 }] },
   { id: 'level-06', minimumXp: 360, mentor: { x: 110, y: 180 }, crystal: { x: 115, y: 390 }, terminalWaypoints: [{ x: 115, y: 330 }, { x: 358, y: 330 }], chest: { x: 790, y: 255 }, gate: { x: 900, y: 270 }, commands: [{ operation: 'merge', text: 'git merge main' }], chestWaypoints: [{ x: 115, y: 450 }, { x: 430, y: 450 }, { x: 650, y: 450 }, { x: 650, y: 255 }, { x: 790, y: 255 }], toGate: [{ key: 'ArrowRight', ms: 760 }, { key: 'ArrowDown', ms: 100 }] },
@@ -413,6 +414,176 @@ async function runLevel2QuizCaptures(cdp) {
   await waitForState(cdp, 'world');
 }
 
+async function runLevel3OctoCaptures(cdp) {
+  const pagePath = (page) => process.env.GITQUEST_QA_LEVEL3_COURSE_PAGE_PREFIX?.replace('{page}', String(page));
+  await cdp.send('Page.reload', { ignoreCache: true });
+  await waitForState(cdp, 'world');
+  await waitForQuestStep(cdp, 'talk-midou');
+  await moveToPoints(cdp, [{ x: 180, y: 300 }]);
+  await captureScreenshot(cdp, process.env.GITQUEST_QA_LEVEL3_MIDOU_SCREENSHOT);
+  await key(cdp, 'e');
+  await waitForQuestStep(cdp, 'run-commit');
+  for (let attempt = 0; attempt < 3 && await cdp.evaluate('document.documentElement.dataset.gitquestDialogue === "visible"'); attempt += 1) {
+    await key(cdp, 'e');
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  await moveToPoints(cdp, [{ x: 300, y: 260 }]);
+  await captureScreenshot(cdp, process.env.GITQUEST_QA_LEVEL3_OCTO_SCREENSHOT);
+  if (emulateTouch) {
+    const { width, height } = await getGameSize(cdp);
+    const metrics = layoutFor(width, height);
+    await tapGame(cdp, width - metrics.margin - 52, height - metrics.margin - (metrics.portrait ? 108 : 90));
+  } else {
+    await key(cdp, 'e');
+  }
+  await waitForState(cdp, 'course');
+  await captureScreenshot(cdp, process.env.GITQUEST_QA_LEVEL3_COURSE_SCREENSHOT);
+  if (pagePath(1)) await captureScreenshot(cdp, pagePath(1));
+  for (let page = 2; page <= 6; page += 1) {
+    await key(cdp, 'ArrowRight');
+    await new Promise((resolve) => setTimeout(resolve, 220));
+    if (pagePath(page)) await captureScreenshot(cdp, pagePath(page));
+  }
+  if (process.env.GITQUEST_QA_LEVEL3_QUIZ_SCREENSHOTS === '1') {
+    await runLevel3QuizCaptures(cdp);
+  } else {
+    await key(cdp, 'Escape');
+  }
+  await waitForState(cdp, 'world');
+  await captureScreenshot(cdp, process.env.GITQUEST_QA_LEVEL3_AFTER_PRACTICE_SCREENSHOT);
+}
+
+async function runLevel4OctoCaptures(cdp) {
+  const pagePath = (page) => process.env.GITQUEST_QA_LEVEL4_COURSE_PAGE_PREFIX?.replace('{page}', String(page));
+  await cdp.send('Page.reload', { ignoreCache: true });
+  await waitForState(cdp, 'world');
+  await waitForQuestStep(cdp, 'talk-midou');
+  await moveToPoints(cdp, [{ x: 110, y: 190 }]);
+  await key(cdp, 'e');
+  await waitForQuestStep(cdp, 'run-push');
+  for (let attempt = 0; attempt < 3 && await cdp.evaluate('document.documentElement.dataset.gitquestDialogue === "visible"'); attempt += 1) {
+    await key(cdp, 'e');
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  // wall-a separates the spawn lane from the central port. Approach through
+  // the lower opening instead of asking the QA driver to walk through it.
+  await moveToPoints(cdp, [{ x: 180, y: 330 }, { x: 560, y: 330 }, { x: 560, y: 300 }]);
+  await captureScreenshot(cdp, process.env.GITQUEST_QA_LEVEL4_OCTO_SCREENSHOT);
+  if (emulateTouch) {
+    const { width, height } = await getGameSize(cdp);
+    const metrics = layoutFor(width, height);
+    await tapGame(cdp, width - metrics.margin - 52, height - metrics.margin - (metrics.portrait ? 108 : 90));
+  } else {
+    await key(cdp, 'e');
+  }
+  await waitForState(cdp, 'course');
+  await captureScreenshot(cdp, process.env.GITQUEST_QA_LEVEL4_COURSE_SCREENSHOT);
+  if (pagePath(1)) await captureScreenshot(cdp, pagePath(1));
+  for (let page = 2; page <= 6; page += 1) {
+    await key(cdp, 'ArrowRight');
+    await new Promise((resolve) => setTimeout(resolve, 220));
+    if (pagePath(page)) await captureScreenshot(cdp, pagePath(page));
+  }
+  await clickLevel2CourseQuiz(cdp);
+  await waitForCourseView(cdp, 'quiz');
+  await selectLevel3QuizAnswer(cdp, 1);
+  await continueLevel3Quiz(cdp);
+  await selectLevel3QuizAnswer(cdp, 0);
+  await continueLevel3Quiz(cdp);
+  await selectLevel3QuizAnswer(cdp, 1);
+  await continueLevel3Quiz(cdp);
+  await waitForCourseView(cdp, 'result');
+  await waitForCourseQuiz(cdp);
+  await captureScreenshot(cdp, process.env.GITQUEST_QA_LEVEL4_QUIZ_RESULT_SCREENSHOT);
+  await clickLevel2ResultPractice(cdp);
+  await waitForState(cdp, 'world');
+  await captureScreenshot(cdp, process.env.GITQUEST_QA_LEVEL4_AFTER_COURSE_SCREENSHOT);
+}
+
+async function runLevel3QuizCaptures(cdp) {
+  await clickLevel2CourseQuiz(cdp);
+  await waitForCourseView(cdp, 'quiz');
+  await waitForCourseQuiz(cdp);
+  await captureScreenshot(cdp, process.env.GITQUEST_QA_LEVEL3_QUIZ_SCREENSHOT);
+  await selectLevel3QuizAnswer(cdp, 1);
+  await captureScreenshot(cdp, process.env.GITQUEST_QA_LEVEL3_QUIZ_CORRECT_SCREENSHOT);
+  await continueLevel3Quiz(cdp);
+  await waitForCourseView(cdp, 'quiz');
+  await selectLevel3QuizAnswer(cdp, 1);
+  await continueLevel3Quiz(cdp);
+  await waitForCourseView(cdp, 'quiz');
+  await selectLevel3QuizAnswer(cdp, 0);
+  await continueLevel3Quiz(cdp);
+  await waitForCourseView(cdp, 'result');
+  await waitForCourseQuiz(cdp);
+  await captureScreenshot(cdp, process.env.GITQUEST_QA_LEVEL3_QUIZ_RESULT_3_SCREENSHOT);
+  await key(cdp, 'ArrowLeft');
+  await waitForCourseView(cdp, 'course');
+  await waitForCourseQuiz(cdp);
+  await captureScreenshot(cdp, process.env.GITQUEST_QA_LEVEL3_QUIZ_REVIEW_SCREENSHOT);
+  for (let page = 1; page < 6; page += 1) {
+    await key(cdp, 'ArrowRight');
+    await new Promise((resolve) => setTimeout(resolve, 260));
+  }
+  await clickLevel2CourseQuiz(cdp);
+  await waitForCourseView(cdp, 'quiz');
+  await waitForCourseQuiz(cdp);
+  await selectLevel3QuizAnswer(cdp, 0);
+  await captureScreenshot(cdp, process.env.GITQUEST_QA_LEVEL3_QUIZ_INCORRECT_SCREENSHOT);
+  await continueLevel3Quiz(cdp);
+  await selectLevel3QuizAnswer(cdp, 0);
+  await continueLevel3Quiz(cdp);
+  await selectLevel3QuizAnswer(cdp, 2);
+  await continueLevel3Quiz(cdp);
+  await waitForCourseView(cdp, 'result');
+  await waitForCourseQuiz(cdp);
+  await captureScreenshot(cdp, process.env.GITQUEST_QA_LEVEL3_QUIZ_RESULT_1_SCREENSHOT);
+  if (process.env.GITQUEST_QA_DEBUG === '1') console.log('QA level3: score 1/3 captured, opening practice.');
+  await clickLevel2ResultPractice(cdp);
+  await waitForState(cdp, 'world');
+  if (process.env.GITQUEST_QA_DEBUG === '1') console.log('QA level3: practice action dispatched, state=' + await cdp.evaluate('document.documentElement.dataset.gitquestQa ?? ""'));
+}
+
+async function selectLevel3QuizAnswer(cdp, index) {
+  if (!emulateTouch) {
+    await selectQuizAnswer(cdp, index);
+    return;
+  }
+  const geometry = await level2PanelGeometry(cdp, 'quiz');
+  const answerY = geometry.portrait
+    ? 350 + index * 46 + 17
+    : (geometry.compact ? 158 + index * 40 + 17 : 204 + index * 46 + 19);
+  const answerX = geometry.left + geometry.panelWidth / 2;
+  await tapGame(cdp, answerX, geometry.top + answerY);
+  await new Promise((resolve) => setTimeout(resolve, 140));
+  // The compatibility mouse event is a safe fallback: once the answer is
+  // accepted the Phaser button is disabled, so this cannot select twice.
+  await click(cdp, answerX, geometry.top + answerY);
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  if (process.env.GITQUEST_QA_DEBUG === '1') console.log(`QA quiz answer tap at ${answerX},${geometry.top + answerY}, progress=${await cdp.evaluate('document.documentElement.dataset.gitquestCourseProgress ?? ""')}`);
+}
+
+async function continueLevel3Quiz(cdp) {
+  if (!emulateTouch) {
+    await continueQuiz(cdp);
+    return;
+  }
+  const geometry = await level2PanelGeometry(cdp, 'quiz');
+  const rtl = await cdp.evaluate('document.documentElement.dir === "rtl"');
+  const x = rtl
+    ? geometry.left + (geometry.portrait ? 80 : 192)
+    : geometry.portrait
+      ? geometry.left + geometry.panelWidth - 80
+      : geometry.left + geometry.panelWidth - 192;
+  // In compact landscape the button sits on the lower action row, close to
+  // the panel bottom. Keep the tap inside its visual hitbox instead of
+  // relying on the old desktop-centered estimate.
+  const y = geometry.top + (geometry.portrait ? geometry.height - 52 : geometry.height - 28);
+  await tapGame(cdp, x, y);
+  await new Promise((resolve) => setTimeout(resolve, 140));
+  if (process.env.GITQUEST_QA_DEBUG === '1') console.log(`QA quiz continue tap at ${x},${y}, view=${await cdp.evaluate('document.documentElement.dataset.gitquestCourseView ?? ""')}, progress=${await cdp.evaluate('document.documentElement.dataset.gitquestCourseProgress ?? ""')}`);
+}
+
 async function selectQuizAnswer(cdp, index) {
   for (let step = 0; step < index; step += 1) {
     await key(cdp, 'ArrowDown');
@@ -437,6 +608,16 @@ async function waitForCourseQuiz(cdp) {
   throw new Error('Le panneau de quiz Octo n’est pas visible.');
 }
 
+async function waitForCourseView(cdp, expected, timeoutMs = 2500) {
+  const started = Date.now();
+  while (Date.now() - started < timeoutMs) {
+    if (await cdp.evaluate('document.documentElement.dataset.gitquestCourseView ?? ""') === expected) return;
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  const view = await cdp.evaluate('document.documentElement.dataset.gitquestCourseView ?? ""');
+  throw new Error(`Vue Octo attendue « ${expected} », obtenue « ${view} ».`);
+}
+
 async function clickLevel2CourseQuiz(cdp) {
   if (!emulateTouch) {
     await key(cdp, 'q');
@@ -445,7 +626,16 @@ async function clickLevel2CourseQuiz(cdp) {
   }
   const geometry = await level2PanelGeometry(cdp, 'course');
   const y = geometry.top + geometry.height - (geometry.portrait ? 105 : geometry.compact ? 62 : 76);
-  await inputGame(cdp, geometry.left + geometry.width / 2, y);
+  const x = geometry.left + geometry.panelWidth / 2;
+  await inputGame(cdp, x, y);
+  await new Promise((resolve) => setTimeout(resolve, 160));
+  if (await cdp.evaluate('document.documentElement.dataset.gitquestQa === "course"')) {
+    // Chrome touch emulation can miss Phaser's text hit area when the canvas
+    // is resized between the course page and the quiz action row.
+    await click(cdp, x, y);
+    await new Promise((resolve) => setTimeout(resolve, 120));
+    if (await cdp.evaluate('document.documentElement.dataset.gitquestQa === "course"')) await key(cdp, 'q');
+  }
 }
 
 async function clickLevel2ResultPractice(cdp) {
@@ -455,16 +645,22 @@ async function clickLevel2ResultPractice(cdp) {
     return;
   }
   const geometry = await level2PanelGeometry(cdp, 'result');
-  const x = geometry.portrait ? geometry.left + geometry.width / 2 : geometry.left + geometry.width - 100;
+  const rtl = await cdp.evaluate('document.documentElement.dir === "rtl"');
+  const x = geometry.portrait
+    ? geometry.left + geometry.panelWidth / 2
+    : rtl ? geometry.left + 90 : geometry.left + geometry.panelWidth - 110;
   const y = geometry.top + geometry.height - (geometry.portrait ? 60 : geometry.compact ? 58 : 64);
   await inputGame(cdp, x, y);
   await new Promise((resolve) => setTimeout(resolve, 180));
+  if (process.env.GITQUEST_QA_DEBUG === '1') console.log(`QA result practice tap at ${x},${y}, state=${await cdp.evaluate('document.documentElement.dataset.gitquestQa ?? ""')}`);
   if (await cdp.evaluate('document.documentElement.dataset.gitquestQa === "course"')) {
     // Headless touch emulation does not always synthesize the compatibility
     // mouse event generated by a real mobile browser after touchend.
     await click(cdp, x, y);
     await new Promise((resolve) => setTimeout(resolve, 120));
+    if (process.env.GITQUEST_QA_DEBUG === '1') console.log('QA result practice mouse fallback state=' + await cdp.evaluate('document.documentElement.dataset.gitquestQa ?? ""'));
     if (await cdp.evaluate('document.documentElement.dataset.gitquestQa === "course"')) await key(cdp, 'p');
+    if (process.env.GITQUEST_QA_DEBUG === '1') console.log('QA result practice keyboard fallback state=' + await cdp.evaluate('document.documentElement.dataset.gitquestQa ?? ""') + ', reason=' + await cdp.evaluate('document.documentElement.dataset.gitquestCourseCloseReason ?? ""'));
   }
 }
 
@@ -472,7 +668,7 @@ async function level2PanelGeometry(cdp, view) {
   const { width, height } = await getGameSize(cdp);
   const metrics = layoutFor(width, height);
   const panelWidth = metrics.portrait ? Math.min(366, width - metrics.margin * 2) : metrics.compact ? Math.min(760, width - metrics.margin * 2) : Math.min(820, width - metrics.margin * 2);
-  const panelHeight = metrics.portrait ? Math.min(view === 'result' ? 600 : 600, height - 24) : metrics.compact ? view === 'result' ? 340 : 300 : view === 'result' ? 410 : 370;
+  const panelHeight = metrics.portrait ? Math.min(600, height - 24) : metrics.compact ? view === 'course' ? 300 : 340 : view === 'course' ? 370 : 410;
   return { width, height, portrait: metrics.portrait, compact: metrics.compact, left: (width - panelWidth) / 2, top: Math.max(metrics.margin, (height - panelHeight) / 2), panelWidth, height: panelHeight };
 }
 
@@ -497,7 +693,8 @@ async function tapGame(cdp, x, y) {
   if (!rect) throw new Error('Canvas introuvable pour le tap QA.');
   const pageX = rect.left + x * rect.width / rect.gameWidth;
   const pageY = rect.top + y * rect.height / rect.gameHeight;
-  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: pageX, y: pageY, id: 1 }] });
+  const touchId = nextTouchId++;
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: pageX, y: pageY, id: touchId }] });
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
 }
 
@@ -505,10 +702,10 @@ async function holdTouchDirection(cdp, direction, durationMs) {
   const { width, height } = await getGameSize(cdp);
   const metrics = layoutFor(width, height);
   const joystick = {
-    x: metrics.margin + 90,
-    y: height - metrics.margin - (metrics.portrait ? 108 : 90),
+    x: metrics.margin + 64,
+    y: height - metrics.margin - 64,
   };
-  const offsets = { left: { x: -42, y: 0 }, right: { x: 42, y: 0 }, up: { x: 0, y: -42 }, down: { x: 0, y: 42 } };
+  const offsets = { left: { x: -34, y: 0 }, right: { x: 34, y: 0 }, up: { x: 0, y: -34 }, down: { x: 0, y: 34 } };
   const offset = offsets[direction];
   if (!offset) throw new Error(`Direction tactile inconnue: ${direction}`);
   const rect = await cdp.evaluate('(() => { const canvas = document.querySelector("canvas"); const rect = canvas?.getBoundingClientRect(); return rect ? { left: rect.left, top: rect.top, width: rect.width, height: rect.height, gameWidth: canvas.width, gameHeight: canvas.height } : null; })()');
@@ -518,8 +715,77 @@ async function holdTouchDirection(cdp, direction, durationMs) {
   const pageX = rect.left + gameX * rect.width / rect.gameWidth;
   const pageY = rect.top + gameY * rect.height / rect.gameHeight;
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: pageX, y: pageY, id: 2 }] });
-  await new Promise((resolve) => setTimeout(resolve, durationMs));
+  const started = Date.now();
+  while (Date.now() - started < durationMs) {
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: pageX, y: pageY, id: 2 }] });
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
   await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+}
+
+async function holdTouchVector(cdp, vector, durationMs, screenshotPath) {
+  const { width, height } = await getGameSize(cdp);
+  const metrics = layoutFor(width, height);
+  const joystick = { x: metrics.margin + 64, y: height - metrics.margin - 64 };
+  const rect = await cdp.evaluate('(() => { const canvas = document.querySelector("canvas"); const rect = canvas?.getBoundingClientRect(); return rect ? { left: rect.left, top: rect.top, width: rect.width, height: rect.height, gameWidth: canvas.width, gameHeight: canvas.height } : null; })()');
+  if (!rect) throw new Error('Canvas introuvable pour le vecteur tactile QA.');
+  const pageX = rect.left + (joystick.x + vector.x) * rect.width / rect.gameWidth;
+  const pageY = rect.top + (joystick.y + vector.y) * rect.height / rect.gameHeight;
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: pageX, y: pageY, id: 3 }] });
+  const started = Date.now();
+  let captured = false;
+  while (Date.now() - started < durationMs) {
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: pageX, y: pageY, id: 3 }] });
+    if (!captured && screenshotPath && Date.now() - started > Math.min(180, durationMs / 2)) {
+      await captureScreenshot(cdp, screenshotPath);
+      captured = true;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+}
+
+async function touchActionButton(cdp, kind) {
+  const { width, height } = await getGameSize(cdp);
+  const metrics = layoutFor(width, height);
+  const action = { x: width - metrics.margin - 38, y: height - metrics.margin - 52 };
+  const terminal = { x: action.x, y: action.y - 84 };
+  const point = kind === 'terminal' ? terminal : action;
+  await tapGame(cdp, point.x, point.y);
+}
+
+async function runTouchControlsSmoke(cdp) {
+  const initial = await cdp.evaluate('({ x: Number(document.documentElement.dataset.gitquestPlayerX ?? 0), y: Number(document.documentElement.dataset.gitquestPlayerY ?? 0) })');
+  await holdTouchDirection(cdp, 'left', 1650);
+  await holdTouchVector(cdp, { x: -30, y: -30 }, 500, process.env.GITQUEST_QA_JOYSTICK_SCREENSHOT);
+  const moved = await cdp.evaluate('({ x: Number(document.documentElement.dataset.gitquestPlayerX ?? 0), y: Number(document.documentElement.dataset.gitquestPlayerY ?? 0) })');
+  if (process.env.GITQUEST_QA_DEBUG === '1') console.log(`QA touch movement: initial=${JSON.stringify(initial)} moved=${JSON.stringify(moved)}`);
+  if (Math.hypot(moved.x - initial.x, moved.y - initial.y) < 40) throw new Error('Le joystick tactile n’a pas déplacé le joueur.');
+  await holdTouchDirection(cdp, 'right', 150);
+  const released = await cdp.evaluate('({ x: Number(document.documentElement.dataset.gitquestPlayerX ?? 0), y: Number(document.documentElement.dataset.gitquestPlayerY ?? 0) })');
+  await new Promise((resolve) => setTimeout(resolve, 180));
+  const stopped = await cdp.evaluate('({ x: Number(document.documentElement.dataset.gitquestPlayerX ?? 0), y: Number(document.documentElement.dataset.gitquestPlayerY ?? 0) })');
+  if (Math.hypot(stopped.x - released.x, stopped.y - released.y) > 14) throw new Error('Le joystick tactile continue à déplacer le joueur après relâchement.');
+
+  // Rejoin Midou with keyboard only to isolate the action-button contract.
+  await moveToPoints(cdp, [{ x: 460, y: 340 }]);
+  await touchActionButton(cdp, 'interact');
+  await new Promise((resolve) => setTimeout(resolve, 180));
+  if (await cdp.evaluate('document.documentElement.dataset.gitquestDialogue !== "visible"')) throw new Error('Le bouton tactile Interaction n’a pas ouvert le dialogue de Midou.');
+  if (await cdp.evaluate('document.documentElement.dataset.gitquestTouchControls !== "hidden"')) throw new Error('Les contrôles tactiles restent visibles au-dessus du dialogue.');
+  await key(cdp, 'Enter');
+  await new Promise((resolve) => setTimeout(resolve, 120));
+  if (await cdp.evaluate('document.documentElement.dataset.gitquestTouchControls !== "visible"')) throw new Error('Les contrôles tactiles ne sont pas restaurés après le dialogue.');
+
+  await moveToPoints(cdp, terminalWaypointsByLevel['level-01']);
+  await touchActionButton(cdp, 'terminal');
+  await waitForState(cdp, 'terminal');
+  if (await cdp.evaluate('document.documentElement.dataset.gitquestTouchControls !== "hidden"')) throw new Error('Les contrôles tactiles restent visibles au-dessus du terminal.');
+  if (process.env.GITQUEST_QA_TOUCH_SCREENSHOT) await captureScreenshot(cdp, process.env.GITQUEST_QA_TOUCH_SCREENSHOT);
+  await key(cdp, 'Escape');
+  await waitForState(cdp, 'world');
+  if (await cdp.evaluate('document.documentElement.dataset.gitquestTouchControls !== "visible"')) throw new Error('Les contrôles tactiles ne sont pas restaurés après le terminal.');
+  console.log(`QA tactile PASS: joystick, diagonale, relâchement, interaction, terminal et verrouillage modal (${moved.x.toFixed(1)},${moved.y.toFixed(1)}).`);
 }
 
 async function getGameSize(cdp) {
@@ -599,7 +865,7 @@ async function assertBrowserBasics(cdp) {
     viewportHeight: window.innerHeight
   }))()`);
   if (!basics.canvas || !basics.canvasWidth || !basics.canvasHeight || basics.lang !== 'fr' || basics.dir !== 'ltr' || Math.abs(basics.viewportWidth - viewportWidth) > 2 || Math.abs(basics.viewportHeight - viewportHeight) > 2) {
-    throw new Error('Le canvas ou la direction initiale n’est pas correctement exposé.');
+    throw new Error('Le canvas ou la direction initiale n’est pas correctement exposé: ' + JSON.stringify(basics));
   }
 }
 
@@ -694,6 +960,60 @@ try {
     }
     if (direction.lang !== requestedLocale || direction.dir !== expectedDirection) throw new Error(`La direction du HUD n’est pas active: ${JSON.stringify(direction)}.`);
   }
+  if (requestedLevel === 'level-03' && process.env.GITQUEST_QA_LEVEL3_COMPLETE === '1') {
+    // A direct level-3 smoke test represents arrival from level 2. Seed only
+    // the prerequisite Git state; the commit itself is still entered through
+    // the real terminal and validated by QuestManager.
+    const prerequisiteWritten = await cdp.evaluate(`(() => {
+      const raw = localStorage.getItem('gitquest-save');
+      const save = raw ? JSON.parse(raw) : {};
+      save.levelId = 'level-03';
+      save.xp = { total: Math.max(120, Number(save.xp?.total ?? 0)) };
+      save.git = {
+        version: 1,
+        initialized: true,
+        files: save.git?.files ?? { 'notes.txt': 'Une idée naît sur l’île.' },
+        staged: ['notes.txt'],
+        commits: save.git?.commits ?? [],
+        currentBranch: save.git?.currentBranch ?? 'main',
+        branches: save.git?.branches ?? { main: [] },
+        remoteCommits: save.git?.remoteCommits ?? [],
+        conflicts: save.git?.conflicts ?? []
+      };
+      localStorage.setItem('gitquest-save', JSON.stringify(save));
+      return true;
+    })()`);
+    if (!prerequisiteWritten) throw new Error('La précondition Git du smoke test niveau 3 n’a pas pu être préparée.');
+    await cdp.send('Page.reload', { ignoreCache: true });
+    await waitForState(cdp, 'world');
+  }
+  if (requestedLevel === 'level-04' && process.env.GITQUEST_QA_LEVEL4_COMPLETE === '1') {
+    // A direct level-four smoke test represents arrival from level three.
+    // Seed only the already-earned commit; push and pull still run through
+    // the real terminal and QuestManager.
+    const prerequisiteWritten = await cdp.evaluate(`(() => {
+      const raw = localStorage.getItem('gitquest-save');
+      const save = raw ? JSON.parse(raw) : {};
+      save.levelId = 'level-04';
+      save.xp = { total: Math.max(180, Number(save.xp?.total ?? 0)) };
+      save.git = {
+        version: 1,
+        initialized: true,
+        files: save.git?.files ?? { 'notes.txt': 'Une idée naît sur l’île.' },
+        staged: [],
+        commits: [{ id: 'c1', message: 'archive', files: ['notes.txt'], branch: 'main' }],
+        currentBranch: 'main',
+        branches: { main: ['c1'] },
+        remoteCommits: [],
+        conflicts: []
+      };
+      localStorage.setItem('gitquest-save', JSON.stringify(save));
+      return true;
+    })()`);
+    if (!prerequisiteWritten) throw new Error('La précondition Git du smoke test niveau 4 n’a pas pu être préparée.');
+    await cdp.send('Page.reload', { ignoreCache: true });
+    await waitForState(cdp, 'world');
+  }
   if (process.env.GITQUEST_QA_SCREENSHOT) {
     // WorldScene fades in after the QA marker is published. Wait for the
     // actual rendered scene so level captures are not taken through black.
@@ -761,7 +1081,31 @@ try {
     await runLevel2OctoCaptures(cdp);
   }
 
-  if (requestedLevel) {
+  if (requestedLevel === 'level-03' && process.env.GITQUEST_QA_LEVEL3_OCTO_SCREENSHOTS === '1') {
+    await runLevel3OctoCaptures(cdp);
+  }
+
+  if (requestedLevel === 'level-04' && process.env.GITQUEST_QA_LEVEL4_OCTO_SCREENSHOTS === '1') {
+    await runLevel4OctoCaptures(cdp);
+  }
+
+  if (requestedLevel === 'level-03' && process.env.GITQUEST_QA_LEVEL3_COMPLETE === '1') {
+    await runLegacyLevel(cdp, legacyLevels.find((level) => level.id === 'level-03'));
+    if (consoleErrors.length) throw new Error('Erreurs navigateur : ' + consoleErrors.join(' | '));
+    const finalLevel3Save = await cdp.evaluate('JSON.parse(localStorage.getItem("gitquest-save") ?? "null")');
+    if (!finalLevel3Save || finalLevel3Save.levelId !== 'level-04' || !finalLevel3Save.git?.commits?.length || !finalLevel3Save.collectedObjects?.['level-03']?.includes('cave-chest')) {
+      throw new Error('Le parcours complet du niveau 3 n’est pas confirmé dans la sauvegarde: ' + JSON.stringify({ levelId: finalLevel3Save?.levelId, quest: finalLevel3Save?.quests?.['level-03'], commits: finalLevel3Save?.git?.commits, collected: finalLevel3Save?.collectedObjects?.['level-03'], inventory: finalLevel3Save?.inventory, xp: finalLevel3Save?.xp }));
+    }
+    console.log('QA navigateur PASS: niveau 3 complet, commit, récompense, porte et transition vers ' + finalLevel3Save.levelId + '.');
+  } else if (requestedLevel === 'level-04' && process.env.GITQUEST_QA_LEVEL4_COMPLETE === '1') {
+    await runLegacyLevel(cdp, legacyLevels.find((level) => level.id === 'level-04'));
+    if (consoleErrors.length) throw new Error('Erreurs navigateur : ' + consoleErrors.join(' | '));
+    const finalLevel4Save = await cdp.evaluate('JSON.parse(localStorage.getItem("gitquest-save") ?? "null")');
+    if (!finalLevel4Save || finalLevel4Save.levelId !== 'level-05' || !finalLevel4Save.git?.remoteCommits?.includes('c1') || !finalLevel4Save.collectedObjects?.['level-04']?.includes('harbor-chest')) {
+      throw new Error('Le parcours complet du niveau 4 n’est pas confirmé dans la sauvegarde: ' + JSON.stringify({ levelId: finalLevel4Save?.levelId, quest: finalLevel4Save?.quests?.['level-04'], remoteCommits: finalLevel4Save?.git?.remoteCommits, collected: finalLevel4Save?.collectedObjects?.['level-04'], xp: finalLevel4Save?.xp }));
+    }
+    console.log('QA navigateur PASS: niveau 4 complet, push, pull, récompense, porte et transition vers ' + finalLevel4Save.levelId + '.');
+  } else if (requestedLevel) {
     const started = Date.now();
     let runtime = await cdp.evaluate('({ level: document.documentElement.dataset.gitquestLevel ?? "", fps: document.documentElement.dataset.gitquestFps ?? "" })');
     while (!runtime.fps && Date.now() - started < 4000) {
@@ -778,6 +1122,9 @@ try {
         touchControls = await cdp.evaluate('document.documentElement.dataset.gitquestTouchControls ?? ""');
       }
       if (touchControls !== 'visible') throw new Error('Les contrôles tactiles ne sont pas visibles en émulation tactile.');
+    }
+    if (requestedLevel === 'level-01' && emulateTouch && process.env.GITQUEST_QA_TOUCH_CONTROLS === '1') {
+      await runTouchControlsSmoke(cdp);
     }
     await assertLevel1Animations(cdp);
     if (consoleErrors.length) throw new Error(`Erreurs navigateur : ${consoleErrors.join(' | ')}`);
