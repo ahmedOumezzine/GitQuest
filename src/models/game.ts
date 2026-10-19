@@ -104,6 +104,7 @@ export interface TiledObject {
   y: number;
   width: number;
   height: number;
+  properties?: Array<{ name: string; type?: string; value: string | number | boolean }>;
 }
 
 export interface TiledMapData {

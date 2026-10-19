@@ -18,7 +18,7 @@ export class InventoryBar extends ResponsivePanel {
 
   public setItems(items: string[], i18n: I18nManager, quantities: Record<string, number> = {}): this {
     const total = items.reduce((sum, item) => sum + (quantities[item] ?? 1), 0);
-    this.title.setText(`${i18n.text('inventory')} · ${total}`);
+    this.title.setText(`▣ ${i18n.text('inventory')} · ${total}`);
     this.items.removeAll(true);
     items.slice(0, 5).forEach((item, index) => {
       const image = this.scene.add.image(index * 27 + 10, 0, itemDefinition(item).iconKey).setDisplaySize(20, 20);

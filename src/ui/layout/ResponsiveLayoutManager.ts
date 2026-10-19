@@ -59,13 +59,24 @@ export function calculateGameplayHudLayout(
   const margin = metrics.margin;
   if (metrics.portrait) {
     const fullWidth = Math.max(220, metrics.width - margin * 2);
-    // The quest card now includes one concise action hint below the active
-    // step, so keep XP/inventory below it on narrow portrait screens.
-    const rowY = 104;
+    // The mission card is collapsed to two readable lines by default. XP and
+    // inventory share the second compact row instead of creating a tall HUD.
+    const rowY = 72;
     return {
       quest: { x: margin, y: 8, width: fullWidth },
       xp: { x: margin, y: rowY },
       inventory: { x: metrics.width - margin - inventoryWidth, y: rowY },
+    };
+  }
+
+  if (metrics.compact) {
+    const rightWidth = Math.max(xpWidth, inventoryWidth);
+    const questWidth = Math.max(220, metrics.width - margin * 2 - rightWidth - 12);
+    const rightX = metrics.width - margin - rightWidth;
+    return {
+      quest: { x: margin, y: 8, width: questWidth },
+      xp: { x: rightX, y: 8 },
+      inventory: { x: rightX, y: 48 },
     };
   }
 

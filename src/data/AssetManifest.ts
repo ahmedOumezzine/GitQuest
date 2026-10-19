@@ -23,7 +23,7 @@ export const imageAssets: AssetEntry[] = [
   { key: 'island-tileset', path: '/assets/tilesets/island-tileset.svg' },
   // Tilemaps need the complete atlas image; loading this as a spritesheet
   // would expose only Phaser frames and can misalign Tiled tile ids.
-  { key: 'beach-tileset', path: '/assets/tilesets/beach-tileset-v2.svg' },
+  { key: 'beach-tileset', path: '/assets/tilesets/beach-tileset-v3.png' },
   { key: 'forest-tileset', path: '/assets/tilesets/forest-tileset-v1.png' },
   { key: 'cave-tileset', path: '/assets/tilesets/cave-tileset-v1.png' },
   { key: 'harbor-tileset', path: '/assets/tilesets/harbor-tileset-v1.png' },
@@ -126,6 +126,12 @@ export const imageAssets: AssetEntry[] = [
   { key: 'level-01-gate-v1', path: '/assets/sprites/level-01-gate-v1.png' },
   { key: 'level-01-player-v1', path: '/assets/sprites/level-01-player-v1.png' },
   { key: 'level-01-midou-v1', path: '/assets/sprites/level-01-midou-v1.png' },
+  { key: 'level-01-grass-cluster-v1', path: '/assets/sprites/level-01-grass-cluster-v1.png' },
+  { key: 'level-01-chest-closed-v1', path: '/assets/sprites/level-01-chest-closed-v1.png' },
+  { key: 'level-01-chest-open-v1', path: '/assets/sprites/level-01-chest-open-v1.png' },
+  { key: 'level-01-memory-crystal-v1', path: '/assets/sprites/level-01-memory-crystal-v1.png' },
+  { key: 'professor-octo-v1', path: '/assets/sprites/professor-octo-v1.png' },
+  { key: 'professor-octo-portrait-v1', path: '/assets/portraits/professor-octo-portrait-v1.png' },
   ...['player', 'midou', 'chest', 'crystal', 'scroll', 'gate', 'key', 'palm', 'rock', 'grass', 'ruin', 'shrine', 'shrine-glow', 'lighthouse', 'wave', 'flower', 'shell', 'player-scarf', 'midou-staff'].map((key) => ({ key, path: `/assets/sprites/${key}.svg` })),
 ];
 
@@ -162,7 +168,12 @@ const level01AssetKeys = new Set([
   'level-01-shrine-v1',
   'level-01-gate-v1',
   'level-01-player-v1',
-  'grass',
+  'level-01-grass-cluster-v1',
+  'level-01-chest-closed-v1',
+  'level-01-chest-open-v1',
+  'level-01-memory-crystal-v1',
+  'professor-octo-v1',
+  'professor-octo-portrait-v1',
   'flower',
   'shell',
   'shrine-glow',

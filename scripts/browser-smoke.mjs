@@ -10,6 +10,7 @@ const viewportHeight = Number(process.env.GITQUEST_QA_HEIGHT ?? 540);
 const emulateTouch = process.env.GITQUEST_QA_TOUCH === '1';
 const requestedLevel = process.env.GITQUEST_QA_LEVEL;
 const requestedScene = process.env.GITQUEST_QA_SCENE;
+const requestedLocale = process.env.GITQUEST_QA_LOCALE;
 const appUrl = requestedLevel
   ? `http://127.0.0.1:${appPort}/?qa=benchmark&qaLevel=${encodeURIComponent(requestedLevel)}&perf=1`
   : requestedScene === 'victory'
@@ -25,7 +26,7 @@ const legacyLevels = [
 ];
 
 const terminalWaypointsByLevel = {
-  'level-01': [{ x: 350, y: 500 }, { x: 520, y: 500 }, { x: 520, y: 430 }],
+  'level-01': [{ x: 320, y: 540 }, { x: 320, y: 700 }, { x: 620, y: 700 }, { x: 720, y: 600 }, { x: 700, y: 560 }],
   ...Object.fromEntries(legacyLevels.map((level) => [level.id, level.terminalWaypoints])),
 };
 
@@ -475,6 +476,41 @@ try {
   await cdp.send('Page.reload', { ignoreCache: true });
   await waitForState(cdp, requestedLevel ? 'world' : requestedScene === 'victory' ? 'victory' : 'title');
   await assertBrowserBasics(cdp);
+  if (requestedLevel && (requestedLocale === 'fr' || requestedLocale === 'en' || requestedLocale === 'ar')) {
+    // Reload the same data-driven level with a valid saved locale so the
+    // rendered HUD can be inspected in RTL without changing game logic.
+    const locale = JSON.stringify(requestedLocale);
+    const levelId = JSON.stringify(requestedLevel);
+    const localeWritten = await cdp.evaluate(`(() => {
+      const raw = localStorage.getItem('gitquest-save');
+      const save = raw ? JSON.parse(raw) : {
+        version: 1,
+        levelId: ${levelId},
+        locale: 'fr',
+        touchControlsMode: 'auto',
+        inventory: { items: [] },
+        xp: { total: 0 },
+        quests: {},
+        collectedObjects: {},
+        discoveredSecrets: {},
+        git: { version: 1, initialized: false, files: { 'notes.txt': 'Une idée naît sur l’île.' }, staged: [], commits: [], currentBranch: 'main', branches: { main: [] }, remoteCommits: [], conflicts: [] }
+      };
+      save.locale = ${locale};
+      localStorage.setItem('gitquest-save', JSON.stringify(save));
+      return true;
+    })()`);
+    if (!localeWritten) throw new Error('La sauvegarde QA n’a pas pu recevoir la langue demandée.');
+    await cdp.send('Page.reload', { ignoreCache: true });
+    await waitForState(cdp, 'world');
+    const expectedDirection = requestedLocale === 'ar' ? 'rtl' : '';
+    const directionStarted = Date.now();
+    let direction = await cdp.evaluate('({ lang: document.documentElement.lang, dir: document.documentElement.dir })');
+    while ((direction.lang !== requestedLocale || direction.dir !== expectedDirection) && Date.now() - directionStarted < 3000) {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      direction = await cdp.evaluate('({ lang: document.documentElement.lang, dir: document.documentElement.dir })');
+    }
+    if (direction.lang !== requestedLocale || direction.dir !== expectedDirection) throw new Error(`La direction du HUD n’est pas active: ${JSON.stringify(direction)}.`);
+  }
   if (process.env.GITQUEST_QA_SCREENSHOT) {
     // WorldScene fades in after the QA marker is published. Wait for the
     // actual rendered scene so level captures are not taken through black.
@@ -516,6 +552,22 @@ try {
     await writeFile(process.env.GITQUEST_QA_JOURNAL_SCREENSHOT, Buffer.from(screenshot.data, 'base64'));
     await key(cdp, 'j');
     if (await cdp.evaluate('document.documentElement.dataset.gitquestJournal === "visible"')) throw new Error('Le journal ne s’est pas refermé.');
+  }
+
+  if (requestedLevel === 'level-01' && process.env.GITQUEST_QA_INTERACTIVE_OBJECTS_SCREENSHOTS === '1') {
+    await moveToPoints(cdp, [{ x: 700, y: 540 }, { x: 480, y: 540 }]);
+    await captureScreenshot(cdp, process.env.GITQUEST_QA_CHEST_CLOSED_SCREENSHOT);
+    await cdp.send('Page.reload', { ignoreCache: true });
+    await waitForState(cdp, 'world');
+    await waitForQuestStep(cdp, 'talk-midou');
+    await moveToPoints(cdp, [{ x: 240, y: 270 }, { x: 240, y: 405 }, { x: 210, y: 405 }]);
+    await captureScreenshot(cdp, process.env.GITQUEST_QA_CRYSTAL_SCREENSHOT);
+    await cdp.send('Page.reload', { ignoreCache: true });
+    await waitForState(cdp, 'world');
+    await waitForQuestStep(cdp, 'talk-midou');
+    await moveToPoints(cdp, [{ x: 300, y: 260 }, { x: 700, y: 260 }, { x: 900, y: 270 }]);
+    await waitForGateState(cdp, 'locked');
+    await captureScreenshot(cdp, process.env.GITQUEST_QA_GATE_LOCKED_SCREENSHOT);
   }
 
   if (requestedLevel === 'level-02' && process.env.GITQUEST_QA_POLISH_SCREENSHOTS === '1') {
@@ -578,16 +630,16 @@ try {
 
   await waitForQuestStep(cdp, 'talk-midou');
   if (process.env.GITQUEST_QA_GATE_LOCKED_SCREENSHOT) {
-    await moveToPoints(cdp, [{ x: 300, y: 210 }, { x: 700, y: 210 }, { x: 900, y: 270 }]);
+    await moveToPoints(cdp, [{ x: 300, y: 260 }, { x: 700, y: 260 }, { x: 900, y: 270 }]);
     await waitForGateState(cdp, 'locked');
     await key(cdp, 'e');
     await captureScreenshot(cdp, process.env.GITQUEST_QA_GATE_LOCKED_SCREENSHOT);
-    await moveToPoints(cdp, [{ x: 700, y: 210 }, { x: 300, y: 210 }, { x: 240, y: 210 }]);
+    await moveToPoints(cdp, [{ x: 700, y: 340 }, { x: 520, y: 340 }, { x: 460, y: 340 }]);
     await holdKey(cdp, 'ArrowRight', 350);
     await captureScreenshot(cdp, process.env.GITQUEST_QA_MIDOU_SCREENSHOT);
     await holdKey(cdp, 'ArrowLeft', 350);
   } else {
-    await moveToward(cdp, { x: 240, y: 210 }, 30);
+    await moveToward(cdp, { x: 460, y: 340 }, 30);
   }
   await debugPlayer(cdp, 'after-midou-route');
   for (let attempt = 0; attempt < 8; attempt += 1) {
@@ -599,14 +651,15 @@ try {
   await waitForQuestStep(cdp, 'run-init');
 
   if (process.env.GITQUEST_QA_GATE_LOCKED_SCREENSHOT) {
-    await moveToPoints(cdp, [{ x: 155, y: 405 }]);
+    await moveToPoints(cdp, [{ x: 240, y: 270 }, { x: 240, y: 405 }, { x: 210, y: 405 }]);
   } else {
     // Follow the authored land route instead of hugging the water lip. The
     // latter is intentionally collidable, so a straight legacy movement can
     // stop the enlarged level-1 character before reaching the crystal.
-    await moveToPoints(cdp, [{ x: 176, y: 270 }, { x: 155, y: 405 }]);
+    await moveToPoints(cdp, [{ x: 176, y: 270 }, { x: 240, y: 270 }, { x: 240, y: 405 }, { x: 210, y: 405 }]);
   }
   await debugPlayer(cdp, 'before-crystal');
+  await captureScreenshot(cdp, process.env.GITQUEST_QA_CRYSTAL_SCREENSHOT);
   await key(cdp, 'e');
   const crystalSave = await cdp.evaluate('JSON.parse(localStorage.getItem("gitquest-save") ?? "null")');
   if (!crystalSave?.collectedObjects?.['level-01']?.includes('memory-crystal') || crystalSave.xp?.total < 10) throw new Error('Le cristal ou son XP n’est pas persisté après une interaction réelle.');
@@ -619,7 +672,7 @@ try {
   if (await cdp.evaluate('document.documentElement.dataset.gitquestQaState ?? ""') === 'terminal') {
     throw new Error('Le terminal s’est ouvert hors de sa zone de sanctuaire.');
   }
-  await moveToPoints(cdp, [{ x: 350, y: 500 }, { x: 520, y: 500 }, { x: 520, y: 430 }]);
+  await moveToPoints(cdp, terminalWaypointsByLevel['level-01']);
   await key(cdp, 't');
   await waitForState(cdp, 'terminal');
   await new Promise((resolve) => setTimeout(resolve, 150));
@@ -634,15 +687,11 @@ try {
   if (!save || save.version !== 1 || save.levelId !== 'level-01' || !save.git?.initialized) throw new Error('La sauvegarde ou git init n’est pas confirmé par le navigateur.');
   await key(cdp, 'Escape');
   await waitForState(cdp, 'world');
-  await holdKey(cdp, 'ArrowUp', 1000);
-  await holdKey(cdp, 'ArrowRight', 4300);
-  await holdKey(cdp, 'ArrowDown', 1000);
-  // The fast route is useful for the normal viewport, but the enlarged
-  // level-1 sprite can stop against the central shrine pillar at wide
-  // resolutions. Use the authored clear corridor as a bounded fallback.
-  if (await cdp.evaluate('document.documentElement.dataset.gitquestQuestStep === "collect-key"')) {
-    await moveToPoints(cdp, [{ x: 155, y: 250 }, { x: 650, y: 250 }, { x: 780, y: 390 }]);
-  }
+  // Use the authored lower corridor around the shrine and the southern ruin.
+  // This keeps the browser check aligned with the reference composition and
+  // avoids relying on long wall-clock movement timings.
+  await moveToPoints(cdp, [{ x: 700, y: 700 }, { x: 620, y: 700 }, { x: 620, y: 430 }, { x: 480, y: 430 }, { x: 480, y: 540 }]);
+  await captureScreenshot(cdp, process.env.GITQUEST_QA_CHEST_CLOSED_SCREENSHOT);
   for (let attempt = 0; attempt < 8; attempt += 1) {
     if (await cdp.evaluate('document.documentElement.dataset.gitquestQuestStep === "open-exit"')) break;
     await key(cdp, 'e');
@@ -652,9 +701,15 @@ try {
   await waitForQuestStep(cdp, 'open-exit');
   const keySave = await cdp.evaluate('JSON.parse(localStorage.getItem("gitquest-save") ?? "null")');
   if (!keySave?.inventory?.items?.includes('pass-key') || keySave.xp?.total < 60) throw new Error('Le coffre, la clé ou l’XP du niveau 1 n’est pas confirmé.');
-  await moveToPoints(cdp, [{ x: 900, y: 270 }]);
+  await captureScreenshot(cdp, process.env.GITQUEST_QA_CHEST_OPEN_SCREENSHOT);
+  // From the lower-left chest, use the clear southern corridor and then
+  // approach the archive gate from below. The shrine/ruin collision remains
+  // part of the authored map; this route simply respects it.
+  await moveToPoints(cdp, [{ x: 320, y: 540 }, { x: 300, y: 740 }, { x: 650, y: 740 }, { x: 650, y: 360 }, { x: 900, y: 360 }, { x: 900, y: 270 }]);
   await waitForGateState(cdp, 'open');
+  await captureScreenshot(cdp, process.env.GITQUEST_QA_GATE_ACCESSIBLE_SCREENSHOT);
   await captureScreenshot(cdp, process.env.GITQUEST_QA_GATE_OPEN_SCREENSHOT);
+  await captureScreenshot(cdp, process.env.GITQUEST_QA_COMPLETE_SCREENSHOT);
   await key(cdp, 'e');
   const levelStarted = Date.now();
   let nextLevel = await cdp.evaluate('document.documentElement.dataset.gitquestLevel ?? ""');

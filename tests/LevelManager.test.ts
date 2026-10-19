@@ -22,16 +22,43 @@ test('la plage conserve ses couches Tiled et ses spawns hors de l’eau', async 
   assert.equal(data.ground.length, map.width * map.height);
   assert.ok(data.decorations.some((item) => item.type === 'shrine'));
   assert.ok(data.colliders.length >= 4);
-  assert.equal(data.objects.length, 3);
+  assert.equal(data.objects.length, 4);
+  const professor = data.objects.find((item) => item.name === 'professor-octo');
+  assert.ok(professor);
+  assert.equal(professor.type, 'npc');
+  assert.deepEqual(professor.properties, [{ name: 'role', type: 'string', value: 'teacher' }]);
   assert.notEqual(tileAt(level.playerSpawn), 3);
   assert.notEqual(tileAt(level.mentor), 3);
   assert.ok(data.ground.includes(3));
-  data.ground.forEach((tile, index) => {
-    if (tile !== 3) return;
+  const waterCells = new Set<number>();
+  data.ground.forEach((tile, index) => { if (tile === 3) waterCells.add(index); });
+  const reachable = new Set<number>();
+  const queue: number[] = [];
+  for (let y = 0; y < data.height; y += 1) {
+    for (let x = 0; x < data.width; x += 1) {
+      if (x !== 0 && y !== 0 && x !== data.width - 1 && y !== data.height - 1) continue;
+      const index = y * data.width + x;
+      if (waterCells.has(index)) { reachable.add(index); queue.push(index); }
+    }
+  }
+  while (queue.length) {
+    const index = queue.shift()!;
     const x = index % data.width;
     const y = Math.floor(index / data.width);
-    assert.ok(y <= 2 || y >= data.height - 3 || x <= 4 || x >= data.width - 5, `water shoreline anomaly at ${x},${y}`);
-  });
+    for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
+      const nx = x + dx;
+      const ny = y + dy;
+      if (nx < 0 || ny < 0 || nx >= data.width || ny >= data.height) continue;
+      const next = ny * data.width + nx;
+      if (waterCells.has(next) && !reachable.has(next)) { reachable.add(next); queue.push(next); }
+    }
+  }
+  assert.ok([...waterCells].some((index) => {
+    const x = index % data.width;
+    const y = Math.floor(index / data.width);
+    return x > 4 && x < data.width - 5 && y > 2 && y < data.height - 3;
+  }), 'the island should expose an interior cove');
+  waterCells.forEach((index) => assert.ok(reachable.has(index), `water pocket is disconnected at ${index % data.width},${Math.floor(index / data.width)}`));
 });
 
 test('les six cartes Tiled exposent les couches et objets de progression attendus', async () => {

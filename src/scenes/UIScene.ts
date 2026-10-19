@@ -18,6 +18,7 @@ import { Compass } from '../ui/hud/Compass';
 import { MiniMap } from '../ui/hud/MiniMap';
 import { ResponsivePanel } from '../ui/hud/ResponsivePanel';
 import { BeachStatusCard } from '../ui/hud/BeachStatusCard';
+import { ProfessorOctoCoursePanel, type ProfessorOctoCourseCloseReason } from '../ui/course/ProfessorOctoCoursePanel';
 import { itemDefinition } from '../data/ItemCatalog';
 import { markQaDialogue, markQaQuestStep, markQaState, markQaTouchControls } from '../diagnostics/QaMarker';
 
@@ -70,6 +71,7 @@ export class UIScene extends Phaser.Scene {
   private dialogueBackground!: Phaser.GameObjects.Rectangle;
   private dialogueText!: Phaser.GameObjects.Text;
   private dialogueClose!: Phaser.GameObjects.Text;
+  private professorOctoCourse!: ProfessorOctoCoursePanel;
   private touchInput?: InputManager;
   private questTracker!: QuestTracker;
   private xpBar!: XPBar;
@@ -100,6 +102,7 @@ export class UIScene extends Phaser.Scene {
   public create(): void {
     this.session = this.registry.get('session') as GameSession;
     this.i18n = new I18nManager(this.session.locale);
+    this.i18n.applyDirection(this.game.canvas);
     this.layout = new ResponsiveLayoutManager(this);
     this.topBar = this.add.rectangle(0, 0, 960, 64, UITheme.colors.panel, 0.94).setOrigin(0).setDepth(20);
     this.topBarAccent = this.add.rectangle(0, 0, 960, 3, UITheme.colors.goldSoft, 0.95).setOrigin(0).setDepth(21);
@@ -118,8 +121,8 @@ export class UIScene extends Phaser.Scene {
     this.commandHint = new CommandHint(this).setDepth(29);
     this.compass = new Compass(this).setDepth(24);
     this.miniMap = new MiniMap(this).setDepth(24);
-    this.beachRegionBadge = new ResponsivePanel(this, 320, 42, { fillColor: UITheme.colors.panel, fillAlpha: 0.96, borderWidth: 2 }).setDepth(24).setVisible(false);
-    this.beachRegionText = this.add.text(16, 12, '', { fontFamily: UITheme.fontFamily, fontSize: '14px', color: UITheme.colors.accent, stroke: '#10172b', strokeThickness: 2 });
+    this.beachRegionBadge = new ResponsivePanel(this, 300, 34, { fillColor: UITheme.colors.panel, fillAlpha: 0.96, borderWidth: 2 }).setDepth(24).setVisible(false);
+    this.beachRegionText = this.add.text(16, 9, '', { fontFamily: UITheme.fontFamily, fontSize: '12px', color: UITheme.colors.accent, stroke: '#10172b', strokeThickness: 2 });
     this.beachRegionBadge.add(this.beachRegionText);
     this.beachStatusCard = new BeachStatusCard(this).setDepth(24).setVisible(false);
     this.add.existing(this.questTracker);
@@ -156,7 +159,7 @@ export class UIScene extends Phaser.Scene {
       markQaTouchControls(false);
     }
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-      if (!pointer.wasTouch || this.terminal.visible || this.dialoguePanel?.visible || this.journalPanel?.visible || this.inventoryScreen?.visible) return;
+      if (!pointer.wasTouch || this.terminal.visible || this.dialoguePanel?.visible || this.journalPanel?.visible || this.inventoryScreen?.visible || this.professorOctoCourse?.visible) return;
       if (this.touchInput?.isTouchPointOverControl(pointer.x, pointer.y)) return;
       // A tap in the gameplay area is the mobile equivalent of E. The world
       // still applies its normal proximity and quest validation rules.
@@ -171,6 +174,12 @@ export class UIScene extends Phaser.Scene {
       this.journalSelectedLevelId = level.id;
       this.world = this.scene.get('WorldScene') as import('./WorldScene').WorldScene;
       this.miniMap.setCollapsed(level.id === 'level-01');
+      if (!this.professorOctoCourse) {
+        // WorldScene owns the level preload. Create the course panel only
+        // after level-ready so its portrait texture is already available.
+        this.professorOctoCourse = new ProfessorOctoCoursePanel(this, this.i18n, (reason) => this.closeProfessorOctoCourse(reason));
+        this.add.existing(this.professorOctoCourse);
+      }
       this.refresh();
     });
     EventBus.on('nearby', (item: Phaser.GameObjects.GameObject | null) => {
@@ -227,12 +236,13 @@ export class UIScene extends Phaser.Scene {
       // générique ci-dessous. Elle ne doit pas devenir le premier caractère.
       this.skipTerminalShortcutKey = true;
     });
+    EventBus.on('professor-octo-course-open', () => this.openProfessorOctoCourse());
     EventBus.on('mission-update', () => this.refresh());
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => EventBus.removeAllListeners());
   }
 
   private createJournal(): void {
-    this.journalButton = this.add.text(742, 35, 'J', { fontFamily: UITheme.fontFamily, fontSize: '12px', color: '#fff6df', backgroundColor: '#354268', padding: { x: 11, y: 13 }, stroke: '#10172b', strokeThickness: 1 }).setOrigin(0.5).setDepth(30).setInteractive();
+    this.journalButton = this.add.text(742, 35, '▤ J', { fontFamily: UITheme.fontFamily, fontSize: '11px', color: '#fff6df', backgroundColor: '#354268', padding: { x: 9, y: 11 }, stroke: '#10172b', strokeThickness: 1 }).setOrigin(0.5).setDepth(30).setInteractive();
     this.journalButton.on('pointerdown', () => this.toggleJournal());
     this.input.keyboard!.on('keydown-J', () => this.toggleJournal());
     this.input.keyboard!.on('keydown-M', () => this.miniMap.toggle());
@@ -582,6 +592,7 @@ export class UIScene extends Phaser.Scene {
   private refresh(): void {
     if (!this.world || !this.level) return;
     this.i18n.locale = this.session.locale;
+    this.professorOctoCourse?.refreshLocale();
     this.touchInput?.setTouchLabels({ interact: this.i18n.text('interact'), terminal: this.i18n.text('terminalAction') });
     const levelOne = this.level.id === 'level-01';
     const forest = this.level.id === 'level-02';
@@ -686,11 +697,17 @@ export class UIScene extends Phaser.Scene {
     });
     const beachDesktop = beach && !metrics.compact;
     const journalButtonX = beachDesktop ? metrics.width - margin - this.beachStatusCard.panelWidth - 28 : rtl ? margin + 24 : languageStart - 34;
-    this.journalButton?.setPosition(metrics.portrait ? metrics.width / 2 : journalButtonX, metrics.portrait ? 96 : buttonY);
+    // Keep the journal target away from the portrait mission/stat row. On
+    // portrait phones it becomes a compact icon at the right safe margin;
+    // the keyboard shortcut remains J.
+    this.journalButton?.setText(metrics.portrait ? '▤' : '▤ J')
+      .setPosition(metrics.portrait ? metrics.width - margin - 22 : metrics.compact ? metrics.width - margin - 22 : journalButtonX, metrics.portrait ? 122 : metrics.compact ? 124 : buttonY)
+      .setPadding(metrics.portrait ? 12 : 9, 11);
     this.prompt.setPosition(metrics.width / 2, metrics.height - margin - 18).setWordWrapWidth(Math.max(160, metrics.width - margin * 2));
     const hud = calculateGameplayHudLayout(metrics, this.questTracker.panelWidth, this.xpBar.panelWidth, this.inventoryBar.panelWidth);
     const questX = rtl && !metrics.portrait ? metrics.width - margin - hud.quest.width : hud.quest.x;
-    this.questTracker.setPosition(questX, hud.quest.y);
+    const questY = beachDesktop ? 50 : hud.quest.y;
+    this.questTracker.setPosition(questX, questY);
     const hudXpX = rtl && !metrics.portrait ? margin : hud.xp.x;
     const inventoryX = rtl && !metrics.portrait ? margin : hud.inventory.x;
     this.xpBar.setPosition(hudXpX, hud.xp.y);
@@ -710,7 +727,7 @@ export class UIScene extends Phaser.Scene {
     const compassWidth = this.compass?.panelWidth ?? 190;
     const compassX = rtl ? margin : metrics.width - margin - compassWidth;
     const compassY = metrics.portrait ? metrics.topBarHeight + 42 : metrics.compact ? metrics.topBarHeight + 6 : metrics.topBarHeight + 92;
-    this.compass?.setPosition(compassX, compassY).setVisible(!metrics.compact);
+    this.compass?.setPosition(compassX, compassY).setVisible(!metrics.portrait);
     const miniMapWidth = this.miniMap?.panelWidth ?? 182;
     const miniMapX = rtl ? metrics.width - margin - miniMapWidth : margin;
     const desktopMiniMapOffset = beach ? this.questTracker.panelHeight + 14 : 98;
@@ -779,5 +796,26 @@ export class UIScene extends Phaser.Scene {
     this.dialogueBackground?.setSize(dialogueWidth, dialogueHeight);
     this.dialogueText?.setPosition(rtl ? dialogueWidth - 120 : 120, 20).setWordWrapWidth(Math.max(160, dialogueWidth - 145)).setStyle({ align: rtl ? 'right' : 'left' });
     this.dialogueClose?.setPosition(dialogueWidth - 18, dialogueHeight - 28);
+    this.professorOctoCourse?.layout(metrics);
+  }
+
+  private openProfessorOctoCourse(): void {
+    if (this.professorOctoCourse?.visible) return;
+    this.terminal?.setVisible(false);
+    this.dialoguePanel?.setVisible(false);
+    this.journalPanel?.setVisible(false);
+    this.inventoryScreen?.close();
+    this.professorOctoCourse.show();
+    this.promptPulse?.stop();
+    this.prompt.setVisible(false);
+    markQaState('course');
+  }
+
+  private closeProfessorOctoCourse(reason: ProfessorOctoCourseCloseReason = 'close'): void {
+    if (!this.professorOctoCourse?.visible) return;
+    this.professorOctoCourse.hide();
+    markQaState('world');
+    if (reason === 'practice') this.showToast(this.i18n.text('coursePracticeHint'), 3600);
+    EventBus.emit('professor-octo-course-close');
   }
 }

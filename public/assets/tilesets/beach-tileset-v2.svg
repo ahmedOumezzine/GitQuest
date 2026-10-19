@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="32" viewBox="0 0 512 32" shape-rendering="crispEdges">
+<svg xmlns="http://www.w3.org/2000/svg" width="768" height="32" viewBox="0 0 768 32" shape-rendering="crispEdges">
   <!-- Local authored 32px terrain atlas. The 16 tiles share a warm tropical palette. -->
   <g id="dry-sand">
     <rect width="32" height="32" fill="#d9a761"/><path fill="#edc77c" d="M3 6h3v2H3zM20 4h2v2h-2zM11 18h3v2h-3zM26 24h3v2h-3z"/><path fill="#b9824e" d="M7 13h2v2H7zM22 15h2v2h-2zM15 28h2v1h-2z"/>
@@ -47,5 +47,32 @@
   </g>
   <g id="shell-sand" transform="translate(480)">
     <rect width="32" height="32" fill="#d9a761"/><path fill="#f7dfae" d="M5 22h11v5H5zM7 19h7v3H7z"/><path fill="#d58b72" d="M8 21h6v2H8z"/><path fill="#b9824e" d="M23 8h3v3h-3zM26 12h3v2h-3z"/>
+  </g>
+  <!-- Directional shoreline transitions. These are full 32px tiles, not an
+       overlaid illustration: the atlas remains editable in Tiled and keeps
+       the water/sand boundary readable at the logical grid scale. -->
+  <g id="shore-top" transform="translate(512)">
+    <rect width="32" height="32" fill="#d9a761"/><path fill="#5eb5b8" d="M0 0h32v5H0z"/><path fill="#f4e3b1" d="M0 5h6v2h-6zM9 3h7v3H9zM20 5h6v2h-6zM29 3h3v3h-3z"/><path fill="#bce9d9" d="M4 8h8v2H4zM18 8h10v2H18z"/>
+  </g>
+  <g id="shore-bottom" transform="translate(544)">
+    <rect width="32" height="32" fill="#d9a761"/><path fill="#5eb5b8" d="M0 27h32v5H0z"/><path fill="#f4e3b1" d="M0 23h6v2H0zM9 25h7v3H9zM20 23h6v2h-6zM29 25h3v3h-3z"/><path fill="#bce9d9" d="M4 20h8v2H4zM18 20h10v2H18z"/>
+  </g>
+  <g id="shore-left" transform="translate(576)">
+    <rect width="32" height="32" fill="#d9a761"/><path fill="#5eb5b8" d="M0 0h5v32H0z"/><path fill="#f4e3b1" d="M5 0h3v6H5zM3 9h4v7H3zM5 20h3v6H5z"/><path fill="#bce9d9" d="M8 4h3v8H8zM8 18h3v9H8z"/>
+  </g>
+  <g id="shore-right" transform="translate(608)">
+    <rect width="32" height="32" fill="#d9a761"/><path fill="#5eb5b8" d="M27 0h5v32h-5z"/><path fill="#f4e3b1" d="M24 0h3v6h-3zM25 9h4v7h-4zM24 20h3v6h-3z"/><path fill="#bce9d9" d="M21 4h3v8h-3zM21 18h3v9h-3z"/>
+  </g>
+  <g id="shore-top-left" transform="translate(640)">
+    <rect width="32" height="32" fill="#d9a761"/><path fill="#5eb5b8" d="M0 0h13v5H0zM0 0v13H5V0z"/><path fill="#f4e3b1" d="M6 5h7v3H6zM5 6h3v7H5z"/><path fill="#bce9d9" d="M12 8h7v2h-7zM8 12v7H6v-7z"/>
+  </g>
+  <g id="shore-top-right" transform="translate(672)">
+    <rect width="32" height="32" fill="#d9a761"/><path fill="#5eb5b8" d="M19 0h13v5H19zM27 0v13h5V0z"/><path fill="#f4e3b1" d="M19 5h7v3h-7zM24 6h3v7h-3z"/><path fill="#bce9d9" d="M13 8h7v2h-7zM24 12v7h2v-7z"/>
+  </g>
+  <g id="shore-bottom-left" transform="translate(704)">
+    <rect width="32" height="32" fill="#d9a761"/><path fill="#5eb5b8" d="M0 27h13v5H0zM0 19v13h5V19z"/><path fill="#f4e3b1" d="M6 24h7v3H6zM5 19h3v7H5z"/><path fill="#bce9d9" d="M12 20h7v2h-7zM8 12v7H6v-7z"/>
+  </g>
+  <g id="shore-bottom-right" transform="translate(736)">
+    <rect width="32" height="32" fill="#d9a761"/><path fill="#5eb5b8" d="M19 27h13v5H19zM27 19v13h5V19z"/><path fill="#f4e3b1" d="M19 24h7v3h-7zM24 19h3v7h-3z"/><path fill="#bce9d9" d="M13 20h7v2h-7zM24 12v7h2v-7z"/>
   </g>
 </svg>

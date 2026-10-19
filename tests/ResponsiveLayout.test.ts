@@ -56,8 +56,19 @@ test('le HUD portrait empile l’objectif et les statistiques sans chevauchement
   const hud = calculateGameplayHudLayout(metrics, 220, 144, 150);
   assert.equal(hud.quest.x, 12);
   assert.equal(hud.quest.width, 366);
-  assert.ok(hud.xp.y >= 96, 'les statistiques restent sous la carte d’objectif guidée');
+  assert.equal(hud.xp.y, 72, 'les statistiques restent dans la seconde ligne compacte');
   assert.equal(hud.xp.y, hud.inventory.y);
   assert.ok(hud.xp.x + 144 <= hud.inventory.x);
   assert.ok(hud.inventory.x + 150 <= metrics.width - metrics.margin);
+});
+
+test('le HUD paysage mobile sépare la mission de la colonne XP/inventaire', () => {
+  const metrics = calculateLayout(844, 390);
+  const hud = calculateGameplayHudLayout(metrics, 220, 144, 150);
+  assert.equal(hud.quest.x, 12);
+  assert.equal(hud.xp.x, 682);
+  assert.equal(hud.inventory.x, 682);
+  assert.ok(hud.quest.x + hud.quest.width + 12 <= hud.xp.x);
+  assert.equal(hud.xp.y, 8);
+  assert.equal(hud.inventory.y, 48);
 });

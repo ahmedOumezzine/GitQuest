@@ -71,15 +71,29 @@ Les PNG suivants sont des props et des personnages locaux dédiés à la carte T
 | `sprites/level-01-shrine-v1.png` | sanctuaire Git principal avec symbole lumineux | génération originale Codex, 17 octobre 2026 ; aucun tiers ni URL externe ; licence de distribution finale à confirmer |
 | `sprites/level-01-player-v1.png` | rendu lisible du personnage joueur dans le monde | génération originale Codex, 17 octobre 2026 ; aucun tiers ni URL externe ; licence de distribution finale à confirmer |
 | `sprites/level-01-midou-v1.png` | rendu lisible de Midou dans le monde | génération originale Codex, 17 octobre 2026 ; aucun tiers ni URL externe ; licence de distribution finale à confirmer |
+| `sprites/level-01-grass-cluster-v1.png` | groupe raster transparent d'herbes tropicales, utilisé à la place des marqueurs triangulaires `grass` | génération originale avec l’outil imagegen intégré, 18 octobre 2026 ; aucun tiers ni URL externe ; licence de distribution finale à confirmer |
+| `sprites/level-01-chest-closed-v1.png` | coffre raster fermé du niveau 1, avec serrure et symbole Git | génération originale avec l’outil imagegen intégré, 18 octobre 2026 ; aucun tiers ni URL externe ; licence de distribution finale à confirmer |
+| `sprites/level-01-chest-open-v1.png` | coffre raster ouvert du niveau 1, avec clé visible et lueur de récompense | génération originale avec l’outil imagegen intégré, 18 octobre 2026 ; aucun tiers ni URL externe ; licence de distribution finale à confirmer |
+| `sprites/level-01-memory-crystal-v1.png` | cristal de mémoire raster transparent avec base minérale et scintillement local | génération originale avec l’outil imagegen intégré, 18 octobre 2026 ; aucun tiers ni URL externe ; licence de distribution finale à confirmer |
 
 Ces images restent disponibles pour les écrans de présentation, mais le niveau 1 n’utilise plus ces illustrations statiques pour le déplacement. Les collisions, les points d’ancrage et les objets de quête restent séparés.
+
+## Niveau 1 — Professeur Octo, étape 01
+
+| Fichier | Rôle | Provenance/licence |
+|---|---|---|
+| `sprites/professor-octo-v1.png` | sprite raster transparent de face, immobile dans la Plage des Origines | génération originale avec l’outil imagegen intégré, 18 octobre 2026 ; aucun tiers ni URL externe ; licence de distribution finale à confirmer |
+| `portraits/professor-octo-portrait-v1.png` | portrait raster transparent de dialogue pour les futures leçons | génération originale avec l’outil imagegen intégré, 18 octobre 2026 ; aucun tiers ni URL externe ; licence de distribution finale à confirmer |
+
+Les deux images partagent la même identité visuelle : chouette brune et crème, lunettes rondes, cape bleu nuit et livre marqué d’un symbole Git discret. Le sprite est chargé uniquement au niveau 1 ; le portrait est préparé pour les dialogues futurs et n’ajoute encore aucune interaction. Les deux fichiers possèdent un canal alpha réel et ne contiennent aucun fond opaque, texte ou filigrane. La licence de distribution commerciale reste à confirmer.
 
 ## Niveau 1 — terrain et spritesheets directionnelles `level-01` — passe finale
 
 | Fichier | Rôle | Provenance/licence |
 |---|---|---|
-| `tilesets/beach-tileset-v2.svg` | atlas local de 16 tuiles 32×32 : sable sec, sable humide, eau, écume, galets, pierres et détails végétaux | création SVG originale du projet, 17 octobre 2026 ; aucun tiers ni URL externe ; licence de distribution finale à confirmer |
-| `tilesets/beach-tileset.tsx` | définition Tiled de l’atlas v2, 16 colonnes | fichier de configuration du projet, MIT pour le code/outillage |
+| `tilesets/beach-tileset-v3.png` | atlas raster local de 24 tuiles 32×32 : sable sec et humide authored, eau, écume, galets, pierres, détails végétaux et huit transitions directionnelles de rivage | sable authored localement et cases côtières dérivées tuile par tuile de `tilesets/harbor-tileset-v1.png`, asset raster original du projet ; aucun tiers ni URL externe ; licence de distribution finale à confirmer |
+| `tilesets/beach-tileset-v2.svg` | atlas SVG historique conservé comme référence éditable de l’étape précédente | création SVG originale du projet ; aucun tiers ni URL externe |
+| `tilesets/beach-tileset.tsx` | définition Tiled de l’atlas v3, 24 colonnes | fichier de configuration du projet, MIT pour le code/outillage |
 | `sprites/level-01-player-sheet-v1.png` | atlas raster transparent 3×4 : repos/marche dans les quatre directions | génération originale Codex, 17 octobre 2026, puis normalisation locale en frames 96×96 ; aucun tiers ni URL externe ; licence de distribution finale à confirmer |
 | `sprites/level-01-midou-sheet-v1.png` | atlas raster transparent 3×4 de Midou, mêmes directions et cadence | génération originale Codex, 17 octobre 2026, puis normalisation locale en frames 96×96 ; aucun tiers ni URL externe ; licence de distribution finale à confirmer |
 

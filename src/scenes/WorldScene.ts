@@ -21,25 +21,30 @@ export class WorldScene extends Phaser.Scene {
   private player!: Phaser.Physics.Arcade.Sprite;
   private mentor!: Phaser.GameObjects.Sprite;
   private gate!: Phaser.Physics.Arcade.Image;
-  private objects: Array<Phaser.Physics.Arcade.Image & { objectId?: string; objectKind?: string }> = [];
+  private objects: Array<Phaser.Physics.Arcade.Image & { objectId?: string; objectKind?: string; interactionKind?: string }> = [];
   private interactionHint!: Phaser.GameObjects.Text;
   private decorations: Phaser.GameObjects.Image[] = [];
   private facing = 'down';
   private inputManager!: InputManager;
   private sceneManager!: SceneManager;
   private terminalOpen = false;
+  private courseOpen = false;
   private touchVector: Point = { x: 0, y: 0 };
   private nearby: Phaser.GameObjects.GameObject | null = null;
   private terminalNearby = false;
   private playerShadow?: Phaser.GameObjects.Ellipse;
   private mentorShadow?: Phaser.GameObjects.Ellipse;
   private mentorLabel?: Phaser.GameObjects.Text;
+  private professorOcto?: Phaser.GameObjects.Image;
+  private professorOctoShadow?: Phaser.GameObjects.Ellipse;
+  private professorOctoLabel?: Phaser.GameObjects.Text;
   private gateLabel?: Phaser.GameObjects.Text;
   private gateGlow?: Phaser.GameObjects.Image;
   private gateGlowTween?: Phaser.Tweens.Tween;
   private interactionHintPulse?: Phaser.Tweens.Tween;
   private gateUnlocked = true;
   private shrineLabels: Phaser.GameObjects.Text[] = [];
+  private shrineInteractionHint?: Phaser.GameObjects.Text;
   private worldTitle?: Phaser.GameObjects.Text;
   private runtimeMetrics?: RuntimeMetrics;
   private publishedRuntimeSample = 0;
@@ -105,15 +110,19 @@ export class WorldScene extends Phaser.Scene {
     this.sceneManager = new SceneManager(this);
     markQaState('world');
     markQaLevel(this.level.id);
-    this.inputManager = new InputManager(this, () => { if (!this.terminalOpen) this.interact(); }, () => { if (!this.terminalOpen) this.requestTerminal(); });
+    this.inputManager = new InputManager(this, () => { if (!this.terminalOpen && !this.courseOpen) this.interact(); }, () => { if (!this.terminalOpen && !this.courseOpen) this.requestTerminal(); });
     this.events.on('touch-move', (vector: Point) => { this.touchVector = vector; });
-    this.events.on('touch-interact', () => { if (!this.terminalOpen) this.interact(); });
+    this.events.on('touch-interact', () => { if (!this.terminalOpen && !this.courseOpen) this.interact(); });
     EventBus.on('terminal-open', this.openTerminal, this);
     EventBus.on('terminal-close', this.closeTerminal, this);
+    EventBus.on('professor-octo-course-open', this.openProfessorCourse, this);
+    EventBus.on('professor-octo-course-close', this.closeProfessorCourse, this);
     EventBus.on('locale-changed', this.refreshLocalizedScene, this);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       EventBus.off('terminal-open', this.openTerminal, this);
       EventBus.off('terminal-close', this.closeTerminal, this);
+      EventBus.off('professor-octo-course-open', this.openProfessorCourse, this);
+      EventBus.off('professor-octo-course-close', this.closeProfessorCourse, this);
       EventBus.off('locale-changed', this.refreshLocalizedScene, this);
     });
     EventBus.emit('level-ready', { level: this.level, quest: this.quest });
@@ -139,7 +148,7 @@ export class WorldScene extends Phaser.Scene {
    * The keyboard and the mobile action button intentionally share this path.
    */
   public requestTerminal(): void {
-    if (!this.player || !this.map || this.terminalOpen) return;
+    if (!this.player || !this.map || this.terminalOpen || this.courseOpen) return;
     const terminal = findNearbyTerminal({ x: this.player.x, y: this.player.y }, this.map.decorations);
     if (!terminal) {
       const i18n = new I18nManager(this.session.locale);
@@ -450,7 +459,22 @@ export class WorldScene extends Phaser.Scene {
       const key = this.beachDecorationTexture(definition.type);
       if (!key) return;
       const isShrine = definition.type === 'shrine' || definition.type === 'shrine-rich';
-      const sprite = this.add.image(definition.x, definition.y, key).setOrigin(0, 0).setDepth(definition.type === 'wave' || definition.type === 'shrine-glow' ? 1 : isShrine ? 4 : 2);
+      const isShoreline = ['wave', 'beach-foam', 'beach-rocks', 'beach-shells'].includes(definition.type);
+      const depth = isShoreline
+        ? 0.85
+        : definition.type === 'beach-dock'
+          ? 1.6
+          : definition.type === 'beach-boat'
+            ? 1.8
+            : definition.type === 'shrine-glow'
+              ? 1
+              : isShrine
+                ? 4
+                : 2;
+      // Shoreline sprites stay below anchored vegetation and ruins. Their
+      // placement is authored in Tiled, so foam cannot visually jump over a
+      // palm canopy just because the object was listed later in the layer.
+      const sprite = this.add.image(definition.x, definition.y, key).setOrigin(0, 0).setDepth(depth);
       const displaySize = this.beachDecorationSize(definition.type, definition.width, definition.height);
       if (displaySize) sprite.setDisplaySize(displaySize.width, displaySize.height);
       this.decorations.push(sprite);
@@ -461,6 +485,7 @@ export class WorldScene extends Phaser.Scene {
       if (isShrine) {
         const label = this.add.text(definition.x + (definition.width || 96) / 2, definition.y - 8, new I18nManager(this.session.locale).text('shrine'), { fontFamily: 'Courier New, monospace', fontSize: '12px', color: '#ffe08a', stroke: '#18233e', strokeThickness: 3 }).setOrigin(0.5, 1).setDepth(5);
         this.shrineLabels.push(label);
+        this.shrineInteractionHint = this.add.text(definition.x + (definition.width || 96) / 2, definition.y - 42, '⌘', { fontFamily: 'monospace', fontSize: '15px', color: '#d9c4ff', backgroundColor: '#18233e', padding: { x: 5, y: 3 }, stroke: '#70edff', strokeThickness: 2 }).setOrigin(0.5).setDepth(6).setVisible(false);
       }
     });
   }
@@ -478,8 +503,13 @@ export class WorldScene extends Phaser.Scene {
     // Desktop now frames the whole authored island instead of locking the
     // player to the western shoreline. The world remains a real Tiled map;
     // only the camera framing changes with the viewport.
-    const desktopFit = Math.max(0.84, Math.min(1.16, (this.scale.width / worldWidth) * 1.02));
-    this.cameras.main.setZoom(portrait ? 1.04 : compact ? 0.88 : desktopFit);
+    // Keep the reference composition readable on wide desktop screens: the
+    // full 48x30 map is larger than the viewport, so showing it all creates a
+    // sparse band of sand around the authored landmarks. The tighter desktop
+    // framing keeps Midou, the player, shrine, chest and gate in one visual
+    // group while preserving the wider mobile framing for exploration.
+    const desktopZoom = this.scale.width >= 1600 ? 1.2 : Math.max(1.02, Math.min(1.1, (this.scale.width / worldWidth) * 1.32));
+    this.cameras.main.setZoom(portrait ? 1.04 : compact ? 0.88 : desktopZoom);
   }
 
   /**
@@ -493,6 +523,7 @@ export class WorldScene extends Phaser.Scene {
     const waterGid = 3;
     const pathTile = 8; // GID 9: authored path tile in the beach atlas.
     const foamTile = 5; // GID 6: sand/foam transition tile.
+    const authoredShoreline = new Set([5, 11, 12, 17, 18, 19, 20, 21, 22, 23, 24]);
     const isLand = (x: number, y: number): boolean => {
       if (x < 0 || y < 0 || x >= this.map.width || y >= this.map.height) return false;
       return this.map.ground[y * this.map.width + x] !== waterGid;
@@ -534,7 +565,7 @@ export class WorldScene extends Phaser.Scene {
     // irregular shoreline without changing the water collision geometry.
     for (let y = 0; y < this.map.height; y += 1) {
       for (let x = 0; x < this.map.width; x += 1) {
-        if (!isLand(x, y) || rows[y][x] === pathTile) continue;
+        if (!isLand(x, y) || rows[y][x] === pathTile || authoredShoreline.has(this.map.ground[y * this.map.width + x])) continue;
         const touchesWater = [[-1, 0], [1, 0], [0, -1], [0, 1]].some(([dx, dy]) => {
           const nx = x + dx;
           const ny = y + dy;
@@ -596,7 +627,7 @@ export class WorldScene extends Phaser.Scene {
       'ruin-rich': 'level-01-ruin-garden-v1',
       shrine: 'level-01-shrine-v1',
       'shrine-rich': 'level-01-shrine-v1',
-      grass: 'grass', flower: 'flower', shell: 'shell', wave: 'wave', 'shrine-glow': 'shrine-glow',
+      grass: 'level-01-grass-cluster-v1', flower: 'flower', shell: 'shell', wave: 'wave', 'shrine-glow': 'shrine-glow',
       'beach-boat': 'harbor-boat', 'beach-dock': 'harbor-dock-post', 'beach-foam': 'harbor-wave-foam',
       'beach-rocks': 'harbor-rocks', 'beach-shells': 'harbor-shells',
     };
@@ -612,6 +643,7 @@ export class WorldScene extends Phaser.Scene {
       'beach-boat': { width: 180, height: 126 }, 'beach-dock': { width: 170, height: 142 },
       'beach-foam': { width: 220, height: 90 }, 'beach-rocks': { width: 148, height: 98 },
       'beach-shells': { width: 108, height: 74 },
+      grass: { width: 72, height: 48 },
     };
     return authored[type] ?? (width && height ? { width, height } : undefined);
   }
@@ -661,10 +693,21 @@ export class WorldScene extends Phaser.Scene {
     });
     if (isBeach) this.addWaterCollisions(obstacles);
     this.physics.add.collider(this.player, obstacles);
-    this.objects = this.level.objects.filter((object) => !this.session.hasCollected(this.level.id, object.id)).map((object) => {
+    this.objects = this.level.objects.filter((object) => {
+      const collected = this.session.hasCollected(this.level.id, object.id);
+      // Keep an opened level-one chest in the scene as a persistent visual
+      // landmark. Other collected objects retain the previous behaviour and
+      // disappear after collection.
+      return !collected || (isBeach && object.kind === 'chest');
+    }).map((object) => {
       const position = resolveTiledObjectPoint(this.map.objects, object.kind, object.id, object.position);
+      const collected = this.session.hasCollected(this.level.id, object.id);
       const shortcutTexture = isBeach ? 'shrine-glow' : isCave ? 'cave-rune' : isHarbor ? 'harbor-buoy' : isMountain ? 'mountain-branch-marker' : isCastle ? 'castle-merge-sigil' : 'forest-staging-shrine';
-      const texture = object.kind === 'shortcut' ? shortcutTexture : isCave
+      const texture = isBeach && object.kind === 'chest'
+        ? collected ? 'level-01-chest-open-v1' : 'level-01-chest-closed-v1'
+        : isBeach && object.kind === 'crystal'
+          ? 'level-01-memory-crystal-v1'
+          : object.kind === 'shortcut' ? shortcutTexture : isCave
         ? object.kind === 'crystal' ? 'cave-crystal-cyan' : object.kind === 'chest' ? 'cave-archive-chest' : object.kind === 'scroll' ? 'cave-memory-tablet' : object.kind
         : isHarbor
           ? object.kind === 'crystal' ? 'harbor-local-pylon' : object.kind === 'chest' ? 'harbor-crate' : object.kind === 'scroll' ? 'harbor-remote-pylon' : object.kind
@@ -673,11 +716,18 @@ export class WorldScene extends Phaser.Scene {
             : isCastle
               ? object.kind === 'crystal' ? 'castle-crystal' : object.kind === 'chest' ? 'castle-archive-chest' : object.kind === 'scroll' ? 'castle-rune-tablet' : object.kind
             : object.kind;
-      const displaySize = object.kind === 'shortcut' ? 58 : isBeach ? 42 : isCave ? object.kind === 'chest' ? 68 : 54 : isHarbor ? object.kind === 'chest' ? 70 : 58 : isMountain ? object.kind === 'chest' ? 68 : 56 : isCastle ? object.kind === 'chest' ? 72 : 58 : 32;
+      const displaySize = object.kind === 'shortcut' ? 58 : isBeach ? object.kind === 'chest' ? 78 : object.kind === 'crystal' ? 62 : 42 : isCave ? object.kind === 'chest' ? 68 : 54 : isHarbor ? object.kind === 'chest' ? 70 : 58 : isMountain ? object.kind === 'chest' ? 68 : 56 : isCastle ? object.kind === 'chest' ? 72 : 58 : 32;
       const sprite = this.physics.add.staticImage(position.x, position.y, texture).setDisplaySize(displaySize, displaySize).setDepth(3) as Phaser.Physics.Arcade.Image & { objectId?: string; objectKind?: string; interactionKind?: string };
       sprite.objectId = object.id;
       sprite.objectKind = object.kind;
-      sprite.interactionKind = object.kind;
+      sprite.interactionKind = collected ? undefined : object.kind;
+      if (collected && sprite.body) sprite.body.enable = false;
+      if (isBeach && (object.kind === 'chest' || object.kind === 'crystal')) {
+        this.add.ellipse(position.x, position.y + (object.kind === 'chest' ? 25 : 22), object.kind === 'chest' ? 58 : 28, object.kind === 'chest' ? 13 : 9, 0x18233e, 0.38).setDepth(2.7);
+      }
+      if (isBeach && object.kind === 'crystal' && !collected) {
+        this.tweens.add({ targets: sprite, y: position.y - 3, alpha: { from: 0.86, to: 1 }, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
+      }
       return sprite;
     });
     const gatePosition = resolveTiledObjectPoint(this.map.objects, 'door', 'exit-gate', this.level.exit.position);
@@ -696,6 +746,18 @@ export class WorldScene extends Phaser.Scene {
       this.mentorShadow = this.add.ellipse(mentorSpawn.x, mentorSpawn.y + 22, 32, 11, 0x102033, 0.42).setDepth(3.5);
       const i18n = new I18nManager(this.session.locale);
       this.mentorLabel = this.add.text(mentorSpawn.x, mentorSpawn.y - 48, i18n.text('midouName'), { fontFamily: 'monospace', fontSize: '13px', color: '#fff4c7', stroke: '#18233e', strokeThickness: 4 }).setOrigin(0.5, 1).setDepth(6).setVisible(false);
+      if (isBeach) {
+        const professorSpawn = this.resolveSafeSpawn(resolveTiledObjectPoint(this.map.objects, 'npc', 'professor-octo', { x: 560, y: 400 }));
+        this.professorOcto = this.add.image(professorSpawn.x, professorSpawn.y, 'professor-octo-v1')
+          .setDisplaySize(78, 78)
+          .setOrigin(0.5, 0.82)
+          .setDepth(4);
+        (this.professorOcto as Phaser.GameObjects.Image & { interactionKind?: string }).interactionKind = 'professor-octo';
+        this.professorOctoShadow = this.add.ellipse(professorSpawn.x, professorSpawn.y + 22, 34, 12, 0x102033, 0.42).setDepth(3.5);
+        this.professorOctoLabel = this.add.text(professorSpawn.x, professorSpawn.y - 48, i18n.text('professorOctoName'), {
+          fontFamily: 'monospace', fontSize: '13px', color: '#d8c7ff', stroke: '#18233e', strokeThickness: 4,
+        }).setOrigin(0.5, 1).setDepth(6).setVisible(false);
+      }
       this.gateGlow = this.add.image(gatePosition.x, gatePosition.y, isBeach ? 'level-01-gate-v1' : style.gateTextures?.open ?? gateTexture).setOrigin(0.5, 0.92).setDisplaySize(isBeach ? 120 : style.decorationProfile === 'cave' ? 132 : style.decorationProfile === 'harbor' ? 128 : style.decorationProfile === 'mountain' ? 124 : style.decorationProfile === 'castle' ? 132 : 118, isBeach ? 110 : style.decorationProfile === 'cave' ? 136 : style.decorationProfile === 'harbor' ? 130 : style.decorationProfile === 'mountain' ? 132 : style.decorationProfile === 'castle' ? 138 : 124).setTint(isBeach ? 0x70edff : style.decorationProfile === 'cave' ? 0xd48cff : style.decorationProfile === 'harbor' ? 0x6fe6ff : style.decorationProfile === 'mountain' ? 0xcdefff : style.decorationProfile === 'castle' ? 0xff4fd8 : 0xb4e26c).setAlpha(0).setDepth(3.2);
       // Keep the label inside the playable camera bounds: the gate anchor is
       // intentionally close to the eastern edge of the Tiled map.
@@ -706,7 +768,7 @@ export class WorldScene extends Phaser.Scene {
       this.gateUnlocked = true;
       this.refreshGatePresentation();
     }
-    this.interactionHint = this.add.text(0, 0, 'E', { fontFamily: 'monospace', fontSize: '13px', color: '#18233e', backgroundColor: '#f7d56a', padding: { x: 7, y: 4 }, stroke: '#10172b', strokeThickness: 2 }).setOrigin(0.5).setDepth(20).setVisible(false);
+    this.interactionHint = this.add.text(0, 0, 'E', { fontFamily: 'monospace', fontSize: '16px', color: '#18233e', backgroundColor: '#f7d56a', padding: { x: 6, y: 3 }, stroke: '#10172b', strokeThickness: 2 }).setOrigin(0.5).setDepth(20).setVisible(false);
   }
 
   private refreshGatePresentation(): void {
@@ -734,7 +796,7 @@ export class WorldScene extends Phaser.Scene {
   private refreshGateLabel(): void {
     if (!this.gateLabel) return;
     const i18n = new I18nManager(this.session.locale);
-    const icon = this.gateUnlocked ? '✦' : '▣';
+    const icon = this.gateUnlocked ? '✦' : '🔒';
     this.gateLabel.setText(icon + ' ' + i18n.text('gateName') + ' · ' + i18n.text(this.gateUnlocked ? 'gateOpen' : 'gateLocked'));
   }
 
@@ -779,7 +841,7 @@ export class WorldScene extends Phaser.Scene {
   public update(time: number): void {
     this.runtimeMetrics?.frame(time);
     this.publishRuntimeMetrics();
-    if (!this.player?.body || this.terminalOpen) {
+    if (!this.player?.body || this.terminalOpen || this.courseOpen) {
       if (this.player?.body) this.player.setVelocity(0);
       return;
     }
@@ -811,6 +873,12 @@ export class WorldScene extends Phaser.Scene {
       const mentorDistance = Phaser.Math.Distance.Between(this.player.x, this.player.y, this.mentor.x, this.mentor.y);
       this.mentorLabel.setPosition(this.mentor.x, this.mentor.y - 48).setVisible(mentorDistance < 150);
     }
+    if (this.professorOcto && this.professorOctoLabel) {
+      this.professorOctoShadow?.setPosition(this.professorOcto.x, this.professorOcto.y + 22);
+      const professorDistance = Phaser.Math.Distance.Between(this.player.x, this.player.y, this.professorOcto.x, this.professorOcto.y);
+      this.professorOctoLabel.setPosition(this.professorOcto.x, this.professorOcto.y - 48).setVisible(professorDistance < 150);
+    }
+    this.shrineInteractionHint?.setVisible(this.terminalNearby);
     if (this.gateLabel && this.gate) {
       const gateDistance = Phaser.Math.Distance.Between(this.player.x, this.player.y, this.gate.x, this.gate.y);
       this.gateLabel.setVisible(gateDistance < 190);
@@ -827,23 +895,59 @@ export class WorldScene extends Phaser.Scene {
         this.interactionHint.setVisible(false).setAlpha(1);
       }
       if (this.nearby) {
-        const target = this.nearby as Phaser.GameObjects.GameObject & { x: number; y: number };
-        this.interactionHint.setPosition(target.x, target.y - 30);
+        const target = this.nearby as Phaser.GameObjects.GameObject & { x: number; y: number; interactionKind?: string };
+        const worldWidth = this.map.width * this.map.tileWidth;
+        const glyph = this.interactionGlyph(target.interactionKind);
+        this.interactionHint.setText(glyph).setColor(this.interactionColor(target.interactionKind));
+        this.interactionHint.setPosition(Phaser.Math.Clamp(target.x, 16, worldWidth - 16), Math.max(20, target.y - 42));
       }
     }
     EventBus.emit('nearby', this.nearby);
   }
 
   private findNearby(): Phaser.GameObjects.GameObject | null {
-    return [this.mentor, this.gate, ...this.objects].find((item) => item.active && Phaser.Math.Distance.Between(this.player.x, this.player.y, item.x, item.y) < 58) ?? null;
+    const candidates = [this.mentor, this.professorOcto, this.gate, ...this.objects]
+      .filter(Boolean) as Array<Phaser.GameObjects.GameObject & { x: number; y: number; active: boolean; interactionKind?: string }>;
+    return candidates
+      .filter((item) => {
+      const interactionKind = (item as Phaser.GameObjects.GameObject & { interactionKind?: string }).interactionKind;
+      return item.active && Boolean(interactionKind) && Phaser.Math.Distance.Between(this.player.x, this.player.y, item.x, item.y) < 58;
+      })
+      .sort((a, b) => Phaser.Math.Distance.Between(this.player.x, this.player.y, a.x, a.y) - Phaser.Math.Distance.Between(this.player.x, this.player.y, b.x, b.y))[0] ?? null;
+  }
+
+  private interactionGlyph(kind?: string): string {
+    if (kind === 'mentor') return '…';
+    if (kind === 'professor-octo') return '✦';
+    if (kind === 'crystal') return '✦';
+    if (kind === 'chest') return '▣';
+    if (kind === 'shortcut') return '◇';
+    if (kind === 'gate') return this.gateUnlocked ? '↗' : '🔒';
+    return 'E';
+  }
+
+  private interactionColor(kind?: string): string {
+    if (kind === 'crystal') return '#b9f6ff';
+    if (kind === 'chest') return '#ffe08a';
+    if (kind === 'gate') return this.gateUnlocked ? '#9fffe7' : '#d8e0f1';
+    if (kind === 'mentor') return '#fff4c7';
+    if (kind === 'professor-octo') return '#d8c7ff';
+    if (kind === 'shortcut') return '#d9c4ff';
+    return '#18233e';
   }
 
   private interact(): void {
+    if (this.courseOpen) return;
     // Recalculer la cible au moment exact de l’action évite de dépendre d’un
     // tick précédent lorsque le joueur vient juste d’entrer dans la portée.
     this.nearby = this.findNearby();
     if (!this.nearby) return;
     EventBus.emit('interaction');
+    if (this.nearby === this.professorOcto) {
+      this.openProfessorCourse();
+      EventBus.emit('professor-octo-course-open');
+      return;
+    }
     if (this.nearby === this.mentor) {
       const step = this.quest.currentStep;
       if (step?.kind === 'dialogue' && step.dialogueId) this.quest.acceptDialogue(step.dialogueId);
@@ -894,7 +998,9 @@ export class WorldScene extends Phaser.Scene {
         this.session.inventory.add(definition.itemId ?? this.level.key.itemId);
         this.session.collectObject(this.level.id, definition.id);
         this.session.xp.add(50);
-        object.destroy();
+        object.setTexture('level-01-chest-open-v1');
+        object.interactionKind = undefined;
+        if (object.body) object.body.enable = false;
         this.persist();
         this.showRewardEffect(object.x, object.y, '+50 XP · ' + new I18nManager(this.session.locale).text('key'), '#ffe08a');
         EventBus.emit('reward');
@@ -940,12 +1046,20 @@ export class WorldScene extends Phaser.Scene {
 
   private openTerminal(): void { this.terminalOpen = true; }
   private closeTerminal(): void { this.terminalOpen = false; }
+  private openProfessorCourse(): void {
+    this.courseOpen = true;
+    this.player?.setVelocity(0);
+  }
+  private closeProfessorCourse(): void {
+    this.courseOpen = false;
+  }
   private refreshLocalizedScene(): void {
     const i18n = new I18nManager(this.session.locale);
     i18n.applyDirection(this.game.canvas);
     this.worldTitle?.setText(i18n.localized(this.level.title));
     this.shrineLabels.forEach((label) => label.setText(i18n.text('shrine')));
     this.mentorLabel?.setText(i18n.text('midouName'));
+    this.professorOctoLabel?.setText(i18n.text('professorOctoName'));
     this.gateLabel?.setText(i18n.text('gateName'));
     this.refreshGateLabel();
   }
