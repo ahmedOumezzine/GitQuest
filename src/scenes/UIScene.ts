@@ -104,7 +104,9 @@ export class UIScene extends Phaser.Scene {
     this.i18n = new I18nManager(this.session.locale);
     this.i18n.applyDirection(this.game.canvas);
     this.layout = new ResponsiveLayoutManager(this);
-    this.topBar = this.add.rectangle(0, 0, 960, 64, UITheme.colors.panel, 0.94).setOrigin(0).setDepth(20);
+    // HUD cards own their backgrounds; keep only a subtle top accent so the
+    // authored world remains visible behind the interface.
+    this.topBar = this.add.rectangle(0, 0, 960, 8, UITheme.colors.panel, 0.2).setOrigin(0).setDepth(20);
     this.topBarAccent = this.add.rectangle(0, 0, 960, 3, UITheme.colors.goldSoft, 0.95).setOrigin(0).setDepth(21);
     this.levelTitle = this.add.text(18, 8, '', { fontFamily: UITheme.fontFamily, fontSize: '14px', color: '#f7d56a', stroke: '#10172b', strokeThickness: 2 }).setDepth(22);
     this.objective = this.add.text(18, 36, '', { fontFamily: UITheme.fontFamily, fontSize: '12px', color: '#fff6df', wordWrap: { width: 520 }, stroke: '#10172b', strokeThickness: 1 }).setDepth(22);
@@ -202,7 +204,7 @@ export class UIScene extends Phaser.Scene {
         backgroundColor: active ? '#f7d56a' : '#18233e',
       });
       const beach = this.level?.id === 'level-01';
-      this.prompt.setVisible(active || this.terminalNearby || (!this.layout.current.compact && !beach));
+      this.prompt.setVisible(!this.layout.current.compact && (active || this.terminalNearby || !beach));
       if (active && !this.promptInteractionActive) {
         this.promptInteractionActive = true;
         this.promptPulse?.stop();
@@ -225,7 +227,7 @@ export class UIScene extends Phaser.Scene {
         color: active ? '#18233e' : '#fff6df',
         backgroundColor: active ? '#f7d56a' : '#18233e',
       });
-      this.prompt.setVisible(active || (!this.layout.current.compact && !beach));
+      this.prompt.setVisible(!this.layout.current.compact && (active || !beach));
     });
     EventBus.on('dialogue', ({ text }: { text: string }) => this.showDialogue(text));
     EventBus.on('toast', (text: string) => this.showToast(text));
@@ -629,7 +631,7 @@ export class UIScene extends Phaser.Scene {
     this.objective.setFontSize(levelOne || forest ? portrait ? '12px' : '14px' : '12px');
     this.stats.setFontSize(levelOne || forest ? portrait ? '13px' : '15px' : '13px');
     this.prompt.setFontSize(levelOne || forest ? portrait ? '13px' : '14px' : '12px');
-    this.topBar.setFillStyle(levelOne || forest ? 0x10172b : UITheme.colors.panel, levelOne ? 0.08 : forest ? 0.72 : 0.94);
+    this.topBar.setFillStyle(levelOne || forest ? 0x10172b : UITheme.colors.panel, levelOne ? 0.06 : 0.2);
     const rtl = this.i18n.direction === 'rtl';
     this.levelTitle.setOrigin(rtl ? 1 : 0, 0);
     this.objective.setOrigin(rtl ? 1 : 0, 0).setStyle({ align: rtl ? 'right' : 'left' });
@@ -702,7 +704,7 @@ export class UIScene extends Phaser.Scene {
     // and settings screens, so they do not compete with the level-one scene.
     this.languageButtons.forEach((button) => button.setVisible(!metrics.portrait && !beach));
     this.journalButton?.setVisible(true);
-    this.topBar.setSize(metrics.width, beach ? 4 : metrics.topBarHeight + (forest ? 6 : 0));
+    this.topBar.setSize(metrics.width, beach ? 4 : 8);
     this.topBarAccent.setSize(metrics.width, 3);
     const sideWidth = Math.min(250, Math.max(140, metrics.width * 0.27));
     const textX = rtl ? metrics.width - margin : margin;
@@ -749,17 +751,26 @@ export class UIScene extends Phaser.Scene {
     // analogue pad unobstructed, matching the compact reference composition.
     this.commandHint.setVisible(!metrics.compact && !beach);
     this.commandHint.setPosition(metrics.width / 2 - Math.min(260, (metrics.width - margin * 2) / 2), metrics.height - margin - 62);
-    if (metrics.compact && this.prompt.text === this.i18n.text('controls')) this.prompt.setVisible(false);
+    // On touch layouts the circular action buttons and the world marker are
+    // the contextual affordance; a bottom prompt would duplicate and overlap
+    // them, especially in portrait mode.
+    if (metrics.compact) this.prompt.setVisible(false);
     if (!metrics.compact) this.prompt.setVisible(true);
     this.commandHint.setHintWidth(Math.min(520, metrics.width - margin * 2));
     const compassWidth = this.compass?.panelWidth ?? 190;
     const compassX = rtl ? margin : metrics.width - margin - compassWidth;
-    const compassY = metrics.portrait ? metrics.topBarHeight + 42 : metrics.compact ? metrics.topBarHeight + 6 : metrics.topBarHeight + 92;
+    const compassY = metrics.portrait
+      ? metrics.topBarHeight + 42
+      : metrics.compact
+        ? metrics.topBarHeight + 6
+        : hud.inventory.y + this.inventoryBar.panelHeight + 12;
     this.compass?.setPosition(compassX, compassY).setVisible(!metrics.portrait);
     const miniMapWidth = this.miniMap?.panelWidth ?? 182;
     const miniMapX = rtl ? metrics.width - margin - miniMapWidth : margin;
-    const desktopMiniMapOffset = beach ? this.questTracker.panelHeight + 14 : 98;
-    const miniMapY = metrics.portrait ? metrics.topBarHeight + 44 : metrics.compact ? metrics.topBarHeight + 54 : metrics.topBarHeight + desktopMiniMapOffset;
+    const desktopMiniMapY = beach
+      ? this.questTracker.panelHeight + 14
+      : hud.quest.y + this.questTracker.panelHeight + 12;
+    const miniMapY = metrics.portrait ? metrics.topBarHeight + 44 : metrics.compact ? metrics.topBarHeight + 54 : desktopMiniMapY;
     if (metrics.compact) this.miniMap?.setCollapsed(true);
     this.miniMap?.setPosition(miniMapX, miniMapY).setVisible(true);
     this.toast.setPosition(metrics.width / 2, metrics.topBarHeight + 24).setWordWrapWidth(Math.max(180, metrics.width - margin * 2));
@@ -837,6 +848,7 @@ export class UIScene extends Phaser.Scene {
     this.syncTouchControls();
     this.promptPulse?.stop();
     this.prompt.setVisible(false);
+    this.commandHint.setVisible(false);
     markQaState('course');
   }
 
@@ -844,12 +856,15 @@ export class UIScene extends Phaser.Scene {
     if (!this.professorOctoCourse?.visible) return;
     this.professorOctoCourse.hide();
     this.syncTouchControls();
+    this.applyLayout(this.layout.current);
     markQaState('world');
     if (reason === 'practice') {
       const practiceKey = this.level?.id === 'level-02'
         ? 'courseForestPracticeHint'
         : this.level?.id === 'level-03' ? 'courseCavePracticeHint'
-          : this.level?.id === 'level-04' ? 'courseHarborPracticeHint' : 'coursePracticeHint';
+          : this.level?.id === 'level-04' ? 'courseHarborPracticeHint'
+            : this.level?.id === 'level-05' ? 'courseMountainPracticeHint'
+              : this.level?.id === 'level-06' ? 'courseCastlePracticeHint' : 'coursePracticeHint';
       this.showToast(this.i18n.text(practiceKey), 3600);
     }
     EventBus.emit('professor-octo-course-close');

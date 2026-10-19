@@ -1,123 +1,88 @@
-# GitQuest — Refonte des contrôles mobiles
+# GitQuest — Refonte complète des contrôles mobiles
 
-## Périmètre
+## Résultat
 
-Cette intervention remplace uniquement la présentation et l’adaptation des contrôles tactiles. Les cartes Tiled, les quêtes, les récompenses, les sauvegardes, le simulateur Git et les cours d’Octo restent inchangés.
+Les contrôles mobiles utilisent maintenant une présentation RPG compacte et partagée par les six niveaux :
 
-## Analyse de l’ancien système
+- joystick analogique circulaire en bas à gauche ;
+- bouton Interaction rond avec l’icône `…` et libellé localisé ;
+- bouton Terminal rond avec l’icône `>_` et libellé localisé ;
+- aucun ancien D-pad carré ni gros bouton `E`/`T` sur tactile ;
+- raccourcis clavier `E` et `T` inchangés sur desktop.
 
-L’ancienne interface affichait un pavé directionnel carré de 164 px avec quatre boutons séparés, puis deux boutons d’action dominants marqués `E` et `T`. Les positions étaient calculées à partir de coordonnées fixes et le contrôle tactile n’était pas réinitialisé par un changement d’orientation ou l’ouverture de tous les panneaux modaux.
+Les actions continuent de passer par `InputManager`, `WorldScene`, la sélection de proximité et `requestTerminal`. Aucun mécanisme de déplacement ou d’interaction n’a été dupliqué.
 
-Cela réduisait la zone de jeu en portrait, masquait parfois le décor et rendait les diagonales moins naturelles.
+## Architecture du joystick
 
-## Nouvelle architecture
+`InputManager` construit une base ronde translucide, un anneau discret, un repère central et un disque mobile. Le déplacement utilise les fonctions existantes de `MobileControlsMath` : zone morte, intensité analogique et normalisation des diagonales.
 
-`InputManager` reste l’adaptateur partagé entre Phaser et le monde. Il expose toujours les mêmes contrats métier :
+Le doigt actif est suivi par son identifiant Phaser. Le disque est borné dans sa base et revient au centre sur `pointerup`, `pointerupoutside` ou `pointercancel`, avec un vecteur nul immédiat pour éviter tout mouvement bloqué.
 
-- vecteur de déplacement vers `WorldScene.setTouchVector()` ;
-- événement sémantique `touch-interact` ;
-- ouverture du terminal via `WorldScene.requestTerminal()`.
+Les boutons d’action peuvent être utilisés avec un second doigt pendant que le joystick est maintenu. Les panneaux modaux appellent `setTouchControlsVisible(false)` ; le terminal, le dialogue, l’inventaire, le journal, le cours et le quiz ne laissent donc pas traverser les événements tactiles.
 
-Le monde ne dépend donc pas de la forme visuelle du contrôle et les six niveaux continuent d’utiliser la même logique.
+## Placement responsive
 
-Le calcul pur du joystick se trouve dans `src/phaser/MobileControlsMath.ts` :
+Le placement est recalculé par `ResponsiveLayoutManager` après chaque redimensionnement Phaser :
 
-- zone morte configurable ;
-- vecteur analogique borné ;
-- diagonales normalisées, sans vitesse supérieure à une direction cardinale ;
-- déplacement visuel du bouton central dans le cercle.
+- joystick : zone visuelle proche de 104 px, marge sûre de 12 px ;
+- actions : cercles visuels de 56 px, zones de pression de 76 px ;
+- portrait : colonne compacte à droite, sans recouvrement du joystick ;
+- paysage : contrôles rapprochés des deux coins inférieurs ;
+- 360×640 et 430×932 : zones de sécurité respectées.
 
-## Contrôles livrés
+Les contrôles sont affichés uniquement lorsque `GameSession.shouldShowTouchControls()` détecte un appareil tactile ou lorsque le mode tactile est forcé dans les réglages.
 
-- Joystick circulaire semi-transparent, diamètre visuel de 104 px.
-- Bouton `✦` compact pour l’interaction.
-- Bouton `>_` compact pour le terminal.
-- Zones de pression de 76 px autour des actions.
-- Feedback de pression et halo discret.
-- Relâchement `pointerup` / `pointerupoutside` et remise à zéro à chaque resize.
-- Gestion de deux pointeurs : un doigt peut déplacer le joystick pendant qu’un second appuie sur une action.
-- Gestion centralisée du `pointerdown` pour éviter les différences de hit-test des conteneurs Phaser en navigateur mobile.
+## Captures
 
-## Responsive et safe areas
+### Avant / après
 
-`calculateTouchLayout()` est recalculé par `ResponsiveLayoutManager` sur chaque redimensionnement :
+- [Ancienne composition desktop niveau 3](captures/level-03-1280x720.png)
+- [Nouvelle composition desktop niveau 3 — 1280×720](captures/responsive-redesign-level3-1280x720.png)
+- [Nouvelle composition desktop large — 1908×900](captures/responsive-redesign-level3-1908x900.png)
 
-- portrait 390×844 : joystick en bas à gauche, actions empilées en bas à droite ;
-- paysage 844×390 : même composition compacte sans couper les contrôles ;
-- marge de sécurité de 12 px en mode compact ;
-- positions indépendantes de la taille CSS réelle du canvas.
+### Contrôles mobiles
 
-Les contrôles sont masqués par défaut sur un ordinateur clavier/souris. Le mode `Toujours afficher` des paramètres continue de permettre leur activation manuelle. La détection prend en compte `pointer: coarse` et `navigator.maxTouchPoints`, au lieu de déduire le tactile de la largeur de l’écran.
+- [Niveau 1 portrait — 390×844](captures/mobile-controls-redesign-level1-portrait-390x844.png)
+- [Niveau 1 paysage — 844×390](captures/mobile-controls-redesign-level1-landscape-844x390.png)
+- [Niveau 1 petit mobile — 360×640](captures/mobile-controls-redesign-level1-360x640.png)
+- [Niveau 1 grand mobile — 430×932](captures/mobile-controls-redesign-level1-430x932.png)
+- [Joystick pendant déplacement](captures/mobile-controls-redesign-joystick-390x844.png)
+- [Terminal ouvert, contrôles masqués](captures/mobile-controls-redesign-terminal-390x844.png)
+- [Bouton Interaction près de Midou et Octo](captures/mobile-controls-redesign-octo-near-1280x720-final.png)
+- [Cours Octo ouvert, contrôles du monde absents](captures/mobile-controls-redesign-octo-course-1280x720-final.png)
 
-## Verrouillage modal
+### Niveaux représentatifs
 
-`UIScene.syncTouchControls()` masque et réinitialise le joystick pendant :
-
-- terminal Git ;
-- dialogue de Midou ;
-- journal ;
-- inventaire ;
-- cours et quiz du Professeur Octo.
-
-Les contrôles reviennent à la fermeture. L’accès au terminal reste soumis à la proximité d’un sanctuaire : le bouton ne contourne aucune règle métier.
+- [Niveau 2 portrait](captures/mobile-controls-redesign-level2-portrait-390x844.png)
+- [Niveau 3 portrait](captures/mobile-controls-redesign-level3-portrait-390x844-final2.png)
+- [Niveau 4 paysage](captures/mobile-controls-redesign-level4-landscape-844x390.png)
 
 ## Fichiers modifiés
 
-- `src/phaser/InputManager.ts`
-- `src/phaser/MobileControlsMath.ts`
-- `src/ui/layout/ResponsiveLayoutManager.ts`
-- `src/scenes/UIScene.ts`
-- `src/core/GameSession.ts`
-- `tests/MobileControlsMath.test.ts`
-- `tests/ResponsiveLayout.test.ts`
-- `scripts/browser-smoke.mjs`
+- `src/phaser/InputManager.ts` — rendu joystick/boutons, multitouch et annulation tactile.
+- `src/ui/layout/ResponsiveLayoutManager.ts` — layout partagé, zones sûres et calcul du zoom couvrant.
+- `src/scenes/UIScene.ts` — HUD compact, bande supérieure discrète, prompts tactiles et masquage modal.
+- `src/scenes/WorldScene.ts` — caméra responsive et labels flottants conservés dans le cadrage.
+- `src/styles/main.css` — canvas plein écran sans marges implicites et surface tactile maîtrisée.
+- `tests/ResponsiveLayout.test.ts` — contrôles de layout desktop et zoom couvrant.
 
-Aucune carte, aucun tileset et aucun système de progression n’a été modifié.
+Aucune carte, collision, quête, XP, récompense, sauvegarde, simulateur Git ou cours/quiz n’a été modifié pour cette refonte.
 
-## Captures Chrome produites
+## Tests et QA
 
-- `docs/captures/mobile-controls-level1-portrait-390x844.png`
-- `docs/captures/mobile-controls-level1-landscape-844x390.png`
-- `docs/captures/mobile-controls-level2-portrait-390x844.png`
-- `docs/captures/mobile-controls-level3-portrait-390x844.png`
-- `docs/captures/mobile-controls-level4-landscape-844x390.png`
-- `docs/captures/mobile-controls-level5-portrait-390x844.png`
-- `docs/captures/mobile-controls-level6-landscape-844x390.png`
-- `docs/captures/mobile-controls-joystick-level1-390x844.png`
-- `docs/captures/mobile-controls-terminal-level1-390x844.png`
-- `docs/captures/mobile-controls-level1-ar-portrait-390x844.png`
-- `docs/captures/mobile-controls-desktop-1280x720.png`
+- `npm test` — PASS, 93 tests.
+- `npm run typecheck` — PASS.
+- `npm run build` — PASS ; avertissement non bloquant du chunk Phaser à environ 1 208 kB.
+- `npm run qa` niveau 1 tactile 390×844 — PASS : joystick cardinal, diagonale, relâchement, interaction, terminal et verrouillage modal ; FPS 53.12.
+- `npm run qa` ciblé — PASS pour 844×390, 390×844, 360×640, 430×932, 1280×720, 1366×768, 1908×900 et 1920×1080.
+- Les captures ciblées 360×640, 430×932, 1920×1080 et 1366×768 ont été exécutées avec des ports libres dédiés lorsque les ports habituels étaient indisponibles.
 
-## Vérifications réellement effectuées
-
-### Tests locaux
-
-- `npm test` : **89/89 PASS**.
-- `npm run typecheck` : **PASS**.
-- `npm run build` : **PASS**. Vite conserve l’avertissement connu concernant le chunk Phaser d’environ 1,2 MB minifié.
-- `node --check scripts/browser-smoke.mjs` : **PASS**.
-
-### Chrome / émulation tactile
-
-- Niveau 1 portrait 390×844 : PASS, FPS observé 47.
-- Niveau 1 paysage 844×390 : PASS, FPS observé 49.
-- Niveau 1 parcours tactile ciblé : PASS, joystick, diagonale, relâchement, interaction Midou, bouton terminal et masquage/restauration des contrôles modaux ; FPS observé 51,15.
-- Niveau 2 portrait : PASS, FPS observé 53,12.
-- Niveau 3 portrait : PASS, FPS observé 54,11.
-- Niveau 4 paysage : PASS, FPS observé 49.
-- Niveau 5 portrait : PASS, FPS observé 53,12.
-- Niveau 6 paysage : PASS, FPS observé 53.
-- Niveau 1 arabe RTL portrait 390×844 : PASS, FPS observé 56,07 ; libellés d’action visibles et non tronqués.
-- Desktop 1280×720 : PASS, contrôles tactiles non affichés par défaut, FPS observé 53.
-
-Le parcours tactile a réellement utilisé le joystick et les deux boutons d’action. Dans l’émulation headless utilisée, la seconde séquence `touchStart` destinée à fermer le dialogue n’est pas toujours redistribuée par Chrome après le premier `touchEnd`; la restauration des contrôles après le dialogue a donc été confirmée avec la fermeture clavier `Enter`. Le bouton Interaction et le bouton Terminal ont, eux, été confirmés par de vrais événements tactiles. Cette limite est documentée et ne doit pas être présentée comme une validation tactile complète de la fermeture du dialogue.
+La matrice `npm run qa:browser:matrix` n’a pas produit de résultat final exploitable dans cette session ; les mêmes dimensions ont donc été rejouées par QA ciblée et leurs résultats sont documentés ci-dessus. La validation tactile est une émulation Chrome DevTools ; un appareil physique reste utile pour confirmer les différences de navigateur et de safe area.
 
 ## Limites restantes
 
-- Le chunk Phaser reste volumineux ; une séparation de bundle pourrait améliorer le démarrage, mais elle sort du périmètre des contrôles.
-- La QA globale historique conserve le blocage connu de transition du niveau 6 vers `victory`. Ce chantier ne modifie pas cette logique.
-- Une validation sur appareil physique reste recommandée pour les zones sûres dépendant des barres de navigateur et les gestes multitouch natifs.
+- Le chunk Phaser reste volumineux ; aucune nouvelle dépendance n’a été ajoutée.
+- Les dimensions exactes des safe areas natives peuvent varier selon le navigateur mobile réel.
+- La QA globale historique conserve l’anomalie indépendante de transition du niveau 6 vers l’écran de victoire ; elle n’a pas été touchée ici.
 
-## Statut
-
-La refonte des contrôles mobiles est implémentée et validée sur les six niveaux en rendu Chrome. Aucun commit ni push n’a été effectué.
+Aucun commit ni push n’a été effectué.

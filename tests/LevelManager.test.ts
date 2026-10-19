@@ -155,6 +155,14 @@ test('la Montagne des Branches possède un terrain Tiled de sentier et ses repè
   assert.equal(ground?.data?.length, map.width * map.height);
   assert.equal(map.tilesets?.[0]?.source, '../../assets/tilesets/mountain-tileset.tsx');
   assert.ok(['mountain-fork', 'mountain-altar', 'mountain-marker', 'mountain-wind'].every((name) => decorations.some((object) => object.name === name)));
+  const objects = map.layers.find((layer) => layer.name === 'Objects')?.objects ?? [];
+  assert.deepEqual(objects.find((object) => object.name === 'professor-octo'), {
+    id: 33, name: 'professor-octo', type: 'npc', x: 540, y: 270, width: 0, height: 0,
+    properties: [
+      { name: 'role', type: 'string', value: 'teacher' },
+      { name: 'lesson', type: 'string', value: 'branch-switch' },
+    ],
+  });
 });
 
 test('le Château des Conflits possède un terrain Tiled de cour et ses repères de merge', async () => {
@@ -171,6 +179,14 @@ test('le Château des Conflits possède un terrain Tiled de cour et ses repères
   assert.equal(ground?.data?.length, map.width * map.height);
   assert.equal(map.tilesets?.[0]?.source, '../../assets/tilesets/castle-tileset.tsx');
   assert.ok(['castle-altar', 'castle-rune', 'castle-brazier', 'castle-arch'].every((name) => decorations.some((object) => object.name === name)));
+  const objects = map.layers.find((layer) => layer.name === 'Objects')?.objects ?? [];
+  assert.deepEqual(objects.find((object) => object.name === 'professor-octo'), {
+    id: 33, name: 'professor-octo', type: 'npc', x: 130, y: 300, width: 0, height: 0,
+    properties: [
+      { name: 'role', type: 'string', value: 'teacher' },
+      { name: 'lesson', type: 'string', value: 'merge-conflict' },
+    ],
+  });
 });
 
 test('TiledMapAdapter expose la couche Objects sans la mélanger aux décorations', () => {

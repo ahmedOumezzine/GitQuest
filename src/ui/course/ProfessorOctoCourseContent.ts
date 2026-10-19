@@ -13,6 +13,8 @@ export function professorOctoCourseTitleKey(levelId: string): string {
   if (levelId === 'level-02') return 'courseForestPanelTitle';
   if (levelId === 'level-03') return 'courseCavePanelTitle';
   if (levelId === 'level-04') return 'courseHarborPanelTitle';
+  if (levelId === 'level-05') return 'courseMountainPanelTitle';
+  if (levelId === 'level-06') return 'courseCastlePanelTitle';
   return 'courseLessonTitle';
 }
 
@@ -64,6 +66,36 @@ export function getProfessorOctoCoursePages(i18n: I18nManager, levelId = 'level-
         result: i18n.text('courseHarborPage5Result'),
       },
       { title: i18n.text('courseHarborPage6Title'), text: i18n.text('courseHarborPage6Text'), action: 'practice' },
+    ];
+  }
+  if (levelId === 'level-05') {
+    return [
+      { title: i18n.text('courseMountainPage1Title'), text: i18n.text('courseMountainPage1Text') },
+      { title: i18n.text('courseMountainPage2Title'), text: i18n.text('courseMountainPage2Text') },
+      { title: i18n.text('courseMountainPage3Title'), text: i18n.text('courseMountainPage3Text'), command: 'git branch feature' },
+      { title: i18n.text('courseMountainPage4Title'), text: i18n.text('courseMountainPage4Text'), command: i18n.text('courseMountainPage4Commands') },
+      {
+        title: i18n.text('courseMountainPage5Title'),
+        text: i18n.text('courseMountainPage5Text'),
+        steps: i18n.text('courseMountainPage5Steps'),
+        result: i18n.text('courseMountainPage5Result'),
+      },
+      { title: i18n.text('courseMountainPage6Title'), text: i18n.text('courseMountainPage6Text'), action: 'practice' },
+    ];
+  }
+  if (levelId === 'level-06') {
+    return [
+      { title: i18n.text('courseCastlePage1Title'), text: i18n.text('courseCastlePage1Text') },
+      { title: i18n.text('courseCastlePage2Title'), text: i18n.text('courseCastlePage2Text') },
+      { title: i18n.text('courseCastlePage3Title'), text: i18n.text('courseCastlePage3Text'), command: 'git merge main' },
+      { title: i18n.text('courseCastlePage4Title'), text: i18n.text('courseCastlePage4Text'), command: i18n.text('courseCastlePage4Commands') },
+      {
+        title: i18n.text('courseCastlePage5Title'),
+        text: i18n.text('courseCastlePage5Text'),
+        steps: i18n.text('courseCastlePage5Steps'),
+        result: i18n.text('courseCastlePage5Result'),
+      },
+      { title: i18n.text('courseCastlePage6Title'), text: i18n.text('courseCastlePage6Text'), action: 'practice' },
     ];
   }
   return [

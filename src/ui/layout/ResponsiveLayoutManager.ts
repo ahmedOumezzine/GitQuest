@@ -34,6 +34,15 @@ export interface GameplayHudLayout {
   inventory: { x: number; y: number };
 }
 
+/** Returns the smallest zoom that covers the complete browser surface. */
+export function calculateCoverZoom(viewport: ViewportSize, world: ViewportSize, minimum = 1): number {
+  return Math.max(
+    minimum,
+    viewport.width / Math.max(1, world.width),
+    viewport.height / Math.max(1, world.height),
+  );
+}
+
 /** Visual and hit-area sizes shared by the responsive layout and its tests. */
 export const TOUCH_LAYOUT_SIZES = {
   joystickRadius: 52,
@@ -94,9 +103,11 @@ export function calculateGameplayHudLayout(
     : Math.min(380, Math.max(220, questWidth));
   const rightX = metrics.width - margin;
   return {
-    quest: { x: margin, y: metrics.compact ? 8 : metrics.topBarHeight + 6, width: resolvedQuestWidth },
-    xp: { x: rightX - xpWidth, y: metrics.compact ? 8 : metrics.topBarHeight + 6 },
-    inventory: { x: rightX - inventoryWidth, y: metrics.compact ? 48 : metrics.topBarHeight + 48 },
+    // Desktop cards sit directly over the world instead of reserving an
+    // opaque top strip for the HUD.
+    quest: { x: margin, y: metrics.compact ? 8 : 12, width: resolvedQuestWidth },
+    xp: { x: rightX - xpWidth, y: metrics.compact ? 8 : 12 },
+    inventory: { x: rightX - inventoryWidth, y: metrics.compact ? 48 : 54 },
   };
 }
 

@@ -108,7 +108,7 @@ export class InputManager {
     );
 
     const hitArea = new Phaser.Geom.Circle(0, 0, TOUCH_LAYOUT_SIZES.actionHitRadius);
-    this.touchAction = this.createTouchAction('✦', labels.interact, 0xf7c84b, 0x18233e, hitArea);
+    this.touchAction = this.createTouchAction('…', labels.interact, 0xf7c84b, 0x18233e, hitArea);
     this.bindTouchRelease(this.touchAction);
 
     this.touchTerminal = this.createTouchAction('>_', labels.terminal, 0x18233e, 0xfff6df, hitArea);
@@ -118,6 +118,7 @@ export class InputManager {
     this.scene.input.on('pointermove', this.onPointerMove);
     this.scene.input.on('pointerup', this.onPointerUp);
     this.scene.input.on('pointerupoutside', this.onPointerUp);
+    this.scene.input.on('pointercancel', this.onPointerUp);
     this.setTouchControlsVisible(this.touchControlsVisible);
   }
 
@@ -148,6 +149,7 @@ export class InputManager {
     this.scene.input.off('pointermove', this.onPointerMove);
     this.scene.input.off('pointerup', this.onPointerUp);
     this.scene.input.off('pointerupoutside', this.onPointerUp);
+    this.scene.input.off('pointercancel', this.onPointerUp);
   }
 
   private isPointInControl(pointer: Phaser.Input.Pointer, control: Phaser.GameObjects.Container | undefined, radius: number): boolean {

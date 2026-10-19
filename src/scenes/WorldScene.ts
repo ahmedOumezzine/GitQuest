@@ -12,6 +12,7 @@ import { markQaLevel, markQaPlayerPosition, markQaState } from '../diagnostics/Q
 import { assetsForLevel } from '../data/AssetManifest';
 import { enqueueAssets } from '../phaser/AssetLoader';
 import { findNearbyTerminal } from '../systems/TerminalAccess';
+import { calculateCoverZoom } from '../ui/layout/ResponsiveLayoutManager';
 
 export class WorldScene extends Phaser.Scene {
   private session!: GameSession;
@@ -512,8 +513,6 @@ export class WorldScene extends Phaser.Scene {
   private applyBeachCameraZoom(): void {
     if (this.level?.id !== 'level-01') return;
     const worldWidth = this.map.width * this.map.tileWidth;
-    const portrait = this.scale.height > this.scale.width * 1.2;
-    const compact = this.scale.width < 760 || this.scale.height < 500;
     // The reference keeps the player readable while showing enough shoreline
     // to establish a real beach. The previous 1.42 zoom hid route landmarks.
     // Show the full beach composition (shoreline, foreground props and exit)
@@ -527,8 +526,13 @@ export class WorldScene extends Phaser.Scene {
     // sparse band of sand around the authored landmarks. The tighter desktop
     // framing keeps Midou, the player, shrine, chest and gate in one visual
     // group while preserving the wider mobile framing for exploration.
-    const desktopZoom = this.scale.width >= 1600 ? 1.2 : Math.max(1.02, Math.min(1.1, (this.scale.width / worldWidth) * 1.32));
-    this.cameras.main.setZoom(portrait ? 1.04 : compact ? 0.88 : desktopZoom);
+    const coverZoom = calculateCoverZoom(
+      { width: this.scale.width, height: this.scale.height },
+      { width: worldWidth, height: this.map.height * this.map.tileHeight },
+    );
+    // Keep the enhanced beach characters readable while preventing empty
+    // bands on wide or tall displays.
+    this.cameras.main.setZoom(Math.max(1, coverZoom));
   }
 
   /**
@@ -603,39 +607,42 @@ export class WorldScene extends Phaser.Scene {
 
   private applyForestCameraZoom(): void {
     if (this.level?.id !== 'level-02') return;
-    const portrait = this.scale.height > this.scale.width * 1.35;
-    const compact = this.scale.width < 760 || this.scale.height < 500;
-    const worldWidth = this.map.width * this.map.tileWidth;
-    const desktop = Math.min(2.05, Math.max(1.35, this.scale.width / worldWidth));
-    this.cameras.main.setZoom(portrait ? 1.6 : compact ? 1.05 : desktop);
+    this.cameras.main.setZoom(calculateCoverZoom(
+      { width: this.scale.width, height: this.scale.height },
+      { width: this.map.width * this.map.tileWidth, height: this.map.height * this.map.tileHeight },
+    ));
   }
 
   private applyCaveCameraZoom(): void {
     if (this.level?.id !== 'level-03') return;
-    const portrait = this.scale.height > this.scale.width * 1.35;
-    const compact = this.scale.width < 760 || this.scale.height < 500;
-    this.cameras.main.setZoom(portrait ? 1.6 : compact ? 1.08 : 1.34);
+    this.cameras.main.setZoom(calculateCoverZoom(
+      { width: this.scale.width, height: this.scale.height },
+      { width: this.map.width * this.map.tileWidth, height: this.map.height * this.map.tileHeight },
+    ));
   }
 
   private applyHarborCameraZoom(): void {
     if (this.level?.id !== 'level-04') return;
-    const portrait = this.scale.height > this.scale.width * 1.35;
-    const compact = this.scale.width < 760 || this.scale.height < 500;
-    this.cameras.main.setZoom(portrait ? 1.55 : compact ? 1.06 : 1.3);
+    this.cameras.main.setZoom(calculateCoverZoom(
+      { width: this.scale.width, height: this.scale.height },
+      { width: this.map.width * this.map.tileWidth, height: this.map.height * this.map.tileHeight },
+    ));
   }
 
   private applyMountainCameraZoom(): void {
     if (this.level?.id !== 'level-05') return;
-    const portrait = this.scale.height > this.scale.width * 1.35;
-    const compact = this.scale.width < 760 || this.scale.height < 500;
-    this.cameras.main.setZoom(portrait ? 1.55 : compact ? 1.06 : 1.3);
+    this.cameras.main.setZoom(calculateCoverZoom(
+      { width: this.scale.width, height: this.scale.height },
+      { width: this.map.width * this.map.tileWidth, height: this.map.height * this.map.tileHeight },
+    ));
   }
 
   private applyCastleCameraZoom(): void {
     if (this.level?.id !== 'level-06') return;
-    const portrait = this.scale.height > this.scale.width * 1.35;
-    const compact = this.scale.width < 760 || this.scale.height < 500;
-    this.cameras.main.setZoom(portrait ? 1.55 : compact ? 1.06 : 1.3);
+    this.cameras.main.setZoom(calculateCoverZoom(
+      { width: this.scale.width, height: this.scale.height },
+      { width: this.map.width * this.map.tileWidth, height: this.map.height * this.map.tileHeight },
+    ));
   }
 
   private beachDecorationTexture(type: string): string | undefined {
@@ -768,7 +775,7 @@ export class WorldScene extends Phaser.Scene {
       this.mentorShadow = this.add.ellipse(mentorSpawn.x, mentorSpawn.y + 22, 32, 11, 0x102033, 0.42).setDepth(3.5);
       const i18n = new I18nManager(this.session.locale);
       this.mentorLabel = this.add.text(mentorSpawn.x, mentorSpawn.y - 48, i18n.text('midouName'), { fontFamily: 'monospace', fontSize: '13px', color: '#fff4c7', stroke: '#18233e', strokeThickness: 4 }).setOrigin(0.5, 1).setDepth(6).setVisible(false);
-      if (professorOctoObject && (isBeach || this.level.id === 'level-02' || this.level.id === 'level-03' || this.level.id === 'level-04')) {
+      if (professorOctoObject && (isBeach || this.level.id === 'level-02' || this.level.id === 'level-03' || this.level.id === 'level-04' || this.level.id === 'level-05' || this.level.id === 'level-06')) {
         const professorSpawn = this.resolveSafeSpawn(resolveTiledObjectPoint(this.map.objects, 'npc', 'professor-octo', { x: 560, y: 300 }));
         this.professorOcto = this.add.image(professorSpawn.x, professorSpawn.y, 'professor-octo-v1')
           .setDisplaySize(78, 78)
@@ -893,12 +900,16 @@ export class WorldScene extends Phaser.Scene {
     this.mentorShadow?.setPosition(this.mentor.x, this.mentor.y + 22);
     if (this.mentorLabel) {
       const mentorDistance = Phaser.Math.Distance.Between(this.player.x, this.player.y, this.mentor.x, this.mentor.y);
-      this.mentorLabel.setPosition(this.mentor.x, this.mentor.y - 48).setVisible(mentorDistance < 150);
+      this.mentorLabel.setFontSize(this.scale.width < 760 ? '10px' : '13px')
+        .setPosition(this.clampCameraLabelX(this.mentor.x, this.scale.width < 760 ? 55 : 70), this.mentor.y - 48)
+        .setVisible(mentorDistance < 150);
     }
     if (this.professorOcto && this.professorOctoLabel) {
       this.professorOctoShadow?.setPosition(this.professorOcto.x, this.professorOcto.y + 22);
       const professorDistance = Phaser.Math.Distance.Between(this.player.x, this.player.y, this.professorOcto.x, this.professorOcto.y);
-      this.professorOctoLabel.setPosition(this.professorOcto.x, this.professorOcto.y - 48).setVisible(professorDistance < 150);
+      this.professorOctoLabel.setFontSize(this.scale.width < 760 ? '10px' : '13px')
+        .setPosition(this.clampCameraLabelX(this.professorOcto.x, this.scale.width < 760 ? 55 : 70), this.professorOcto.y - 48)
+        .setVisible(professorDistance < 150);
     }
     this.shrineInteractionHint?.setVisible(this.terminalNearby);
     if (this.gateLabel && this.gate) {
@@ -921,7 +932,7 @@ export class WorldScene extends Phaser.Scene {
         const worldWidth = this.map.width * this.map.tileWidth;
         const glyph = this.interactionGlyph(target.interactionKind);
         this.interactionHint.setText(glyph).setColor(this.interactionColor(target.interactionKind));
-        this.interactionHint.setPosition(Phaser.Math.Clamp(target.x, 16, worldWidth - 16), Math.max(20, target.y - 42));
+        this.interactionHint.setPosition(this.clampCameraLabelX(target.x, 28, worldWidth), Math.max(20, target.y - 42));
       }
     }
     EventBus.emit('nearby', this.nearby);
@@ -936,6 +947,15 @@ export class WorldScene extends Phaser.Scene {
       return item.active && Boolean(interactionKind) && Phaser.Math.Distance.Between(this.player.x, this.player.y, item.x, item.y) < 58;
       })
       .sort((a, b) => Phaser.Math.Distance.Between(this.player.x, this.player.y, a.x, a.y) - Phaser.Math.Distance.Between(this.player.x, this.player.y, b.x, b.y))[0] ?? null;
+  }
+
+  /** Keeps floating world labels readable when the camera is tightly framed. */
+  private clampCameraLabelX(x: number, padding = 70, worldWidth = this.map.width * this.map.tileWidth): number {
+    const view = this.cameras.main.worldView;
+    const cameraPadding = padding / Math.max(0.01, this.cameras.main.zoom);
+    const left = Math.max(0, view.x + cameraPadding);
+    const right = Math.min(worldWidth, view.right - cameraPadding);
+    return left <= right ? Phaser.Math.Clamp(x, left, right) : (left + right) / 2;
   }
 
   private interactionGlyph(kind?: string): string {

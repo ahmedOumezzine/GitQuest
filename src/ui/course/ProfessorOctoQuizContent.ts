@@ -10,7 +10,7 @@ export interface ProfessorOctoQuizQuestion {
 
 /** Quiz packs are selected by level so future lessons can register their own pack. */
 export function hasProfessorOctoQuiz(levelId: string): boolean {
-  return levelId === 'level-01' || levelId === 'level-02' || levelId === 'level-03' || levelId === 'level-04';
+  return levelId === 'level-01' || levelId === 'level-02' || levelId === 'level-03' || levelId === 'level-04' || levelId === 'level-05' || levelId === 'level-06';
 }
 
 export function professorOctoQuizResultKey(levelId: string, score: number, questionCount: number): string {
@@ -19,6 +19,12 @@ export function professorOctoQuizResultKey(levelId: string, score: number, quest
   }
   if (levelId === 'level-03') {
     return score === questionCount ? 'quizCaveExcellent' : score === 0 ? 'quizCaveZero' : 'quizCaveGood';
+  }
+  if (levelId === 'level-05') {
+    return score === questionCount ? 'quizMountainExcellent' : score === 0 ? 'quizMountainZero' : 'quizMountainGood';
+  }
+  if (levelId === 'level-06') {
+    return score === questionCount ? 'quizCastleExcellent' : score === 0 ? 'quizCastleZero' : 'quizCastleGood';
   }
   if (levelId === 'level-02') {
     return score === questionCount ? 'quizForestExcellent' : score === 0 ? 'quizForestZero' : 'quizForestGood';
@@ -100,6 +106,56 @@ export function getProfessorOctoQuizQuestions(i18n: I18nManager, levelId = 'leve
         correctIndex: 1,
         correctFeedback: i18n.text('quizHarborQuestion3Correct'),
         incorrectFeedback: i18n.text('quizHarborQuestion3Incorrect'),
+      },
+    ];
+  }
+  if (levelId === 'level-05') {
+    return [
+      {
+        prompt: i18n.text('quizMountainQuestion1'),
+        answers: [i18n.text('quizMountainQuestion1A'), i18n.text('quizMountainQuestion1B'), i18n.text('quizMountainQuestion1C')],
+        correctIndex: 1,
+        correctFeedback: i18n.text('quizMountainQuestion1Correct'),
+        incorrectFeedback: i18n.text('quizMountainQuestion1Incorrect'),
+      },
+      {
+        prompt: i18n.text('quizMountainQuestion2'),
+        answers: [i18n.text('quizMountainQuestion2A'), i18n.text('quizMountainQuestion2B'), i18n.text('quizMountainQuestion2C')],
+        correctIndex: 0,
+        correctFeedback: i18n.text('quizMountainQuestion2Correct'),
+        incorrectFeedback: i18n.text('quizMountainQuestion2Incorrect'),
+      },
+      {
+        prompt: i18n.text('quizMountainQuestion3'),
+        answers: [i18n.text('quizMountainQuestion3A'), i18n.text('quizMountainQuestion3B'), i18n.text('quizMountainQuestion3C')],
+        correctIndex: 1,
+        correctFeedback: i18n.text('quizMountainQuestion3Correct'),
+        incorrectFeedback: i18n.text('quizMountainQuestion3Incorrect'),
+      },
+    ];
+  }
+  if (levelId === 'level-06') {
+    return [
+      {
+        prompt: i18n.text('quizCastleQuestion1'),
+        answers: [i18n.text('quizCastleQuestion1A'), i18n.text('quizCastleQuestion1B'), i18n.text('quizCastleQuestion1C')],
+        correctIndex: 1,
+        correctFeedback: i18n.text('quizCastleQuestion1Correct'),
+        incorrectFeedback: i18n.text('quizCastleQuestion1Incorrect'),
+      },
+      {
+        prompt: i18n.text('quizCastleQuestion2'),
+        answers: [i18n.text('quizCastleQuestion2A'), i18n.text('quizCastleQuestion2B'), i18n.text('quizCastleQuestion2C')],
+        correctIndex: 0,
+        correctFeedback: i18n.text('quizCastleQuestion2Correct'),
+        incorrectFeedback: i18n.text('quizCastleQuestion2Incorrect'),
+      },
+      {
+        prompt: i18n.text('quizCastleQuestion3'),
+        answers: [i18n.text('quizCastleQuestion3A'), i18n.text('quizCastleQuestion3B'), i18n.text('quizCastleQuestion3C')],
+        correctIndex: 1,
+        correctFeedback: i18n.text('quizCastleQuestion3Correct'),
+        incorrectFeedback: i18n.text('quizCastleQuestion3Incorrect'),
       },
     ];
   }

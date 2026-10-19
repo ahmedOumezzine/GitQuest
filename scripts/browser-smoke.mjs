@@ -500,6 +500,74 @@ async function runLevel4OctoCaptures(cdp) {
   await captureScreenshot(cdp, process.env.GITQUEST_QA_LEVEL4_AFTER_COURSE_SCREENSHOT);
 }
 
+async function runLevel5OctoCaptures(cdp) {
+  const pagePath = (page) => process.env.GITQUEST_QA_LEVEL5_COURSE_PAGE_PREFIX?.replace('{page}', String(page));
+  await cdp.send('Page.reload', { ignoreCache: true });
+  await waitForState(cdp, 'world');
+  await waitForQuestStep(cdp, 'talk-midou');
+  await moveToPoints(cdp, [{ x: 540, y: 270 }]);
+  await captureScreenshot(cdp, process.env.GITQUEST_QA_LEVEL5_OCTO_SCREENSHOT);
+  await key(cdp, 'e');
+  await waitForState(cdp, 'course');
+  await captureScreenshot(cdp, process.env.GITQUEST_QA_LEVEL5_COURSE_SCREENSHOT);
+  if (pagePath(1)) await captureScreenshot(cdp, pagePath(1));
+  const lockedPosition = await cdp.evaluate('({ x: Number(document.documentElement.dataset.gitquestPlayerX ?? 0), y: Number(document.documentElement.dataset.gitquestPlayerY ?? 0) })');
+  await holdKey(cdp, 'ArrowLeft', 220);
+  const lockedAfterInput = await cdp.evaluate('({ x: Number(document.documentElement.dataset.gitquestPlayerX ?? 0), y: Number(document.documentElement.dataset.gitquestPlayerY ?? 0) })');
+  if (Math.hypot(lockedAfterInput.x - lockedPosition.x, lockedAfterInput.y - lockedPosition.y) > 1) {
+    throw new Error('Le déplacement n’est pas verrouillé pendant le cours Octo du niveau 5.');
+  }
+  for (let page = 2; page <= 6; page += 1) {
+    await key(cdp, 'ArrowRight');
+    await new Promise((resolve) => setTimeout(resolve, 220));
+    if (pagePath(page)) await captureScreenshot(cdp, pagePath(page));
+  }
+  if (process.env.GITQUEST_QA_LEVEL5_QUIZ_SCREENSHOTS === '1') {
+    await clickLevel2CourseQuiz(cdp);
+    await waitForCourseView(cdp, 'quiz');
+    await selectLevel3QuizAnswer(cdp, 1);
+    await continueLevel3Quiz(cdp);
+    await selectLevel3QuizAnswer(cdp, 0);
+    await continueLevel3Quiz(cdp);
+    await selectLevel3QuizAnswer(cdp, 1);
+    await continueLevel3Quiz(cdp);
+    await waitForCourseView(cdp, 'result');
+    await captureScreenshot(cdp, process.env.GITQUEST_QA_LEVEL5_QUIZ_RESULT_SCREENSHOT);
+    await clickLevel2ResultPractice(cdp);
+  } else {
+    await key(cdp, 'Escape');
+  }
+  await waitForState(cdp, 'world');
+  await captureScreenshot(cdp, process.env.GITQUEST_QA_LEVEL5_AFTER_COURSE_SCREENSHOT);
+}
+
+async function runLevel6OctoCaptures(cdp) {
+  const pagePath = (page) => process.env.GITQUEST_QA_LEVEL6_COURSE_PAGE_PREFIX?.replace('{page}', String(page));
+  await cdp.send('Page.reload', { ignoreCache: true });
+  await waitForState(cdp, 'world');
+  await waitForQuestStep(cdp, 'talk-midou');
+  await moveToPoints(cdp, [{ x: 130, y: 300 }]);
+  await captureScreenshot(cdp, process.env.GITQUEST_QA_LEVEL6_OCTO_SCREENSHOT);
+  await key(cdp, 'e');
+  await waitForState(cdp, 'course');
+  await captureScreenshot(cdp, process.env.GITQUEST_QA_LEVEL6_COURSE_SCREENSHOT);
+  if (pagePath(1)) await captureScreenshot(cdp, pagePath(1));
+  const lockedPosition = await cdp.evaluate('({ x: Number(document.documentElement.dataset.gitquestPlayerX ?? 0), y: Number(document.documentElement.dataset.gitquestPlayerY ?? 0) })');
+  await holdKey(cdp, 'ArrowLeft', 220);
+  const lockedAfterInput = await cdp.evaluate('({ x: Number(document.documentElement.dataset.gitquestPlayerX ?? 0), y: Number(document.documentElement.dataset.gitquestPlayerY ?? 0) })');
+  if (Math.hypot(lockedAfterInput.x - lockedPosition.x, lockedAfterInput.y - lockedPosition.y) > 1) {
+    throw new Error('Le déplacement n’est pas verrouillé pendant le cours Octo du niveau 6.');
+  }
+  for (let page = 2; page <= 6; page += 1) {
+    await key(cdp, 'ArrowRight');
+    await new Promise((resolve) => setTimeout(resolve, 220));
+    if (pagePath(page)) await captureScreenshot(cdp, pagePath(page));
+  }
+  await key(cdp, 'Escape');
+  await waitForState(cdp, 'world');
+  await captureScreenshot(cdp, process.env.GITQUEST_QA_LEVEL6_AFTER_COURSE_SCREENSHOT);
+}
+
 async function runLevel3QuizCaptures(cdp) {
   await clickLevel2CourseQuiz(cdp);
   await waitForCourseView(cdp, 'quiz');
@@ -1087,6 +1155,14 @@ try {
 
   if (requestedLevel === 'level-04' && process.env.GITQUEST_QA_LEVEL4_OCTO_SCREENSHOTS === '1') {
     await runLevel4OctoCaptures(cdp);
+  }
+
+  if (requestedLevel === 'level-05' && process.env.GITQUEST_QA_LEVEL5_OCTO_SCREENSHOTS === '1') {
+    await runLevel5OctoCaptures(cdp);
+  }
+
+  if (requestedLevel === 'level-06' && process.env.GITQUEST_QA_LEVEL6_OCTO_SCREENSHOTS === '1') {
+    await runLevel6OctoCaptures(cdp);
   }
 
   if (requestedLevel === 'level-03' && process.env.GITQUEST_QA_LEVEL3_COMPLETE === '1') {

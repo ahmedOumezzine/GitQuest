@@ -44,6 +44,14 @@ test('les assets régionaux sont chargés à la demande par niveau', () => {
   assert.ok(harbor.images.some((asset) => asset.key === 'professor-octo-v1'));
   assert.ok(harbor.images.some((asset) => asset.key === 'professor-octo-portrait-v1'));
   assert.equal(harbor.images.some((asset) => asset.key === 'level-05-mountain'), false);
+  const mountain = assetsForLevel('level-05');
+  assert.ok(mountain.images.some((asset) => asset.key === 'level-05-mountain'));
+  assert.ok(mountain.images.some((asset) => asset.key === 'professor-octo-v1'));
+  assert.ok(mountain.images.some((asset) => asset.key === 'professor-octo-portrait-v1'));
+  const castle = assetsForLevel('level-06');
+  assert.ok(castle.images.some((asset) => asset.key === 'level-06-castle'));
+  assert.ok(castle.images.some((asset) => asset.key === 'professor-octo-v1'));
+  assert.ok(castle.images.some((asset) => asset.key === 'professor-octo-portrait-v1'));
   assert.ok(beach.images.some((asset) => asset.key === 'beach-tileset'));
   assert.ok(beach.spriteSheets.some((asset) => asset.key === 'level-01-player-sheet-v1'));
   assert.ok(beach.spriteSheets.some((asset) => asset.key === 'player-sheet'));

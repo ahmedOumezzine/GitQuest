@@ -227,7 +227,9 @@ export class ProfessorOctoCoursePanel extends Phaser.GameObjects.Container {
         ? Math.min(760, metrics.width - metrics.margin * 2)
         : Math.min(820, metrics.width - metrics.margin * 2);
     const densePage = Boolean(this.pages[this.pageIndex]?.steps);
-    const contentHeavyPage = this.view === 'course' && (this.levelId === 'level-02' || this.levelId === 'level-04') && this.pageIndex >= 1 && this.pageIndex <= 4;
+    const contentHeavyPage = this.view === 'course'
+      && (this.levelId === 'level-02' || this.levelId === 'level-04' || this.levelId === 'level-05' || this.levelId === 'level-06')
+      && this.pageIndex >= 1 && this.pageIndex <= 4;
     const pageFive = contentHeavyPage && this.pageIndex === 4;
     const quizView = this.view !== 'course';
     this.panelHeight = metrics.portrait

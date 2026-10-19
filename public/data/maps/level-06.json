@@ -743,6 +743,19 @@
           "height": 0
         },
         {
+          "id": 33,
+          "name": "professor-octo",
+          "type": "npc",
+          "x": 130,
+          "y": 300,
+          "width": 0,
+          "height": 0,
+          "properties": [
+            { "name": "role", "type": "string", "value": "teacher" },
+            { "name": "lesson", "type": "string", "value": "merge-conflict" }
+          ]
+        },
+        {
           "id": 32,
           "name": "exit-gate",
           "type": "door",

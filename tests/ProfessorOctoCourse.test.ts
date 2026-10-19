@@ -125,6 +125,42 @@ test('Professor Octo provides the six-page level-four push-pull lesson', () => {
   assert.match(new I18nManager('ar').text('courseHarborPanelTitle'), /git push/);
 });
 
+test('Professor Octo provides the six-page level-five branch-switch lesson', () => {
+  for (const locale of ['fr', 'en', 'ar'] as const) {
+    const pages = getProfessorOctoCoursePages(new I18nManager(locale), 'level-05');
+    assert.equal(pages.length, 6);
+    assert.equal(pages[2].command, 'git branch feature');
+    assert.equal(pages[3].command, 'git branch feature\ngit switch feature');
+    assert.match(pages[0].text, /main/);
+    assert.match(pages[1].text, /branch|فرع|branche/i);
+    assert.match(pages[4].steps ?? '', /git branch/);
+    assert.match(pages[4].steps ?? '', /git switch/);
+    assert.equal(pages[5].action, 'practice');
+    assert.equal(pages.some((page) => 'rewardXp' in page || 'xp' in page || 'reward' in page), false);
+  }
+  assert.equal(new I18nManager('fr').text('courseMountainPanelTitle'), 'Leçon 5 — git branch & git switch');
+  assert.equal(new I18nManager('en').text('courseMountainPanelTitle'), 'Lesson 5 — git branch & git switch');
+  assert.match(new I18nManager('ar').text('courseMountainPanelTitle'), /git branch/);
+});
+
+test('Professor Octo provides the six-page level-six merge lesson', () => {
+  for (const locale of ['fr', 'en', 'ar'] as const) {
+    const pages = getProfessorOctoCoursePages(new I18nManager(locale), 'level-06');
+    assert.equal(pages.length, 6);
+    assert.equal(pages[2].command, 'git merge main');
+    assert.equal(pages[3].command, 'git status\ngit merge main');
+    assert.match(pages[0].text, /archive|archives|الأرشيفات/i);
+    assert.match(pages[1].text, /merge|fusion|دمج/i);
+    assert.match(pages[4].steps ?? '', /git status/);
+    assert.match(pages[4].steps ?? '', /git merge/);
+    assert.equal(pages[5].action, 'practice');
+    assert.equal(pages.some((page) => 'rewardXp' in page || 'xp' in page || 'reward' in page), false);
+  }
+  assert.equal(new I18nManager('fr').text('courseCastlePanelTitle'), 'Leçon 6 — git merge');
+  assert.equal(new I18nManager('en').text('courseCastlePanelTitle'), 'Lesson 6 — git merge');
+  assert.match(new I18nManager('ar').text('courseCastlePanelTitle'), /git merge/);
+});
+
 test('Professor Octo quiz accepts the three correct answers and calculates 3/3', () => {
   const quiz = new ProfessorOctoQuizSession(getProfessorOctoQuizQuestions(new I18nManager('fr')));
   assert.equal(quiz.answer(1)?.correct, true);
@@ -177,6 +213,40 @@ test('Professor Octo level four quiz contains push-pull questions and correct an
   assert.match(questions[0].prompt, /git push/);
   assert.match(questions[1].prompt, /git pull/);
   assert.match(questions[2].answers[1], /push/);
+  assert.deepEqual(questions.map((question) => question.correctIndex), [1, 0, 1]);
+  assert.equal(quiz.answer(1)?.correct, true);
+  assert.equal(quiz.next(), true);
+  assert.equal(quiz.answer(0)?.correct, true);
+  assert.equal(quiz.next(), true);
+  assert.equal(quiz.answer(1)?.correct, true);
+  assert.equal(quiz.score, 3);
+  assert.equal(quiz.complete, true);
+});
+
+test('Professor Octo level five quiz contains branch-switch questions and correct answers', () => {
+  const questions = getProfessorOctoQuizQuestions(new I18nManager('fr'), 'level-05');
+  const quiz = new ProfessorOctoQuizSession(questions);
+  assert.equal(questions.length, 3);
+  assert.match(questions[0].prompt, /branche|branch/i);
+  assert.match(questions[1].answers[0], /feature/);
+  assert.match(questions[2].answers[1], /switch/);
+  assert.deepEqual(questions.map((question) => question.correctIndex), [1, 0, 1]);
+  assert.equal(quiz.answer(1)?.correct, true);
+  assert.equal(quiz.next(), true);
+  assert.equal(quiz.answer(0)?.correct, true);
+  assert.equal(quiz.next(), true);
+  assert.equal(quiz.answer(1)?.correct, true);
+  assert.equal(quiz.score, 3);
+  assert.equal(quiz.complete, true);
+});
+
+test('Professor Octo level six quiz contains merge questions and correct answers', () => {
+  const questions = getProfessorOctoQuizQuestions(new I18nManager('fr'), 'level-06');
+  const quiz = new ProfessorOctoQuizSession(questions);
+  assert.equal(questions.length, 3);
+  assert.match(questions[0].prompt, /merge/);
+  assert.match(questions[1].answers[0], /conflit/);
+  assert.match(questions[2].answers[1], /merge main/);
   assert.deepEqual(questions.map((question) => question.correctIndex), [1, 0, 1]);
   assert.equal(quiz.answer(1)?.correct, true);
   assert.equal(quiz.next(), true);
@@ -249,6 +319,10 @@ test('Professor Octo quiz stays optional, localized and free of progression rewa
     assert.equal(harborQuestions.length, 3);
     assert.ok(harborQuestions.every((question) => question.prompt.length > 0 && question.answers.every((answer) => answer.length > 0)));
     assert.deepEqual(harborQuestions.map((question) => question.correctIndex), [1, 0, 1]);
+    const mountainQuestions = getProfessorOctoQuizQuestions(new I18nManager(locale), 'level-05');
+    assert.equal(mountainQuestions.length, 3);
+    assert.ok(mountainQuestions.every((question) => question.prompt.length > 0 && question.answers.every((answer) => answer.length > 0)));
+    assert.deepEqual(mountainQuestions.map((question) => question.correctIndex), [1, 0, 1]);
   }
 });
 

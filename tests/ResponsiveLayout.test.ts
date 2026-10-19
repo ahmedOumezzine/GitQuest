@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { calculateGameplayHudLayout, calculateLayout, calculateMenuCenterY, calculateTouchLayout, TOUCH_LAYOUT_SIZES } from '../src/ui/layout/ResponsiveLayoutManager';
+import { calculateCoverZoom, calculateGameplayHudLayout, calculateLayout, calculateMenuCenterY, calculateTouchLayout, TOUCH_LAYOUT_SIZES } from '../src/ui/layout/ResponsiveLayoutManager';
 
 test('le layout identifie correctement les modes desktop, compact et portrait', () => {
   const desktop = calculateLayout(1920, 1080);
@@ -71,4 +71,18 @@ test('le HUD paysage mobile sépare la mission de la colonne XP/inventaire', () 
   assert.ok(hud.quest.x + hud.quest.width + 12 <= hud.xp.x);
   assert.equal(hud.xp.y, 8);
   assert.equal(hud.inventory.y, 48);
+});
+
+test('le HUD desktop reste proche des bords utiles sans réserver une bande opaque', () => {
+  const metrics = calculateLayout(1280, 720);
+  const hud = calculateGameplayHudLayout(metrics, 360, 144, 170);
+  assert.equal(hud.quest.y, 12);
+  assert.equal(hud.xp.y, 12);
+  assert.equal(hud.inventory.y, 54);
+});
+
+test('le zoom de caméra couvre les grands écrans sans zone vide', () => {
+  assert.equal(calculateCoverZoom({ width: 1280, height: 720 }, { width: 960, height: 544 }), 1.3333333333333333);
+  assert.equal(calculateCoverZoom({ width: 1908, height: 900 }, { width: 960, height: 544 }), 1.9875);
+  assert.equal(calculateCoverZoom({ width: 390, height: 844 }, { width: 960, height: 544 }), 1.5514705882352942);
 });
